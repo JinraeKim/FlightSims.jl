@@ -12,13 +12,16 @@ function dynamics!(env::AbstractEnv)
 end
 
 ## Simulation and data processing
-function sim(env::AbstractEnv;
-             t0=0.0, tf=1.0,
-             x0=State(env)(), dyn=dynamics!(env),
-             solver=Tsit5(),
+"""
+    sim(env::AbstractEnv, state0=State(env)(), dyn=dynamics!(env), p=nothing;
+    t0=0.0, tf=1.0, solver=Tsit5())
+"""
+function sim(env::AbstractEnv,
+        state0=State(env)(), dyn=dynamics!(env), p=nothing;
+        t0=0.0, tf=1.0, solver=Tsit5(),
     )
     tspan = (t0, tf)
-    prob = ODEProblem(dyn, x0, tspan)
+    prob = ODEProblem(dyn, state0, tspan, p)
     sol = solve(prob, solver)
     prob, sol
 end
@@ -33,6 +36,11 @@ function process(env::AbstractEnv)
 end
 
 # save and load
+"""
+    save(path::String,
+    env::AbstractEnv, prob::ODEProblem, sol::ODESolution;
+    process=nothing)
+"""
 function FileIO.save(path::String,
         env::AbstractEnv, prob::ODEProblem, sol::ODESolution;
         process=nothing,)
@@ -43,6 +51,9 @@ function FileIO.save(path::String,
     FileIO.save(path, will_be_saved)
 end
 
+"""
+    load(path::String; with_process=false)
+"""
 function JLD2.load(path::String; with_process=false)
     strs = [:env, :prob, :sol]
     if with_process
