@@ -18,11 +18,11 @@ end
 """
 function sim(env::AbstractEnv,
         state0=State(env)(), dyn=dynamics!(env), p=nothing;
-        t0=0.0, tf=1.0, solver=Tsit5(),
+        t0=0.0, tf=1.0, solver=Tsit5(), callback::DiffEqBase.DECallback=CallbackSet(), kwargs...
     )
     tspan = (t0, tf)
     prob = ODEProblem(dyn, state0, tspan, p)
-    sol = solve(prob, solver)
+    sol = solve(prob, solver; callback=callback, kwargs...)
     prob, sol
 end
 
