@@ -43,7 +43,7 @@ function FileIO.save(path::String,
     FileIO.save(path, will_be_saved)
 end
 
-function load(path::String; with_process=false)
+function JLD2.load(path::String; with_process=false)
     strs = [:env, :prob, :sol]
     if with_process
         push!(strs, :process)
