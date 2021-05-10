@@ -1,39 +1,46 @@
 using FlightSims
 using ComponentArrays
-using DifferentialEquations
+using OrdinaryDiffEq
 using Parameters: @unpack
 using Plots
+using Transducers
+using Rotations: RotXYZ
 
 
-function test()
+function test_quadcopter(dir_log)
+    mkpath(dir_log)
+    env = GoodarziQuadcopter()
+    tspan = (0.0, 10.0)
+    state0 = State(env)()
+    state0.ω += [0.01, 0, -0.1]
+    prob = ODEProblem(dynamics(env), state0, tspan)
+    @time sol = solve(prob, Tsit5())
+    ts = tspan[1]:0.01:tspan[end]
+    for sym in [:p, :v, :R, :ω]
+        data = ts |> Map(t -> getproperty(sol(t), sym)) |> collect
+        if sym == :R
+            data = data |> Map(R -> euler(RotXYZ(R))) |> collect
+        end
+        _sym = sym == :R ? :euler : sym
+        p = plot(ts, hcat(data...)'; label=String(_sym))
+        savefig(p, joinpath(dir_log, String(_sym) * ".png"))
+    end
+end
+
+function test_twodimnonlinearpoly(dir_log)
+    mkpath(dir_log)
     tspan = (0.0, 10.0)
     env = TwoDimensionalNonlinearPolynomialEnv()
     x0 = State(env)(-2, 3)
     prob = ODEProblem(dynamics!(env), x0, tspan)
     @time sol = solve(prob, Tsit5())
-    plot(sol)
+    p = plot(sol)
+    savefig(p, joinpath(dir_log, "x.png"))
 end
 
-function test_nested()
-    tspan = (0.0, 100.0)
-    x0 = ComponentArray(x1=1.0, x2=2.0)
-    y0 = ComponentArray(y1=1.0, y2=2.0)
-    X0 = ComponentArray(x=x0, y=y0)
-    dyn! = function (D, X, p, t)
-        @unpack x, y = X
-        @unpack x1, x2 = x
-        @unpack y1, y2 = y
-        D.x.x1 = -x2
-        D.x.x2 = -x1
-        D.y = -y
-    end
-    prob = ODEProblem(dyn!, X0, tspan)
-    # dyn = function (X, p, t)
-    #     @unpack x, y = X
-    #     @unpack x1, x2 = x
-    #     @unpack y1, y2 = y
-    #     dX = ComponentArray(x=(x1=-x2, x2=-x1), y=(y1=y1, y2=y2))
-    # end
-    # prob = ODEProblem(dyn, X0, tspan)
-    @time sol = solve(prob, Tsit5())
+
+function test()
+    dir_log = "data"
+    test_twodimnonlinearpoly(joinpath(dir_log, "twodimnonlinearpoly"))
+    test_quadcopter(joinpath(dir_log, "quadcopter"))
 end
