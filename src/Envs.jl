@@ -74,19 +74,11 @@ v ∈ R^3: inertial velocity
 R ∈ so(3): body-to-inertial rotation matrix (R_B2I)
 ω ∈ R^3: angular rate of body in inertial frame
 """
-struct GoodarziQuadcopter <: Quadcopter
-    m
-    J
-    J_inv
-    g
-end
-function GoodarziQuadcopter(;
-        m = 0.5,  # kg
-        J = 1e-2 * Diagonal([0.557, 0.557, 1.050]),  # kg m^2
-        J_inv = inv(J),
-        g = 9.81,  # m/s^2
-    )
-    GoodarziQuadcopter(m, J, J_inv, g)
+Base.@kwdef struct GoodarziQuadcopter <: Quadcopter
+    m = 0.5  # kg
+    J = 1e-2 * Diagonal([0.557, 0.557, 1.050])  # kg m²
+    J_inv = inv(J)
+    g = 9.81  # m/s²
 end
 
 function State(env::GoodarziQuadcopter)
