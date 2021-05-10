@@ -13,33 +13,17 @@ function State(env::TwoDimensionalNonlinearPolynomialEnv)
     end
 end
 
-function dynamics(env::TwoDimensionalNonlinearPolynomialEnv)
-    f = ẋ(env)
-    return (x, p, t) -> f(x, optimal_input(env)(x))  # default: optimal control
-end
 function dynamics!(env::TwoDimensionalNonlinearPolynomialEnv)
-    return function (dx, x, p, t)
+    return function (dx, x, p, t; u)
         @unpack x1, x2 = x
-        u = optimal_input(env)(x)  # default: optimal control
-        dx.x1 = ẋ1(env)(x1, x2)
-        dx.x2 = ẋ2(env)(x2, u)
+        dx.x1 = -(1/2)*x1^3 - x1 - 2*x2
+        dx.x2 = (1/8)*x2^3 - x2 + (1/2)*u^3
         nothing
     end
 end
 
-ẋ1(env::TwoDimensionalNonlinearPolynomialEnv) = (x1, x2) -> -(1/2)*x1^3 - x1 - 2*x2
-ẋ2(env::TwoDimensionalNonlinearPolynomialEnv) = (x2, u) -> (1/8)*x2^3 - x2 + (1/2)*u^3
-function ẋ(env::TwoDimensionalNonlinearPolynomialEnv)
-    return function (x, u::Real)
-        @unpack x1, x2 = x
-        dx1 = ẋ1(env)(x1, x2)
-        dx2 = ẋ2(env)(x2, u)
-        State(env)(dx1, dx2)
-    end
-end
-
 function optimal_input(env::TwoDimensionalNonlinearPolynomialEnv)
-    return function (x::ComponentArray)
+    return function (x::ComponentArray, p, t)
         @unpack x1, x2 = x
         -x2
     end
@@ -90,44 +74,23 @@ function State(env::GoodarziQuadcopter)
 end
 
 """
+# Variables
 f ∈ R: thrust magnitude
 M ∈ R^3: moment
 """
-function ẋ(env::GoodarziQuadcopter)
+function dynamics!(env::GoodarziQuadcopter)
     @unpack m, g, J, J_inv = env
     e3 = [0, 0, 1]
     skew(x) = [    0 -x[3]  x[2];
                 x[3]     0 -x[1];
                -x[2]  x[1]    0]
-    return function (state, f, M)
+    return function (dstate, state, p, t; f=f, M=M)
         @unpack p, v, R, ω = state
-        ṗ = v
-        v̇ = -(1/m)*f*R*e3 + g*e3
         Ω = skew(ω)
-        Ṙ = R*Ω
-        ω̇ = J_inv * (-Ω*J*ω + M)
-        ṗ, v̇, Ṙ, ω̇
-    end
-end
-
-function dynamics(env::GoodarziQuadcopter)
-    deriv = ẋ(env)
-    @unpack m, g = env
-    f, M = m*g, zeros(3)  # default input
-    (state, p, t) -> State(env)(deriv(state, f, M)...)
-end
-
-function dynamics!(env::GoodarziQuadcopter)
-    deriv = ẋ(env)
-    @unpack m, g = env
-    return function (dstate, state, p, t)
-        @unpack p, v, R, ω = state
-        f, M = m*g, zeros(3)  # default input
-        ṗ, v̇, Ṙ, ω̇ = deriv(state, f, M)
-        dstate.p = ṗ
-        dstate.v = v̇
-        dstate.R = Ṙ
-        dstate.ω = ω̇
+        dstate.p = v
+        dstate.v = -(1/m)*f*R*e3 + g*e3
+        dstate.R = R*Ω
+        dstate.ω = J_inv * (-Ω*J*ω + M)
         nothing
     end
 end

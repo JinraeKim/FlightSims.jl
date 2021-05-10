@@ -2,14 +2,14 @@ module FlightSims
 
 using OrdinaryDiffEq
 using ComponentArrays
-using Parameters: @unpack
+using UnPack
 using DataFrames
 using JLD2, FileIO
 using Transducers
 using Combinatorics
 using LinearAlgebra, Rotations
 
-export AbstractEnv, State, dynamics, dynamics!
+export AbstractEnv, State, dynamics, dynamics!, apply_inputs
 export sim, process, load
 export TwoDimensionalNonlinearPolynomialEnv,
        GoodarziQuadcopter

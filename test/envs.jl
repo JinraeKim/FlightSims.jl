@@ -1,7 +1,7 @@
 using FlightSims
 using ComponentArrays
 using OrdinaryDiffEq
-using Parameters: @unpack
+using UnPack
 using Plots
 using Transducers
 using Rotations: RotXYZ
@@ -12,7 +12,8 @@ function test_quadcopter(dir_log)
     env = GoodarziQuadcopter()
     state0 = State(env)()
     state0.ω += [0.01, 0, -0.1]
-    @time prob, sol = sim(env, state0; tf=10.0)
+    @unpack m, g = env
+    @time prob, sol = sim(env, state0, apply_inputs(dynamics!(env); f=m*g, M=zeros(3)); tf=10.0)
     ts = prob.tspan[1]:0.01:prob.tspan[end]
     data = ts |> Map(t -> sol(t)) |> collect
     for sym in [:p, :v, :R, :ω]
@@ -30,7 +31,7 @@ function test_twodimnonlinearpoly(dir_log)
     mkpath(dir_log)
     env = TwoDimensionalNonlinearPolynomialEnv()
     x0 = State(env)(-2, 3)
-    @time prob, sol = sim(env, x0; tf=10.0)
+    @time prob, sol = sim(env, x0, apply_inputs(dynamics!(env); u=FlightSims.optimal_input(env)); tf=10.0)
     p = plot(sol)
     savefig(p, joinpath(dir_log, "x.png"))
 end

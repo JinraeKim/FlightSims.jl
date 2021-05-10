@@ -11,6 +11,20 @@ function dynamics!(env::AbstractEnv)
     error("Undefined in-place dynamics")
 end
 
+"""
+# Notes
+Borrowed from [an MRAC example](https://jonniedie.github.io/ComponentArrays.jl/stable/examples/adaptive_control/).
+"""
+maybe_apply(f::Function, x, p, t) = f(x, p, t)
+maybe_apply(f, x, p, t) = f
+function apply_inputs(func; kwargs...)
+    simfunc(dx, x, p, t) = func(dx, x, p, t;
+                                map(f -> maybe_apply(f, x, p, t), (; kwargs...))...)
+    simfunc(x, p, t) = func(x, p, t;
+                            map(f -> maybe_apply(f, x, p, t), (; kwargs...))...)
+    simfunc
+end
+
 ## Simulation and data processing
 """
     sim(env::AbstractEnv, state0=State(env)(), dyn=dynamics!(env), p=nothing;

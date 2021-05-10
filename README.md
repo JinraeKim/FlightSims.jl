@@ -24,6 +24,8 @@ All environment structures should be sub-type of `AbstractEnv`.
 - `State(env::AbstractEnv)`: return a function that produces structured states.
 - `dynamics(env::AbstractEnv)` and `dynamics!(env::AbstractEnv)`: return a function that maps out-of-place or in-place dynamics (resp.),
 compatible with `DifferentialEquations`. User can extend these methods or simply define other methods.
+- `apply_inputs(func; kwargs...)`: It is borrowed from [an MRAC example](https://jonniedie.github.io/ComponentArrays.jl/stable/examples/adaptive_control/). By using this, user can easily apply various kind of inputs into the dynamical system (environment).
+
 ### Simulation and data saving & loading
 - [ ] To-do: Fill the following contents.
 - `sim`: return `prob::ODEProblem` and `sol::ODESolution`.
@@ -35,8 +37,9 @@ from a `.jld2` file.
 
 ## Usage
 - [ ] To-do: add an example
-For now, see `test/sim_and_save.jl` and `test/load_and_plot.jl`.
+For more details, please see `test/envs.jl`, `test/sim_and_save.jl`, and `test/load_and_plot.jl`.
 
 ## Issues
 - [An issue](https://github.com/jonniedie/ComponentArrays.jl/issues/83)
 has been reported; unknown crash between `OrdinaryDiffEq` and `ComponentArrays`.
+Will be resolved by [this](https://github.com/jonniedie/ComponentArrays.jl/commit/0a6f1cfe41131a6b0ff2d26ad6bad5bc33f19671).
