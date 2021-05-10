@@ -7,11 +7,13 @@ using DataFrames
 using JLD2, FileIO
 using Transducers
 using Combinatorics
+using LinearAlgebra, Rotations
 
 export AbstractEnv, State, dynamics, dynamics!
 export sim, process, load
-export TwoDimensionalNonlinearPolynomialEnv
-export polynomial_basis
+export TwoDimensionalNonlinearPolynomialEnv,
+       GoodarziQuadcopter
+export polynomial_basis, euler
 
 
 include("Envs.jl")
