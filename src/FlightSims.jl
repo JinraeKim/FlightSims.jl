@@ -14,8 +14,8 @@ export TwoDimensionalNonlinearPolynomialEnv
 export polynomial_basis
 
 
-include("APIs.jl")
 include("Envs.jl")
+include("APIs.jl")
 include("Utils.jl")
 
 
