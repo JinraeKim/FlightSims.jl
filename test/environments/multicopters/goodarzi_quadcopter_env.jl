@@ -1,15 +1,16 @@
 using FlightSims
-using ComponentArrays
-using OrdinaryDiffEq
 using UnPack
 using Plots
 using Transducers
 using Rotations: RotXYZ
+using Test
 
 
-function test_quadcopter(dir_log)
+@testset "GoodarziQuadcopterEnv" begin
+    dir_log = "data/test/environments/multicopters/GoodarziQuadcopterEnv"
     mkpath(dir_log)
-    env = GoodarziQuadcopter()
+
+    env = GoodarziQuadcopterEnv()
     state0 = State(env)()
     state0.ω += [0.01, 0, -0.1]
     @unpack m, g = env
@@ -25,20 +26,5 @@ function test_quadcopter(dir_log)
         p = plot(ts, hcat(_data...)'; label=String(_sym))
         savefig(p, joinpath(dir_log, String(_sym) * ".png"))
     end
-end
-
-function test_twodimnonlinearpoly(dir_log)
-    mkpath(dir_log)
-    env = TwoDimensionalNonlinearPolynomialEnv()
-    x0 = State(env)(-2, 3)
-    @time prob, sol = sim(env, x0, apply_inputs(dynamics!(env); u=FlightSims.optimal_input(env)); tf=10.0)
-    p = plot(sol)
-    savefig(p, joinpath(dir_log, "x.png"))
-end
-
-
-function test()
-    dir_log = "data"
-    test_twodimnonlinearpoly(joinpath(dir_log, "twodimnonlinearpoly"))
-    test_quadcopter(joinpath(dir_log, "quadcopter"))
+    println("Test results are saved in $(dir_log)")
 end

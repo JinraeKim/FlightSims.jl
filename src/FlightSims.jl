@@ -12,13 +12,13 @@ using LinearAlgebra, Rotations
 export AbstractEnv, State, dynamics, dynamics!, apply_inputs
 export sim, process, load
 export TwoDimensionalNonlinearPolynomialEnv,
-       GoodarziQuadcopter
+       GoodarziQuadcopterEnv
 export polynomial_basis, euler
 
 
-include("Envs.jl")
-include("APIs.jl")
-include("Utils.jl")
+include("environments/environments.jl")
+include("APIs/APIs.jl")
+include("utils/utils.jl")
 
 
 end
