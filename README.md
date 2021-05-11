@@ -11,13 +11,13 @@ If you want more functionality, please feel free to report an issue!
 ### Nested Environments and Zoo
 - One can generate user-defined nested environments (or, dynamical systems) for complex flight simulation.
 Also, some predefined environments are provided for reusability (i.e., environment zoo).
-For more details, please see `src/Envs.jl` and `test/envs.jl`.
+Take a look at `src/environments`.
 ### Utilities
 - Some utilities are also provided, for example, calculation of polynomial basis and 3D rotation.
-For more details, please see `src/Utils.jl`.
+Take a look at `src/utils`.
 
 ## APIs
-Main APIs are provided from `src/APIs.jl`.
+Main APIs are provided in `src/APIs`.
 ### Make an environment
 - `AbstractEnv`: an abstract type for user-defined and predefined environments.
 All environment structures should be sub-type of `AbstractEnv`.
@@ -37,7 +37,6 @@ from a `.jld2` file.
 
 ## Usage
 - [ ] To-do: add an example
-For more details, please see `test/envs.jl`, `test/sim_and_save.jl`, and `test/load_and_plot.jl`.
 
 ## Issues
 - [An issue](https://github.com/jonniedie/ComponentArrays.jl/issues/83)
