@@ -1,2 +1,2 @@
-include("approximators.jl")
+include("approximators/approximators.jl")
 include("rotations.jl")

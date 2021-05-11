@@ -13,6 +13,7 @@ export AbstractEnv, State, dynamics, dynamics!, apply_inputs
 export sim, process, load
 export TwoDimensionalNonlinearPolynomialEnv,
        GoodarziQuadcopterEnv
+export AbstractApproximator, LinearApproximator
 export polynomial_basis, euler
 
 
