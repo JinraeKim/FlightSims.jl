@@ -15,11 +15,13 @@ export TwoDimensionalNonlinearPolynomialEnv,
        GoodarziQuadcopterEnv
 export AbstractApproximator, LinearApproximator
 export polynomial_basis, euler
+export CTValueIterationADP
 
 
 include("environments/environments.jl")
 include("APIs/APIs.jl")
 include("utils/utils.jl")
+include("algorithms/algorithms.jl")
 
 
 end
