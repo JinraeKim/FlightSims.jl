@@ -2,21 +2,23 @@ module FlightSims
 
 using OrdinaryDiffEq
 using ComponentArrays
-using Parameters: @unpack
+using UnPack
 using DataFrames
 using JLD2, FileIO
 using Transducers
 using Combinatorics
+using LinearAlgebra, Rotations
 
-export AbstractEnv, State, dynamics, dynamics!
+export AbstractEnv, State, dynamics, dynamics!, apply_inputs
 export sim, process, load
-export TwoDimensionalNonlinearPolynomialEnv
-export polynomial_basis
+export TwoDimensionalNonlinearPolynomialEnv,
+       GoodarziQuadcopterEnv
+export polynomial_basis, euler
 
 
-include("Envs.jl")
-include("APIs.jl")
-include("Utils.jl")
+include("environments/environments.jl")
+include("APIs/APIs.jl")
+include("utils/utils.jl")
 
 
 end
