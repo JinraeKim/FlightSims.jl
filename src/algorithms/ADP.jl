@@ -25,10 +25,9 @@ m: input dim.
 d: polynomial degree
 """
 function CTValueIterationADP(n::Int, m::Int, d_value::Int=2, d_controller::Int=4;
-        with_bias_value=false, with_bias_controller=true,
+        V̂=LinearApproximator(n, d_value; with_bias=false),
+        dV̂=LinearApproximator(n+m, d_controller; with_bias=true),
     )
-    V̂ = LinearApproximator(n, d_value; with_bias=with_bias_value)
-    dV̂ = LinearApproximator(n+m, d_controller; with_bias=with_bias_controller)
     data = DataFrame()
     ΣΦᵀΦ_inv = nothing
     Θ = nothing

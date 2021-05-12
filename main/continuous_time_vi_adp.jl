@@ -16,6 +16,7 @@ function initialise()
     __u = u_explorer(__x, (), __t) 
     m = length(__u)
     adp = CTValueIterationADP(n, m)
+    adp.V̂.w = zeros(size(adp.V̂.w))  # initial guess; p.s.d.
     env, u_explorer, adp, n, m
 end
 
