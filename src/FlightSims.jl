@@ -15,7 +15,7 @@ export sim, process, load
 export TwoDimensionalNonlinearPolynomialEnv,
        GoodarziQuadcopterEnv
 export AbstractApproximator, LinearApproximator
-export polynomial_basis, euler
+export PolynomialBasis, euler
 export CTValueIterationADP
 
 
