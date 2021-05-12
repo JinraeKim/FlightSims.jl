@@ -4,8 +4,8 @@ using Test
 
 
 @testset "LinearApproximator" begin
-    n, d = 2, 4
-    la = LinearApproximator(n, d)
+    n, d, m = 2, 4, 3
+    la = LinearApproximator(n, d, m)
     x = rand(n)
     output = la(x)
     @show output

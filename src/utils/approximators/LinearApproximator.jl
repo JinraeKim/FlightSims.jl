@@ -9,7 +9,7 @@ d: polynomial degree
 m: output dimension
 """
 function LinearApproximator(n::Int, d::Int, m::Int=1; with_bias=true)
-    basis = polynomial_basis(n, d; with_bias=with_bias)
+    basis = PolynomialBasis(n, d; with_bias=with_bias)
     w_length = basis(rand(n)) |> length
     w = m == 1 ? rand(w_length) : rand(w_length, m)
     LinearApproximator(basis, w)
