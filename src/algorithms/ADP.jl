@@ -9,11 +9,14 @@ doi: 10.1109/CDC.2016.7798777.
 V̂ ∈ R: the estimate of (state) value function
 dV̂ ∈ R: the estimate of time derivative of (state) value function
 """
-struct CTValueIterationADP
+mutable struct CTValueIterationADP
+    n::Int
+    m::Int
     V̂::LinearApproximator
     dV̂::LinearApproximator
     data
     ΣΦᵀΦ_inv
+    Θ
 end
 
 """
@@ -28,31 +31,68 @@ function CTValueIterationADP(n::Int, m::Int, d_value::Int=2, d_controller::Int=4
     dV̂ = LinearApproximator(n+m, d_controller; with_bias=with_bias_controller)
     data = DataFrame()
     ΣΦᵀΦ_inv = nothing
-    CTValueIterationADP(V̂, dV̂, data, ΣΦᵀΦ_inv)
+    Θ = nothing
+    CTValueIterationADP(n, m, V̂, dV̂, data, ΣΦᵀΦ_inv, Θ)
 end
 
-function set_data!(adp::CTValueIterationADP)
-    @unpack data, V̂, ΣΦᵀΦ_inv = adp
-    return function (data_new)
-        data = data_new
-        xs = data.states
-        Φ = V̂.basis
-        ΦᵀΦ_js = xs |> Map(x -> Φ(x)' * Φ(x)) |> collect
-        ΣΦᵀΦ_inv = ΦᵀΦ_js |> sum |> inv
-        nothing
-    end
+"""
+# Notes
+adp.data contains M+1 data
+j = 0, 1, ..., M-1
+"""
+function set_data!(adp::CTValueIterationADP, data_new)
+    adp.data = data_new  # write over
+    _Φ = Φ(adp)
+    _Ψ = Ψ(adp)
+    ts = adp.data.times  # length: M+1
+    xs = adp.data.states  # length: M+1
+    us = adp.data.inputs  # length: M+1
+    x_js = xs[1:end-1]  # length: M
+    # ΣΦᵀΦ_inv (Eq. 16)
+    Φs = xs |> Map(_Φ) |> collect  # length: M+1
+    Φ_js = Φs[1:end-1]  # length: M
+    adp.ΣΦᵀΦ_inv = Φ_js |> Map(Φ -> Φ' * Φ) |> collect |> sum |> inv
+    # Θ (Eq. 12)
+    t_intervals = ts |> Partition(2; step=1) |> Map(copy) |> collect
+    x_intervals = xs |> Partition(2; step=1) |> Map(copy) |> collect
+    u_intervals = us |> Partition(2; step=1) |> Map(copy) |> collect
+    Ψ_intervals = zip(xs, us) |> MapSplat(_Ψ) |> Partition(2; step=1) |> Map(copy) |> collect
+    Θ_js = integrate.(t_intervals, Ψ_intervals)
+    ΣΘᵀΘ_inv = Θ_js |> Map(Θ_j -> Θ_j' * Θ_j) |> collect |> sum |> inv
+    Φ_diff_js = Φs |> diff  # length: M
+    ΣΘᵀΦ_diff = zip(Θ_js, Φ_diff_js) |> MapSplat((Θ_j, Φ_diff_j) -> Θ_j' * Φ_diff_j) |> collect
+    @bp
+    adp.Θ = ΣΘᵀΘ_inv * ΣΘᵀΦ_diff
+    nothing
 end
 
-Φ(adp::CTValueIterationADP) = (x) -> adp.V̂.basis(x)
-Ψ(adp::CTValueIterationADP) = (x, u) -> adp.dV̂.basis(vcat(x, u))
+Φ(adp::CTValueIterationADP) = (x) -> reshape(adp.V̂.basis(x), 1, :)
+Ψ(adp::CTValueIterationADP) = (x, u) -> reshape(adp.dV̂.basis(vcat(x, u)), 1, :)
 function Ĥ(adp::CTValueIterationADP, r::Function)
-    Ψ = Ψ(adp::CTValueIterationADP)
-    return (x, u, c) -> Ψ(x, u)*c + r(x, u)
+    _Ψ = Ψ(adp::CTValueIterationADP)
+    return (x, u, c) -> _Ψ(x, u)*c + r(x, u)
 end
 
-function update!(adp::CTValueIterationADP, lr)
-    @unpack V, ΣΦᵀΦ_inv = adp
-    error("TODO")
-    xs |> Map(x -> Φ(x)' * min(Ĥ)) |> collect
-    # V.w += lr * ΣΦᵀΦ_inv *
+function update!(adp::CTValueIterationADP, running_cost, lr;
+        u_norm_max::Real)
+    @assert u_norm_max > 0
+    @unpack m, V̂, ΣΦᵀΦ_inv, data, Θ = adp
+    _Ĥ = Ĥ(adp, running_cost)
+    _Φ = Φ(adp)
+    min_Ĥ = function(x, c)
+        opt = NLopt.Opt(:LD_MMA, m)
+        opt.min_objective = (u) -> _Ĥ(x, u, c)
+        opt.xtol_rel = 1e-3
+        u_norm_const = function (u, grad)
+            norm(u) <= u_norm_max
+        end
+        inequality_constraint!(opt, u_norm_const)
+        (minf, minx, ret) = NLopt.optimize(opt, )
+        minf
+    end
+    xs = data.states
+    term2 = xs |> Map(x -> _Φ(x)' * min_Ĥ(x, Θ*V̂.w)) |> collect |> sum
+    @bp
+    V̂.w += lr * ΣΦᵀΦ_inv * term2
+    nothing
 end
