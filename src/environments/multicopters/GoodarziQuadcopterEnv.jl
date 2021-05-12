@@ -7,7 +7,7 @@ in 2014 American Control Conference, Jun. 2014, pp. 4925–4930, doi: 10.1109/AC
 # Variables
 p ∈ R^3: inertial position
 v ∈ R^3: inertial velocity
-R ∈ so(3): body-to-inertial rotation matrix (R_B2I)
+R ∈ so(3): inertial-to-body rotation matrix (R_I2B)
 ω ∈ R^3: angular rate of body in inertial frame
 """
 Base.@kwdef struct GoodarziQuadcopterEnv <: QuadcopterEnv
@@ -40,8 +40,8 @@ function dynamics!(env::GoodarziQuadcopterEnv)
         @unpack p, v, R, ω = state
         Ω = skew(ω)
         dstate.p = v
-        dstate.v = -(1/m)*f*R*e3 + g*e3
-        dstate.R = R*Ω
+        dstate.v = -(1/m)*f*R'*e3 + g*e3
+        dstate.R = -Ω*R
         dstate.ω = J_inv * (-Ω*J*ω + M)
         nothing
     end
