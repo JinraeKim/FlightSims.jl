@@ -60,8 +60,7 @@ function set_data!(adp::CTValueIterationADP, data_new)
     Θ_js = integrate.(t_intervals, Ψ_intervals)
     ΣΘᵀΘ_inv = Θ_js |> Map(Θ_j -> Θ_j' * Θ_j) |> collect |> sum |> inv
     Φ_diff_js = Φs |> diff  # length: M
-    ΣΘᵀΦ_diff = zip(Θ_js, Φ_diff_js) |> MapSplat((Θ_j, Φ_diff_j) -> Θ_j' * Φ_diff_j) |> collect
-    @bp
+    ΣΘᵀΦ_diff = zip(Θ_js, Φ_diff_js) |> MapSplat((Θ_j, Φ_diff_j) -> Θ_j' * Φ_diff_j) |> collect |> sum
     adp.Θ = ΣΘᵀΘ_inv * ΣΘᵀΦ_diff
     nothing
 end
@@ -70,29 +69,27 @@ end
 Ψ(adp::CTValueIterationADP) = (x, u) -> reshape(adp.dV̂.basis(vcat(x, u)), 1, :)
 function Ĥ(adp::CTValueIterationADP, r::Function)
     _Ψ = Ψ(adp::CTValueIterationADP)
-    return (x, u, c) -> _Ψ(x, u)*c + r(x, u)
+    return (x, u, c) -> dot(_Ψ(x, u), c) + r(x, u)
 end
 
 function update!(adp::CTValueIterationADP, running_cost, lr;
         u_norm_max::Real)
     @assert u_norm_max > 0
-    @unpack m, V̂, ΣΦᵀΦ_inv, data, Θ = adp
+    @unpack m, ΣΦᵀΦ_inv, data, Θ = adp
     _Ĥ = Ĥ(adp, running_cost)
     _Φ = Φ(adp)
     min_Ĥ = function(x, c)
-        opt = NLopt.Opt(:LD_MMA, m)
-        opt.min_objective = (u) -> _Ĥ(x, u, c)
+        opt = NLopt.Opt(:LN_COBYLA, m)
+        opt.min_objective = (u, grad) -> _Ĥ(x, u, c)
         opt.xtol_rel = 1e-3
         u_norm_const = function (u, grad)
-            norm(u) <= u_norm_max
+            norm(u) - u_norm_max
         end
         inequality_constraint!(opt, u_norm_const)
-        (minf, minx, ret) = NLopt.optimize(opt, )
-        minf
+        (minf, minx, ret) = NLopt.optimize(opt, rand(m))
     end
     xs = data.states
-    term2 = xs |> Map(x -> _Φ(x)' * min_Ĥ(x, Θ*V̂.w)) |> collect |> sum
-    @bp
-    V̂.w += lr * ΣΦᵀΦ_inv * term2
+    term2 = xs |> Map(x -> _Φ(x)' * min_Ĥ(x, Θ*adp.V̂.w)[1]) |> collect |> sum
+    adp.V̂.w += lr * ΣΦᵀΦ_inv * term2
     nothing
 end

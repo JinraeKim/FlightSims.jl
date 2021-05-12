@@ -1,4 +1,4 @@
-struct LinearApproximator <: AbstractApproximator
+mutable struct LinearApproximator <: AbstractApproximator
     basis
     w
 end
