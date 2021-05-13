@@ -2,7 +2,8 @@ using FlightSims
 const FS = FlightSims
 using Transducers
 using Plots
-using Random
+using Random, LinearAlgebra
+using DynamicPolynomials
 
 
 function initialise()
@@ -39,12 +40,31 @@ end
 
 function train!(adp, running_cost)
     @show adp.V̂.w
-    for i in 1:25
+    i = 0
+    w_prev = deepcopy(adp.V̂.w)
+    stop_cond = function(i, w_diff_norm)
+        i >= 100 || w_diff_norm < 0.01 
+    end
+    while true
+        i += 1
+        @show i
         lr = 1 / (i+10)
-        u_norm_max = 10.0
+        u_norm_max = 5.0
         FS.update!(adp, running_cost, lr; u_norm_max=u_norm_max)
         @show adp.V̂.w
+        display_res(adp)
+        if stop_cond(i, norm(adp.V̂.w-w_prev))
+            break
+        else
+            w_prev = deepcopy(adp.V̂.w)
+        end
     end
+end
+
+function display_res(adp)
+    @unpack n = adp
+    @polyvar x[1:n]
+    @show adp.V̂(x)
 end
 
 function main(; seed=1, dir_log="data/main/continuous_time_vi_adp")
@@ -53,5 +73,5 @@ function main(; seed=1, dir_log="data/main/continuous_time_vi_adp")
     df = explore(dir_log, env, u_explorer)
     FS.set_data!(adp, df)
     train!(adp, FS.running_cost(env))
-    adp
+    # display_res(adp)
 end
