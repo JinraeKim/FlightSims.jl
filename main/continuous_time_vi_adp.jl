@@ -20,10 +20,18 @@ function initialise()
     env, u_explorer, adp, n, m
 end
 
-function explore(env, u_explorer)
-    x0 = State(env)()
-    tf = 1.80  # TODO
-    prob, sol = sim(env, x0, apply_inputs(dynamics!(env); u=u_explorer); tf=tf)
+function explore(dir_log, env, u_explorer; file_name="exploration.jld2")
+    file_path = joinpath(dir_log, file_name) 
+    prob, sol = nothing, nothing
+    if isfile(file_path)
+        saved_data = load(file_path)
+        @unpack prob, sol = saved_data
+    else
+        x0 = State(env)()
+        tf = 1.80  # TODO
+        prob, sol = sim(env, x0, apply_inputs(dynamics!(env); u=u_explorer); tf=tf)
+        FlightSims.save(file_path, env, prob, sol)
+    end
     df = process(env)(prob, sol)
     df.inputs = zip(df.times, df.states) |> MapSplat((t, x) -> u_explorer(x, (), t)) |> collect
     df
@@ -39,10 +47,10 @@ function train!(adp, running_cost)
     end
 end
 
-function main(; seed=1)
+function main(; seed=1, dir_log="data/main/continuous_time_vi_adp")
     Random.seed!(seed)
     env, u_explorer, adp, n, m = initialise()
-    df = explore(env, u_explorer)
+    df = explore(dir_log, env, u_explorer)
     FS.set_data!(adp, df)
     train!(adp, FS.running_cost(env))
     adp
