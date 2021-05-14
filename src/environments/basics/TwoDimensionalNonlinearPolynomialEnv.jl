@@ -32,7 +32,9 @@ function optimal_value(env::TwoDimensionalNonlinearPolynomialEnv)
 end
 
 function running_cost(env::TwoDimensionalNonlinearPolynomialEnv)
-    return function (x::ComponentArray, u::Real)
+    return function (x::ComponentArray, _u)
+        @assert length(_u) == 1
+        u = _u[1]  # Real or Array
         @unpack x1, x2 = x
         x1^4 + 2*(x1+x2)^2 + (3/4)*u^4
     end
