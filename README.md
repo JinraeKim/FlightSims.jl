@@ -36,6 +36,7 @@ in a `.jld2` file.
 from a `.jld2` file.
 
 ## Usage
+- For an example of infinite-horizon continuous-time linear quadratic regulator (LQR), take a look at `test/lqr.jl`.
 - [ ] To-do: add an example
 
 ## Issues
