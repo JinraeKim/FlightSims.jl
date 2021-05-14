@@ -3,14 +3,14 @@ const FS = FlightSims
 using Transducers
 using Plots
 using Random, LinearAlgebra
-using DynamicPolynomials
+using DynamicPolynomials, UnPack
 
 
 function initialise()
     # setting
     env = TwoDimensionalNonlinearPolynomialEnv()
     ω = 1
-    u_explorer = (x, p, t) -> sin(2*π*ω*t)
+    u_explorer = (x, p, t) -> sin(5*t)
     __x = State(env)()
     __t = 0.0
     n = length(__x)
@@ -33,7 +33,7 @@ function explore(dir_log, env, u_explorer; file_name="exploration.jld2")
         prob, sol = sim(env, x0, apply_inputs(dynamics!(env); u=u_explorer); tf=tf)
         FlightSims.save(file_path, env, prob, sol)
     end
-    df = process(env)(prob, sol)
+    df = process(env)(prob, sol; Δt=1e-2)
     df.inputs = zip(df.times, df.states) |> MapSplat((t, x) -> u_explorer(x, (), t)) |> collect
     df
 end
