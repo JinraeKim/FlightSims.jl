@@ -9,7 +9,6 @@ using DynamicPolynomials, UnPack
 function initialise()
     # setting
     env = TwoDimensionalNonlinearPolynomialEnv()
-    ω = 1
     u_explorer = (x, p, t) -> sin(5*t)
     __x = State(env)()
     __t = 0.0
@@ -17,8 +16,7 @@ function initialise()
     __u = u_explorer(__x, (), __t) 
     m = length(__u)
     adp = CTValueIterationADP(n, m)
-    adp.V̂.w = zeros(size(adp.V̂.w))  # initial guess; p.s.d.
-    env, u_explorer, adp, n, m
+    env, u_explorer, adp
 end
 
 function explore(dir_log, env, u_explorer; file_name="exploration.jld2")
@@ -28,12 +26,12 @@ function explore(dir_log, env, u_explorer; file_name="exploration.jld2")
         saved_data = load(file_path)
         @unpack prob, sol = saved_data
     else
-        x0 = State(env)()
+        x0 = State(env)(-2.9, -2.9)
         tf = 1.80  # TODO
         prob, sol = sim(env, x0, apply_inputs(dynamics!(env); u=u_explorer); tf=tf)
         FlightSims.save(file_path, env, prob, sol)
     end
-    df = process(env)(prob, sol; Δt=1e-2)
+    df = process(env)(prob, sol; Δt=0.003)
     df.inputs = zip(df.times, df.states) |> MapSplat((t, x) -> u_explorer(x, (), t)) |> collect
     df
 end
@@ -69,8 +67,8 @@ end
 
 function main(; seed=1, dir_log="data/main/continuous_time_vi_adp")
     Random.seed!(seed)
-    env, u_explorer, adp, n, m = initialise()
+    env, u_explorer, adp = initialise()
     df = explore(dir_log, env, u_explorer)
-    FS.set_data!(adp, df)
-    train!(adp, FS.running_cost(env))
+    # FS.set_data!(adp, df)
+    # train!(adp, FS.running_cost(env))
 end
