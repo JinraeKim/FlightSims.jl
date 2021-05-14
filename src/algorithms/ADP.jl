@@ -7,7 +7,11 @@ doi: 10.1109/CDC.2016.7798777.
 
 # Variables
 V̂ ∈ R: the estimate of (state) value function
+    - V̂.basis: Φ
+    - V̂.param: w
 dV̂ ∈ R: the estimate of time derivative of (state) value function
+    - dV̂.basis: Ψ
+    - V̂.param: c (nothing)
 """
 mutable struct CTValueIterationADP
     n::Int
@@ -25,8 +29,8 @@ m: input dim.
 d: polynomial degree
 """
 function CTValueIterationADP(n::Int, m::Int, d_value::Int=2, d_controller::Int=4;
-        V̂=LinearApproximator(n, d_value; with_bias=false),
-        dV̂=LinearApproximator(n+m, d_controller; with_bias=true),
+        V̂=LinearApproximator(:tao_bian_nonlinear_VI_V̂),
+        dV̂=LinearApproximator(:tao_bian_nonlinear_VI_dV̂),
     )
     data = DataFrame()
     ΣΦᵀΦ_inv = nothing

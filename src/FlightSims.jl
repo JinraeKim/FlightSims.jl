@@ -8,7 +8,7 @@ using LinearAlgebra, Transducers, Rotations
 using Combinatorics: multiexponents
 using NLopt
 using NumericalIntegration: integrate
-using DynamicPolynomials: @polyvar, PolyVar
+using DynamicPolynomials: @polyvar, PolyVar, AbstractPolynomialLike
 
 export AbstractEnv, State, dynamics, dynamics!, apply_inputs
 export sim, process, load

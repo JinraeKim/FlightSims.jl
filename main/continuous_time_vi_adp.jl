@@ -73,5 +73,4 @@ function main(; seed=1, dir_log="data/main/continuous_time_vi_adp")
     df = explore(dir_log, env, u_explorer)
     FS.set_data!(adp, df)
     train!(adp, FS.running_cost(env))
-    # display_res(adp)
 end
