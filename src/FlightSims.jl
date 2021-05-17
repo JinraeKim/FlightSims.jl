@@ -1,6 +1,6 @@
 module FlightSims
 
-using Debugger  # tmp
+# using Debugger  # tmp
 using OrdinaryDiffEq
 using ComponentArrays, UnPack
 using JLD2, FileIO, DataFrames
