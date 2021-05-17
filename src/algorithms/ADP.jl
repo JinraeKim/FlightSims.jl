@@ -22,6 +22,8 @@ mutable struct CTValueIterationADP
     data
     ΣΦᵀΦ_inv
     Θ
+    running_cost::Function
+    u_norm_max::Real
 end
 
 """
@@ -29,15 +31,18 @@ n: state dim.
 m: input dim.
 d: polynomial degree
 """
-function CTValueIterationADP(n::Int, m::Int, d_value::Int=2, d_controller::Int=4;
+function CTValueIterationADP(n::Int, m::Int, running_cost, u_norm_max,
+        d_value::Int=2, d_controller::Int=4;
         V̂=LinearApproximator(:tao_bian_nonlinear_VI_V̂),
         dV̂=LinearApproximator(:tao_bian_nonlinear_VI_dV̂),
     )
+    @assert u_norm_max > 0.0
+    # TODO: test with changing the function approximator, e.g., basis.
     data = DataFrame()
     ΣΦᵀΦ_inv = nothing
     Θ = nothing
     N_Ψ = length(dV̂.basis(rand(n+m)))
-    CTValueIterationADP(n, m, N_Ψ, V̂, dV̂, data, ΣΦᵀΦ_inv, Θ)
+    CTValueIterationADP(n, m, N_Ψ, V̂, dV̂, data, ΣΦᵀΦ_inv, Θ, running_cost, u_norm_max)
 end
 
 """
@@ -77,20 +82,19 @@ end
 
 Φ(adp::CTValueIterationADP) = (x) -> reshape(adp.V̂.basis(x), 1, :)
 Ψ(adp::CTValueIterationADP) = (x, u) -> reshape(adp.dV̂.basis(vcat(x, u)), 1, :)  # 1 × N_Ψ
-function Ĥ(adp::CTValueIterationADP, r::Function)
-    _Ψ = Ψ(adp::CTValueIterationADP)
-    return (x, u, c) -> dot(_Ψ(x, u), c) + r(x, u)
+function Ĥ(adp::CTValueIterationADP)
+    r = adp.running_cost
+    return (x, u, c) -> dot(Ψ(adp)(x, u), c) + r(x, u)
 end
 
-function update!(adp::CTValueIterationADP, running_cost, lr;
-        u_norm_max::Real)
-    @assert u_norm_max > 0
-    @unpack m, ΣΦᵀΦ_inv, data, Θ = adp
-    _Ĥ = Ĥ(adp, running_cost)
-    _Φ = Φ(adp)
-    min_Ĥ = function(x, c)
+"""
+Minimise approximate Hamiltonian.
+"""
+function min_Ĥ(adp::CTValueIterationADP)
+    @unpack m, u_norm_max = adp
+    return function (x, c)
         opt = NLopt.Opt(:LN_COBYLA, m)
-        opt.min_objective = (u, grad) -> _Ĥ(x, u, c)
+        opt.min_objective = (u, grad) -> Ĥ(adp)(x, u, c)
         opt.xtol_rel = 1e-3
         u_norm_const = function (u, grad)
             norm(u) - u_norm_max
@@ -98,8 +102,27 @@ function update!(adp::CTValueIterationADP, running_cost, lr;
         inequality_constraint!(opt, u_norm_const)
         (minf, minx, ret) = NLopt.optimize(opt, rand(m))
     end
+end
+
+function update!(adp::CTValueIterationADP, lr)
+    # TODO: Add inexact way of obtaining minimums;
+    # see https://github.com/JinraeKim/nonlinear-VI/blob/main/nonlinear_sys.R#L98
+    @unpack m, ΣΦᵀΦ_inv, data, Θ = adp
     xs = data.states
-    term2 = xs |> Map(x -> _Φ(x)' * min_Ĥ(x, Θ*adp.V̂.param)[1]) |> collect |> sum
+    term2 = xs |> Map(x -> Φ(adp)(x)' * min_Ĥ(adp)(x, Θ*adp.V̂.param)[1]) |> collect |> sum
     adp.V̂.param += lr * ΣΦᵀΦ_inv * term2
     nothing
+end
+
+"""
+Infer the approximate optimal input.
+"""
+function approximate_optimal_input(adp::CTValueIterationADP)
+    # TODO: Add inexact way of obtaining approximate optimal input;
+    # see https://github.com/JinraeKim/nonlinear-VI/blob/main/nonlinear_sys.R#L182
+    ŵ_f = adp.V̂.param
+    ĉ_f = adp.Θ * ŵ_f
+    return function (x, p, t)
+        û = min_Ĥ(adp)(x, ĉ_f)[2]
+    end
 end

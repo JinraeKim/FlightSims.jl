@@ -16,7 +16,8 @@ function initialise()
     n = length(__x)
     __u = u_explorer(__x, (), __t) 
     m = length(__u)
-    adp = CTValueIterationADP(n, m)
+    u_norm_max = 5.0
+    adp = CTValueIterationADP(n, m, FS.running_cost(env), u_norm_max)
     env, u_explorer, adp
 end
 
@@ -58,7 +59,7 @@ function explore(dir_log, env, adp, u_explorer;
     df
 end
 
-function train!(adp, running_cost; max_iter=100, w_tol=0.01)
+function train!(adp; max_iter=100, w_tol=0.01)
     @show adp.V̂.param
     i = 0
     w_prev = deepcopy(adp.V̂.param)
@@ -77,8 +78,7 @@ function train!(adp, running_cost; max_iter=100, w_tol=0.01)
         i += 1
         @show i
         lr = 1 / (i+10)
-        u_norm_max = 5.0
-        FS.update!(adp, running_cost, lr; u_norm_max=u_norm_max)
+        FS.update!(adp, lr)
         @show adp.V̂.param
         display_res(adp)
         stop_conds_dict = stop_conds(i, norm(adp.V̂.param-w_prev))
@@ -93,11 +93,7 @@ end
 
 function demonstrate(env, adp; Δt=0.01, tf=10.0)
     x0 = State(env)(-2.9, -2.9)
-    u_opt = function (x, p, t)
-        # TODO
-        error("Represent approximate optimal controller")
-    end
-    prob, sol = sim(env, x0, apply_inputs(dynamics!(env); u=u_opt); tf=tf)
+    prob, sol = sim(env, x0, apply_inputs(dynamics!(env); u=FS.approximate_optimal_input(adp)); tf=tf)
     df = process(env)(prob, sol; Δt=Δt)
     plot(df.times, hcat(df.states...)')
 end
@@ -109,7 +105,7 @@ function main(; seed=1, dir_log="data/main/continuous_time_vi_adp")
     df = explore(dir_log, env, adp, u_explorer;
                  exact_integration=true, Δt=0.003)
     FS.set_data!(adp, df)
-    train!(adp, FS.running_cost(env);
+    train!(adp;
            max_iter=100, w_tol=1e-2)
     demonstrate(env, adp)
 end
