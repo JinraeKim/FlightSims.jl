@@ -4,6 +4,7 @@
 “Value Iteration, Adaptive Dynamic Programming, and Optimal Control of Nonlinear Systems,”
 in 2016 IEEE 55th Conference on Decision and Control (CDC), Las Vegas, NV, USA, Dec. 2016, pp. 3375–3380.
 doi: 10.1109/CDC.2016.7798777.
+[2] Forked repo of the code implementation by T. Bian, https://github.com/JinraeKim/nonlinear-VI/blob/main/nonlinear_sys.R
 
 # Variables
 V̂ ∈ R: the estimate of (state) value function
@@ -11,7 +12,7 @@ V̂ ∈ R: the estimate of (state) value function
     - V̂.param: w
 dV̂ ∈ R: the estimate of time derivative of (state) value function
     - dV̂.basis: Ψ
-    - V̂.param: c (nothing)
+    - V̂.param: c (BE CAREFUL; not used)
 """
 mutable struct CTValueIterationADP
     n::Int
@@ -91,6 +92,8 @@ end
 Minimise approximate Hamiltonian.
 """
 function min_Ĥ(adp::CTValueIterationADP)
+    # TODO: Add inexact way of obtaining minimums;
+    # see https://github.com/JinraeKim/nonlinear-VI/blob/main/nonlinear_sys.R#L98
     @unpack m, u_norm_max = adp
     return function (x, c)
         opt = NLopt.Opt(:LN_COBYLA, m)
@@ -105,8 +108,6 @@ function min_Ĥ(adp::CTValueIterationADP)
 end
 
 function update!(adp::CTValueIterationADP, lr)
-    # TODO: Add inexact way of obtaining minimums;
-    # see https://github.com/JinraeKim/nonlinear-VI/blob/main/nonlinear_sys.R#L98
     @unpack m, ΣΦᵀΦ_inv, data, Θ = adp
     xs = data.states
     term2 = xs |> Map(x -> Φ(adp)(x)' * min_Ĥ(adp)(x, Θ*adp.V̂.param)[1]) |> collect |> sum

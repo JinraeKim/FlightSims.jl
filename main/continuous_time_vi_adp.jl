@@ -16,17 +16,19 @@ function initialise()
     n = length(__x)
     __u = u_explorer(__x, (), __t) 
     m = length(__u)
-    u_norm_max = 5.0
+    u_norm_max = 5.0  # input constraint for numerical optimisation; TODO: can be deprecated
     adp = CTValueIterationADP(n, m, FS.running_cost(env), u_norm_max)
     env, u_explorer, adp
 end
 
 function explore(dir_log, env, adp, u_explorer;
-        file_name="exploration.jld2", exact_integration=true, Δt=0.003, tf=1.8)
+        file_name="exploration.jld2",
+        exact_integration=true, Δt=0.003, tf=1.8,  # the settings in the paper and implemented code by T. Bian
+    )
     file_path = joinpath(dir_log, file_name) 
     prob, sol = nothing, nothing
     df = nothing
-    x0 = State(env)(-2.9, -2.9)
+    x0 = State(env)(-2.9, -2.9)  # the setting in the paper
     if exact_integration
         X0 = ComponentArray(x=x0, ∫Ψ=zeros(1, adp.N_Ψ))  # append system, 1 x N
         appended_dynamics! = function (env::TwoDimensionalNonlinearPolynomialEnv)
@@ -99,6 +101,19 @@ function demonstrate(env, adp; Δt=0.01, tf=10.0)
 end
 
 
+"""
+Main codes for demonstration of continuous-time value-iteration adaptive dynamic programming (CT-VI-ADP) [1].
+# References
+[1] T. Bian and Z.-P. Jiang, “Value Iteration, Adaptive Dynamic Programming, and Optimal Control of Nonlinear Systems,” in 2016 IEEE 55th Conference on Decision and Control (CDC), Las Vegas, NV, USA, Dec. 2016, pp. 3375–3380. doi: 10.1109/CDC.2016.7798777.
+[2] Forked repo of the code implementation by T. Bian, https://github.com/JinraeKim/nonlinear-VI/blob/main/nonlinear_sys.R
+
+# Settings
+`exact_integration`:
+if `true`, `∫Ψ` is calculated with the dynamical system simultaneously (i.e., regarded as the true solution).
+if `false`, it is calculated by numerical integration (default setting may be trapezoidal method.)
+
+`Δt`: data sampling period
+"""
 function main(; seed=1, dir_log="data/main/continuous_time_vi_adp")
     Random.seed!(seed)
     env, u_explorer, adp = initialise()
