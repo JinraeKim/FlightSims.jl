@@ -1,6 +1,6 @@
 struct PolynomialBasis
-    polynomial::Vector{T} where T <: AbstractPolynomialLike
-    x::Vector{T} where T <: AbstractPolynomialLike
+    polynomial::AbstractVector{T} where T <: AbstractPolynomialLike
+    x::AbstractVector{T} where T <: AbstractPolynomialLike
 end
 
 
@@ -24,6 +24,6 @@ function PolynomialBasis(n::Int, d::Int; with_bias=true)
     PolynomialBasis(polynomial, x)
 end
 
-function (a::PolynomialBasis)(x::Vector)
+function (a::PolynomialBasis)(x::AbstractArray)
     a.polynomial |> Map(poly -> poly(a.x => x)) |> collect
 end
