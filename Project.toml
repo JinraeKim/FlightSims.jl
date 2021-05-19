@@ -27,7 +27,7 @@ OrdinaryDiffEq = "5.53"
 Transducers = "0.4"
 UnPack = "1.0"
 Rotations = "1.0"
-ComponentArrays = "1.0"
+ComponentArrays = "0.9"
 julia = "1"
 
 [extras]
