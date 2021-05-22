@@ -22,6 +22,7 @@ DataFrames = "1.1"
 FileIO = "1.8"
 JLD2 = "0.4"
 OrdinaryDiffEq = "5.53"
+ReferenceFrameRotations = "1.0"
 Transducers = "0.4"
 julia = "1"
 
