@@ -23,8 +23,9 @@ maybe_apply(f, x, p, t) = f
 function apply_inputs(func; kwargs...)
     simfunc(dx, x, p, t) = func(dx, x, p, t;
                                 map(f -> maybe_apply(f, x, p, t), (; kwargs...))...)
+    # TODO: out-of-place method does not work; see `test/lqr.jl`
     simfunc(x, p, t) = func(x, p, t;
                             map(f -> maybe_apply(f, x, p, t), (; kwargs...))...)
-    simfunc
+    return simfunc
 end
 

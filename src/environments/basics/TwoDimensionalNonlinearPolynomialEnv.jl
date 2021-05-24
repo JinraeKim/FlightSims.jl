@@ -10,9 +10,11 @@ end
 
 function dynamics!(env::TwoDimensionalNonlinearPolynomialEnv)
     return function (dx, x, p, t; u)
+        @assert length(u) == 1
+        _u = u[1]  # Real or Array
         @unpack x1, x2 = x
         dx.x1 = -(1/2)*x1^3 - x1 - 2*x2
-        dx.x2 = (1/8)*x2^3 - x2 + (1/2)*u^3
+        dx.x2 = (1/8)*x2^3 - x2 + (1/2)*_u^3
         nothing
     end
 end
@@ -32,7 +34,9 @@ function optimal_value(env::TwoDimensionalNonlinearPolynomialEnv)
 end
 
 function running_cost(env::TwoDimensionalNonlinearPolynomialEnv)
-    return function (x::ComponentArray, u::Real)
+    return function (x::ComponentArray, _u)
+        @assert length(_u) == 1
+        u = _u[1]  # Real or Array
         @unpack x1, x2 = x
         x1^4 + 2*(x1+x2)^2 + (3/4)*u^4
     end
