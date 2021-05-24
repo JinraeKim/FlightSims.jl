@@ -1,3 +1,3 @@
 abstract type AbstractApproximator end
-include("polynomial_basis.jl")
+include("PolynomialBasis.jl")
 include("LinearApproximator.jl")

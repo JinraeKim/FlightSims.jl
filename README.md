@@ -22,7 +22,7 @@ Main APIs are provided in `src/APIs`.
 - `AbstractEnv`: an abstract type for user-defined and predefined environments.
 All environment structures should be sub-type of `AbstractEnv`.
 - `State(env::AbstractEnv)`: return a function that produces structured states.
-- `dynamics(env::AbstractEnv)` and `dynamics!(env::AbstractEnv)`: return a function that maps out-of-place or in-place dynamics (resp.),
+- `dynamics!(env::AbstractEnv)` and `dynamics(env::AbstractEnv)`: return a function that maps in-place (**recommended**) and out-of-place dynamics (resp.),
 compatible with `DifferentialEquations`. User can extend these methods or simply define other methods.
 - `apply_inputs(func; kwargs...)`: It is borrowed from [an MRAC example](https://jonniedie.github.io/ComponentArrays.jl/stable/examples/adaptive_control/). By using this, user can easily apply various kind of inputs into the dynamical system (environment).
 
@@ -36,7 +36,9 @@ in a `.jld2` file.
 from a `.jld2` file.
 
 ## Usage
-- For an example of infinite-horizon continuous-time linear quadratic regulator (LQR), take a look at `test/lqr.jl`.
+- For an example of **infinite-horizon continuous-time linear quadratic regulator (LQR)**, take a look at `test/lqr.jl`.
+- For an example of **continuous-time value-iteration adaptive dynamic programming (CT-VI-ADP)**, take a look at `main/continuous_time_vi_adp.jl`.
+    - [T. Bian and Z.-P. Jiang, “Value Iteration, Adaptive Dynamic Programming, and Optimal Control of Nonlinear Systems,” in 2016 IEEE 55th Conference on Decision and Control (CDC), Las Vegas, NV, USA, Dec. 2016, pp. 3375–3380. doi: 10.1109/CDC.2016.7798777.](https://ieeexplore.ieee.org/document/7798777)
 - [ ] To-do: add an example
 
 ## Issues
