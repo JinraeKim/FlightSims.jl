@@ -17,7 +17,7 @@ end
 
 function initialise(approximator_type)
     n, m = 2, 1
-    N = 100
+    N = 10
     A, B = [0 1; 0 0], [0; 1]
     Q, R = I, I
     env = LinearSystemEnv(A, B, Q, R)
@@ -41,7 +41,7 @@ end
 function explore(env, x0s, u_explorer)
     global_logger(TerminalLogger())  # for progress bar
     n = size(env.B)[1]
-    Δt, tf = 0.01, 5.0
+    Δt, tf = 0.01, 10.0
     function process(env::LinearSystemEnv)
         return function (prob, sol; Δt=Δt)
             t0, tf = prob.tspan
@@ -58,8 +58,8 @@ function explore(env, x0s, u_explorer)
 end
 
 
-function train(û, states, actions; epochs=20)
-    partition_ratio = 0.8
+function train(û, states, actions; epochs=10)
+    partition_ratio = 0.8  # 80% vs 20%
     data_train, data_test = FS.partitionTrainTest(zip(states, actions) |> collect, partition_ratio)  # merge and split; NEVER split data first, e.g., states_train, states_test = FS.partitionTrainTest(states)
     states_train = data_train |> Map(datum -> datum[1]) |> collect
     actions_train = data_train |> Map(datum -> datum[2]) |> collect
@@ -93,6 +93,6 @@ function main(; seed=0)
     dfs_test = explore(env, x0s, (x, p, t) -> bc.π̂(x))
     # plot
     p = plot()
-    dfs_test |> Map(df -> plot!(df.times, hcat(df.states...)')) |> collect
+    dfs_test |> Map(df -> plot!(df.times, hcat(df.states...)'; label=nothing)) |> collect
     p
 end
