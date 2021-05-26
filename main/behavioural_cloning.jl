@@ -60,7 +60,7 @@ end
 
 function train(û, states, actions; epochs=20)
     partition_ratio = 0.8
-    data_train, data_test = FS.partitionTrainTest(zip(states, actions) |> collect, partition_ratio)
+    data_train, data_test = FS.partitionTrainTest(zip(states, actions) |> collect, partition_ratio)  # merge and split; NEVER split data first, e.g., states_train, states_test = FS.partitionTrainTest(states)
     states_train = data_train |> Map(datum -> datum[1]) |> collect
     actions_train = data_train |> Map(datum -> datum[2]) |> collect
     states_test = data_test |> Map(datum -> datum[1]) |> collect
