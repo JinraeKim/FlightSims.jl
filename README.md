@@ -36,9 +36,12 @@ in a `.jld2` file.
 from a `.jld2` file.
 
 ## Usage
+### Control and reinforcement learning with dynamical systems
 - For an example of **infinite-horizon continuous-time linear quadratic regulator (LQR)**, take a look at `test/lqr.jl`.
 - For an example of **continuous-time value-iteration adaptive dynamic programming (CT-VI-ADP)**, take a look at `main/continuous_time_vi_adp.jl`.
     - [T. Bian and Z.-P. Jiang, “Value Iteration, Adaptive Dynamic Programming, and Optimal Control of Nonlinear Systems,” in 2016 IEEE 55th Conference on Decision and Control (CDC), Las Vegas, NV, USA, Dec. 2016, pp. 3375–3380. doi: 10.1109/CDC.2016.7798777.](https://ieeexplore.ieee.org/document/7798777)
+### Scientific machine learning
+- For an example usage of [Flux.jl](https://github.com/FluxML/Flux.jl), see `main/flux_example.jl`.
 - [ ] To-do: add an example
 
 ## Issues
