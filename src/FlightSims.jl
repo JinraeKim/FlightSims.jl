@@ -12,8 +12,8 @@ using DynamicPolynomials: @polyvar, PolyVar, AbstractPolynomialLike
 
 export AbstractEnv, State, dynamics, dynamics!, apply_inputs
 export sim, process, load
-export TwoDimensionalNonlinearPolynomialEnv,
-       GoodarziQuadcopterEnv
+export TwoDimensionalNonlinearPolynomialEnv, LinearSystemEnv
+export GoodarziQuadcopterEnv
 export AbstractApproximator, LinearApproximator
 export PolynomialBasis, euler
 export CTValueIterationADP
