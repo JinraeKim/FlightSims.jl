@@ -37,7 +37,40 @@ from a `.jld2` file.
 
 ## Usage
 ### Control and reinforcement learning with dynamical systems
-- For an example of **infinite-horizon continuous-time linear quadratic regulator (LQR)**, take a look at `test/lqr.jl`.
+- For an example of **infinite-horizon continuous-time linear quadratic regulator (LQR)**, see the following example code (`test/lqr.jl`).
+
+```julia
+using FlightSims
+using LinearAlgebra
+using ControlSystems: lqr
+using Plots
+
+
+function test()
+    # double integrator
+    n, m = 2, 1
+    A = [0 1;
+         0 0]
+    B = [0;
+         1]
+    Q = Matrix(I, n, n)
+    R = Matrix(I, m, m)
+    env = LinearSystemEnv(A, B, Q, R)  # exported from FlightSims
+    K = lqr(A, B, Q, R)
+    x0 = State(env)([1, 2])
+    u_lqr(x, p, t) = -K*x
+    prob, sol = sim(
+                    env,  # environment
+                    x0,  # initial condition
+                    apply_inputs(dynamics!(env); u=u_lqr);  # dynamics with input of LQR
+                    tf=10.0,  # final time
+                   )
+    df = process(env)(prob, sol; Δt=0.01)  # DataFrame; `Δt` means data sampling period.
+    plot(df.times, hcat(df.states...)'; label=["x1" "x2"])  # Plots
+end
+```
+![ex_screenshot](./figures/lqr.png)
+
 - For an example of **continuous-time value-iteration adaptive dynamic programming (CT-VI-ADP)**, take a look at `main/continuous_time_vi_adp.jl`.
     - [T. Bian and Z.-P. Jiang, “Value Iteration, Adaptive Dynamic Programming, and Optimal Control of Nonlinear Systems,” in 2016 IEEE 55th Conference on Decision and Control (CDC), Las Vegas, NV, USA, Dec. 2016, pp. 3375–3380. doi: 10.1109/CDC.2016.7798777.](https://ieeexplore.ieee.org/document/7798777)
 ### Scientific machine learning

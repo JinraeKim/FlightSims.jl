@@ -1,53 +1,29 @@
 using FlightSims
 using LinearAlgebra
 using ControlSystems: lqr
-using UnPack
 using Plots
 
 
-struct LinearSystemEnv <: AbstractEnv
-    A
-    B
-    Q
-    R
-    n
-    m
-end
-LinearSystemEnv(A, B, Q, R) = LinearSystemEnv(A, B, Q, R, size(B)...)
-
-function State(env::LinearSystemEnv)
-    () -> ones(env.n)
-end
-
-function dynamics(env::LinearSystemEnv)
-    @unpack A, B = env
-    return function(x, p, t; u)
-        A*x + B*u
-    end
-end
-function dynamics!(env::LinearSystemEnv)
-    @unpack A, B = env
-    return function(dx, x, p, t; u)
-        dx .= A*x + B*u
-    end
-end
-
 function test()
-    n, m = 3, 3
-    A = Matrix(I, n, n)
-    B = Matrix(I, n, m)
+    # double integrator
+    n, m = 2, 1
+    A = [0 1;
+         0 0]
+    B = [0;
+         1]
     Q = Matrix(I, n, n)
     R = Matrix(I, m, m)
-    env = LinearSystemEnv(A, B, Q, R)
-    x0 = State(env)()
+    env = LinearSystemEnv(A, B, Q, R)  # exported from FlightSims
     K = lqr(A, B, Q, R)
+    x0 = State(env)([1, 2])
     u_lqr(x, p, t) = -K*x
-    # in-place
-    prob, sol = sim(env, x0, apply_inputs(dynamics!(env); u=u_lqr);
-                    tf=10.0)
-    # out-of-place
-    # prob, sol = sim(env, x0, apply_inputs(dynamics(env); u=u_lqr);
-    #                 tf=10.0)
-    df = process(env)(prob, sol)
-    plot(df.times, hcat(df.states...)')
+    prob, sol = sim(
+                    env,  # environment
+                    x0,  # initial condition
+                    apply_inputs(dynamics!(env); u=u_lqr);  # dynamics with input of LQR
+                    tf=10.0,  # final time
+                   )
+    df = process(env)(prob, sol; Δt=0.01)  # DataFrame; `Δt` means data sampling period.
+    plot(df.times, hcat(df.states...)'; label=["x1" "x2"])  # Plots
+    savefig("figures/lqr.png")
 end
