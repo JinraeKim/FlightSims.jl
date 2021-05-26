@@ -1,6 +1,7 @@
 # split data into train and test
 """
     partitionTrainTest(data, at)
+
 Split a dataset into train and test datasets (array).
 """
 function partitionTrainTest(data, at=0.8)

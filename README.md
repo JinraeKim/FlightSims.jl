@@ -75,7 +75,7 @@ end
     - [T. Bian and Z.-P. Jiang, “Value Iteration, Adaptive Dynamic Programming, and Optimal Control of Nonlinear Systems,” in 2016 IEEE 55th Conference on Decision and Control (CDC), Las Vegas, NV, USA, Dec. 2016, pp. 3375–3380. doi: 10.1109/CDC.2016.7798777.](https://ieeexplore.ieee.org/document/7798777)
 ### Scientific machine learning
 - For an example usage of [Flux.jl](https://github.com/FluxML/Flux.jl), see `main/flux_example.jl`.
-- [ ] To-do: add an example
+- For an example code of an imitation learning algorithm, behavioural cloning, see `main/behavioural_cloning.jl`.
 
 ## Issues
 - [An issue](https://github.com/jonniedie/ComponentArrays.jl/issues/83)
