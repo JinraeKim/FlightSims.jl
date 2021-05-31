@@ -11,6 +11,7 @@ using NumericalIntegration: integrate
 using DynamicPolynomials: @polyvar, PolyVar, AbstractPolynomialLike
 using Flux
 using Flux.Data: DataLoader
+using MatrixEquations
 
 export AbstractEnv, State, dynamics, dynamics!, apply_inputs
 export sim, process, load
