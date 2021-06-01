@@ -26,9 +26,10 @@ function Dynamics!(env::LinearSystemEnv)
 end
 
 function running_cost(env::LinearSystemEnv)
-    return function (x::ComponentArray, _u)
+    @unpack Q, R = env
+    return function (x, _u)
         @assert length(_u) == 1
         u = _u[1]  # Real or Array
-				0.5*(x'*Q*x + u'*R*u)
+        0.5*(x'*Q*x + u'*R*u)
     end
 end

@@ -12,6 +12,7 @@ mutable struct CTLinearIRL
     m::Int
     V̂::LinearApproximator
     running_cost::Function
+    T::Real
 end
 
 """
@@ -20,23 +21,23 @@ m: input dim.
 d: polynomial degree
 """
 function CTLinearIRL(n::Int, m::Int, running_cost,
-        d_value::Int=2, d_controller::Int=4;
+        T=0.04, d_value::Int=2, d_controller::Int=4;
         V̂=LinearApproximator(2, 2; with_bias=false),
     )
-    CTLinearIRL(n, m, V̂, running_cost)
+    @assert T > 0
+    CTLinearIRL(n, m, V̂, running_cost, T)
 end
-
-Φ(irl::CTLinearIRL) = (x) -> reshape(irl.V̂.basis(x), 1, :)
 
 """
 Infer the approximate optimal input.
 """
-function approximate_optimal_input(irl::CTLinearIRL)
-    ŵ = irl.V̂.param
-		P = [ŵ[1] ŵ[2]/2; ŵ[2]/2 ŵ[3]]
-		K = - inv(R) * B' * P
-
-		return function (x, p, t)
-				û = -K * x
-		end
+function approximate_optimal_input(irl::CTLinearIRL, env::LinearSystemEnv)
+    @unpack B, R = env
+    return function (x, p, t)
+        ŵ = irl.V̂.param
+        P = [  ŵ[1] ŵ[2]/2;
+             ŵ[2]/2   ŵ[3]]
+        K = - inv(R) * B' * P
+        û = -K * x
+    end
 end
