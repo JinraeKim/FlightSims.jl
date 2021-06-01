@@ -19,6 +19,9 @@ export TwoDimensionalNonlinearPolynomialEnv, LinearSystemEnv
 export GoodarziQuadcopterEnv
 export AbstractApproximator, LinearApproximator
 export PolynomialBasis, euler
+# algorithms
+export command
+export BacksteppingPositionController
 export CTValueIterationADP, BehaviouralCloning
 
 
