@@ -1,10 +1,10 @@
 module FlightSims
 
-using Debugger  # tmp
+# using Debugger  # tmp
 using OrdinaryDiffEq
 using ComponentArrays, UnPack
 using JLD2, FileIO, DataFrames
-using LinearAlgebra, Transducers, Rotations, Random
+using LinearAlgebra, Transducers, Rotations
 using Combinatorics: multiexponents
 using NLopt
 using NumericalIntegration: integrate

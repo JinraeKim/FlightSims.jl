@@ -37,9 +37,9 @@ function explore(dir_log, env, adp, u_explorer;
                 dX.∫Ψ = FlightSims.Ψ(adp)(dX.x, u)
             end
         end
-        prob, sol = sim(env, X0, apply_inputs(appended_dynamics!(env); u=u_explorer); tf=tf)
+        prob, sol = sim(X0, apply_inputs(appended_dynamics!(env); u=u_explorer); tf=tf)
     else
-        prob, sol = sim(env, x0, apply_inputs(dynamics!(env); u=u_explorer); tf=tf)
+        prob, sol = sim(x0, apply_inputs(dynamics!(env); u=u_explorer); tf=tf)
     end
     FlightSims.save(file_path, env, prob, sol)
     if exact_integration
@@ -95,7 +95,7 @@ end
 
 function demonstrate(env, adp; Δt=0.01, tf=10.0)
     x0 = State(env)(-2.9, -2.9)
-    prob, sol = sim(env, x0, apply_inputs(dynamics!(env); u=FS.approximate_optimal_input(adp)); tf=tf)
+    prob, sol = sim(x0, apply_inputs(dynamics!(env); u=FS.approximate_optimal_input(adp)); tf=tf)
     df = process(env)(prob, sol; Δt=Δt)
     plot(df.times, hcat(df.states...)')
 end

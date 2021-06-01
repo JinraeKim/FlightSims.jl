@@ -9,7 +9,7 @@ using Test
 
     env = TwoDimensionalNonlinearPolynomialEnv()
     x0 = State(env)()
-    @time prob, sol = sim(env, x0, apply_inputs(dynamics!(env); u=FlightSims.optimal_input(env)); tf=10.0)
+    @time prob, sol = sim(x0, apply_inputs(dynamics!(env); u=FlightSims.optimal_input(env)); tf=10.0)
     p = plot(sol)
     savefig(p, joinpath(dir_log, "x.png"))
     println("Test results are saved in $(dir_log)")

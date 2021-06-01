@@ -12,7 +12,7 @@ function test_controller()
     g = 9.81
     controller = BacksteppingPositionController(m)
     x0_controller = State(controller)(pos0, m, g)
-    prob, sol = sim(controller, x0_controller,
+    prob, sol = sim(x0_controller,
                     apply_inputs(dynamics!(controller),
                                  pos_cmd=[1, 2, 3], Ṫd=1.0);
                     tf=10.0)
