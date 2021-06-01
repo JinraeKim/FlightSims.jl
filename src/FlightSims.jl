@@ -32,8 +32,8 @@ export FaultSet, LoE
 export PseudoInverseControlAllocator
 ### algorithms
 export command
-export CTValueIterationADP, BehaviouralCloning
-### utils
+export CTValueIterationADP, BehaviouralCloning, CTLinearIRL
+# utils
 export AbstractApproximator, LinearApproximator
 export PolynomialBasis, euler
 export PowerLoop, command_generator
