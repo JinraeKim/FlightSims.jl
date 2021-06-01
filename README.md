@@ -60,7 +60,6 @@ function test()
     x0 = State(env)([1, 2])
     u_lqr(x, p, t) = -K*x
     prob, sol = sim(
-                    env,  # environment
                     x0,  # initial condition
                     apply_inputs(dynamics!(env); u=u_lqr);  # dynamics with input of LQR
                     tf=10.0,  # final time
