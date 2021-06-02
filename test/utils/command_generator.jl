@@ -22,7 +22,7 @@ function test()
                     label="trajectory",
                     title="Power Loop")
     anim = Animation()
-    for p in ps[1:20:end]
+    for p in ps[1:10:end]
         push!(p_traj, p...)
         frame(anim)
     end
