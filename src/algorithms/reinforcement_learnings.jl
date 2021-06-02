@@ -1,2 +1,2 @@
 include("ADP.jl")
-include("behaviouralCloning.jl")
+include("BehaviouralCloning.jl")
