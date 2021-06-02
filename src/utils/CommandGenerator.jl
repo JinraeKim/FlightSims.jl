@@ -73,7 +73,7 @@ function command_generator(cg::PowerLoop)
             # go straight
             _t0 = t0 + t_go_straight + t_loop
             _p0 = p0 + Δp
-            p_cmd = _p0 + (v0_norm*(t-_t0) + 0.5*a*(t-_t0)^2) * Δp_unit
+            p_cmd = _p0 + ((v0_norm+ΔV)*(t-_t0) - 0.5*a*(t-_t0)^2) * Δp_unit
         else
             # stop
             _p0 = p0 + 2*Δp

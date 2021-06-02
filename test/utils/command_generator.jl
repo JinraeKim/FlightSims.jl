@@ -10,18 +10,19 @@ function test()
     cg = FS.command_generator(power_loop)
     @unpack t0, t_go_straight, t_loop = power_loop
     Δt = 0.01
-    tf = t0 + 2*t_go_straight + t_loop + 3
+    tf = t0 + 2*t_go_straight + t_loop + 10
     ts = t0:Δt:tf
     ps = ts |> Map(cg) |> collect
     ps_cat = hcat(ps...)'
     p_traj = plot3d(1;
-                    xlim=(-1, 10),
-                    ylim=(-1, 1),
-                    zlim=(-10, 10),
+                    xlim=(-30, 30),
+                    ylim=(-30, 30),
+                    zlim=(-30, 30),
+                    aspect_ratio=:equal,
                     label="trajectory",
                     title="Power Loop")
     anim = Animation()
-    for p in ps[1:10:end]
+    for p in ps[1:20:end]
         push!(p_traj, p...)
         frame(anim)
     end
