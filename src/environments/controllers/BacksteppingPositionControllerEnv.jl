@@ -7,7 +7,7 @@ Proc. Am. Control Conf., vol. 2016-July, pp. 6760–6766, 2016.
 - Reference model (e.g., xd, vd, ad, ad_dot, ad_ddot)
 [2] S. J. Su, Y. Y. Zhu, H. R. Wang, and C. Yun, “A Method to Construct a Reference Model for Model Reference Adaptive Control,” Adv. Mech. Eng., vol. 11, no. 11, pp. 1–9, 2019.
 """
-struct BacksteppingPositionController <: AbstractEnv
+struct BacksteppingPositionControllerEnv <: AbstractEnv
     Ref_model
     Ap
     Bp
@@ -15,7 +15,7 @@ struct BacksteppingPositionController <: AbstractEnv
     Kp
     Kt
     Kω
-    function BacksteppingPositionController(m::Real; x_cmd_func=nothing)
+    function BacksteppingPositionControllerEnv(m::Real; x_cmd_func=nothing)
         @assert m > 0
         Ref_model = ReferenceModelEnv(4; x_cmd_func=x_cmd_func)
         # position
@@ -45,8 +45,8 @@ ref_model.x_2 = ad
 ref_model.x_3 = ȧd
 ref_model.x_4 = äd
 """
-function State(env::BacksteppingPositionController)
-    @unpack Ref_model = env
+function State(controller::BacksteppingPositionControllerEnv)
+    @unpack Ref_model = controller
     return function (pos0, m, g)
         @assert m > 0
         ref_model = State(Ref_model)(pos0)
@@ -55,8 +55,8 @@ function State(env::BacksteppingPositionController)
     end
 end
 
-function dynamics!(env::BacksteppingPositionController)
-    @unpack Ref_model = env
+function dynamics!(controller::BacksteppingPositionControllerEnv)
+    @unpack Ref_model = controller
     return function (dX, X, p, t; pos_cmd, Ṫd)
         dynamics!(Ref_model)(dX.ref_model, X.ref_model, (), t; x_cmd=pos_cmd)  # be careful; parameter = ()
         dX.Td = Ṫd
@@ -64,7 +64,7 @@ function dynamics!(env::BacksteppingPositionController)
     end
 end
 
-function command(env::BacksteppingPositionController)
+function command(controller::BacksteppingPositionControllerEnv)
     T_u_inv(T) = [   0 1/T  0;
                   -1/T   0  0;
                      0   0 -1]
@@ -80,7 +80,7 @@ function command(env::BacksteppingPositionController)
     return function(p, v, R, ω,
                     xd, vd, ad, ȧd, äd, Td,
                     m::Real, J, g::Real,)
-        @unpack Ap, Bp, P, Kp, Kt, Kω = env
+        @unpack Ap, Bp, P, Kp, Kt, Kω = controller
         ex = xd - p
         ev = vd - v
         ep = vcat(ex, ev)

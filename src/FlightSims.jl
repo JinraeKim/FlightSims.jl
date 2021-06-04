@@ -20,9 +20,9 @@ export sim, process, load
 # envs
 export TwoDimensionalNonlinearPolynomialEnv, LinearSystemEnv, ReferenceModelEnv
 export GoodarziQuadcopterEnv
+export BacksteppingPositionControllerEnv
 # algorithms
 export command
-export BacksteppingPositionController
 export CTValueIterationADP, BehaviouralCloning
 # utils
 export AbstractApproximator, LinearApproximator
