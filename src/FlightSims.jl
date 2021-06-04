@@ -5,7 +5,7 @@ module FlightSims
 using DifferentialEquations
 using ComponentArrays, UnPack
 using JLD2, FileIO, DataFrames
-using LinearAlgebra, Transducers, Rotations, Random
+using LinearAlgebra, Transducers, Rotations, Random, ForwardDiff
 using Combinatorics: multiexponents
 using NLopt
 using NumericalIntegration: integrate

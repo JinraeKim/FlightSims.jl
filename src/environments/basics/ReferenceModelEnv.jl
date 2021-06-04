@@ -3,13 +3,17 @@
 - Reference model (e.g., xd, vd, ad, ad_dot, ad_ddot)
 [1] S. J. Su, Y. Y. Zhu, H. R. Wang, and C. Yun, “A Method to Construct a Reference Model for Model Reference Adaptive Control,” Adv. Mech. Eng., vol. 11, no. 11, pp. 1–9, 2019.
 # Notes
-d::Int : degree
+d: degree of the reference model
+auto_diff: auto_diff = true for tracking time-varying command; otherwise for set-point regulation
+x_cmd_func(t): function of time
 """
 struct ReferenceModelEnv <: AbstractEnv
     d::Int  # degree
     Ks::AbstractArray
+    auto_diff::Bool
+    x_cmd_func::Union{Function, Nothing}
 end
-function ReferenceModelEnv(d::Int)
+function ReferenceModelEnv(d::Int; auto_diff=false, x_cmd_func=nothing)
     @assert d >= 0
     Ks = []
     if d == 4
@@ -21,7 +25,10 @@ function ReferenceModelEnv(d::Int)
     else
         error("Assign values of matrix `Kx` manually")
     end
-    ReferenceModelEnv(d, Ks)
+    if auto_diff == true && x_cmd_func == nothing
+        error("Provide x_cmd_func for automatic differentiation")
+    end
+    ReferenceModelEnv(d, Ks, auto_diff, x_cmd_func)
 end
 
 """
@@ -39,15 +46,34 @@ function State(env::ReferenceModelEnv)
 end
 
 function dynamics!(env::ReferenceModelEnv)
-    @unpack d, Ks = env
-    return function (dX, X, p, t; x_cmd)
+    @unpack d, Ks, auto_diff, x_cmd_func = env
+    # derivatives for auto_diff
+    funcs = nothing
+    if auto_diff
+        _funcs = Function[x_cmd_func]
+        for i in 1:d+1
+            push!(_funcs, (t) -> ForwardDiff.derivative(_funcs[i], t))
+        end
+        funcs(t) = [_func(t) for _func in _funcs]
+    end
+    funcs(t) = [_func(t) for _func in _funcs]
+    return function (dX, X, p, t; x_cmd=nothing)
         xs = [getproperty(X, Symbol(:x_, 0))]
         for i in 0:d-1
             _x_next = getproperty(X, Symbol(:x_, i+1))
             setproperty!(dX, Symbol(:x_, i), _x_next)  # e.g., dX.x0 = x1
             push!(xs, _x_next)
         end
-        setproperty!(dX, Symbol(:x_, d), -sum(Ks .* xs) + Ks[1]*x_cmd)
+        dx_d = nothing
+        if auto_diff
+            if x_cmd != nothing
+                error("Do not provide a manual command for auto_diff mode")
+            end
+            dx_d = -sum(Ks .* xs) + sum([Ks..., I] .* funcs(t))
+            # dx_d = -sum(Ks .* (xs-__funcs(t)))
+        else
+            dx_d = -sum(Ks .* xs) + Ks[1]*x_cmd
+        end
+        setproperty!(dX, Symbol(:x_, d), dx_d)
     end
 end
-
