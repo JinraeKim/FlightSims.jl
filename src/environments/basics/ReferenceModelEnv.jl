@@ -13,7 +13,7 @@ struct ReferenceModelEnv <: AbstractEnv
     auto_diff::Bool
     x_cmd_func::Union{Function, Nothing}
 end
-function ReferenceModelEnv(d::Int; auto_diff=false, x_cmd_func=nothing)
+function ReferenceModelEnv(d::Int; x_cmd_func=nothing)
     @assert d >= 0
     Ks = []
     if d == 4
@@ -25,9 +25,7 @@ function ReferenceModelEnv(d::Int; auto_diff=false, x_cmd_func=nothing)
     else
         error("Assign values of matrix `Kx` manually")
     end
-    if auto_diff == true && x_cmd_func == nothing
-        error("Provide x_cmd_func for automatic differentiation")
-    end
+    auto_diff = x_cmd_func == nothing ? false : true
     ReferenceModelEnv(d, Ks, auto_diff, x_cmd_func)
 end
 

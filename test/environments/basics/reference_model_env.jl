@@ -17,7 +17,7 @@ end
 function test_auto_diff()
     tf = 30
     _x_cmd_func = (t) -> [sin(t), cos(t), t]
-    env_ad = ReferenceModelEnv(4; auto_diff=true, x_cmd_func=_x_cmd_func)
+    env_ad = ReferenceModelEnv(4; x_cmd_func=_x_cmd_func)
     env = ReferenceModelEnv(4)
     x0 = zeros(3)
     X0_ref = State(env)(x0)
