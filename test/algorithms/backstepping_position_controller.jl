@@ -14,11 +14,11 @@ function test_controller()
     x0_controller = State(controller)(pos0, m, g)
     prob, sol = sim(x0_controller,
                     apply_inputs(dynamics!(controller),
-                                 pos_cmd=[1, 2, 3], Ṫd=1.0);
+                                 pos_cmd=[2, 1, 3], Ṫd=1.0);
                     tf=10.0)
     df = process(controller)(prob, sol; Δt=0.01)
     ts = df.times
-    xds = df.states |> Map(state -> state.xd) |> collect
+    xds = df.states |> Map(state -> state.ref_model.x_0) |> collect
     # Tds = df.states |> Map(state -> state.Td) |> collect
     plot(ts, hcat(xds...)')
     # plot(ts, hcat(Tds...)')
@@ -29,13 +29,14 @@ function test()
     @unpack m, g = multicopter
     x0_multicopter = State(multicopter)()
     controller = BacksteppingPositionController(m)
-    x0_controller = State(controller)(x0_multicopter.p, m, g)
+    x0_controller = State(controller)(copy(x0_multicopter.p), m, g)
     x0 = ComponentArray(multicopter=x0_multicopter, controller=x0_controller)
     function feedback_dynamics!(multicopter::GoodarziQuadcopterEnv, controller::BacksteppingPositionController)
         @unpack m, J, g = multicopter
         return function (dx, x, p, t; pos_cmd)
             @unpack p, v, R, ω = x.multicopter
-            @unpack xd, vd, ad, ȧd, äd, Td = x.controller
+            @unpack ref_model, Td = x.controller
+            xd, vd, ad, ȧd, äd = ref_model.x_0, ref_model.x_1, ref_model.x_2, ref_model.x_3, ref_model.x_4
             νd, Ṫd = command(controller)(p, v, R, ω, xd, vd, ad, ȧd, äd, Td, m, J, g)
             dynamics!(controller)(dx.controller, x.controller, (), t; pos_cmd=pos_cmd, Ṫd=Ṫd)
             dynamics!(multicopter)(dx.multicopter, x.multicopter, (), t; f=νd.f, M=νd.M)
