@@ -54,7 +54,6 @@ function dynamics!(env::ReferenceModelEnv)
         for i in 1:d+1
             push!(_funcs, (t) -> ForwardDiff.derivative(_funcs[i], t))
         end
-        funcs(t) = [_func(t) for _func in _funcs]
     end
     funcs(t) = [_func(t) for _func in _funcs]
     return function (dX, X, p, t; x_cmd=nothing)
