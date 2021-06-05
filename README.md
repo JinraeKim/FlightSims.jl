@@ -26,6 +26,8 @@ All environment structures should be sub-type of `AbstractEnv`.
 compatible with `DifferentialEquations`. User can extend these methods or simply define other methods.
 - `apply_inputs(func; kwargs...)`: It is borrowed from [an MRAC example](https://jonniedie.github.io/ComponentArrays.jl/stable/examples/adaptive_control/). By using this, user can easily apply various kind of inputs into the dynamical system (environment).
 
+Note that these interfaces are also provided for some **integrated environments**, e.g., `State(system, controller)`.
+
 ### Simulation and data saving & loading
 - [ ] To-do: Fill the following contents.
 - `sim`: return `prob::ODEProblem` and `sol::ODESolution`.

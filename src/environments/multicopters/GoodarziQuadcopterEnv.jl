@@ -18,9 +18,7 @@ Base.@kwdef struct GoodarziQuadcopterEnv <: QuadcopterEnv
 end
 
 function State(env::GoodarziQuadcopterEnv)
-    return function (p=zeros(3), v=zeros(3),
-                     R=one(RotMatrix{3}),
-                     ω=zeros(3))
+    return function (p=zeros(3), v=zeros(3), R=one(RotMatrix{3}), ω=zeros(3))
         ComponentArray(p=p, v=v, R=R, ω=ω)
     end
 end

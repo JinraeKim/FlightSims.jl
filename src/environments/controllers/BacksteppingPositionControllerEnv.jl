@@ -7,25 +7,17 @@ Proc. Am. Control Conf., vol. 2016-July, pp. 6760–6766, 2016.
 - Reference model (e.g., xd, vd, ad, ad_dot, ad_ddot)
 [2] S. J. Su, Y. Y. Zhu, H. R. Wang, and C. Yun, “A Method to Construct a Reference Model for Model Reference Adaptive Control,” Adv. Mech. Eng., vol. 11, no. 11, pp. 1–9, 2019.
 """
-struct BacksteppingPositionController
+struct BacksteppingPositionControllerEnv <: AbstractEnv
+    Ref_model
     Ap
     Bp
     P
     Kp
-    Kxd
-    Kvd
-    Kad
-    Kȧd
-    Käd
     Kt
     Kω
-    function BacksteppingPositionController(m::Real)
+    function BacksteppingPositionControllerEnv(m::Real; x_cmd_func=nothing)
         @assert m > 0
-        Kxd = Diagonal(1.0*ones(3))
-        Kvd = Diagonal(3.4*ones(3))
-        Kad = Diagonal(5.4*ones(3))
-        Kȧd = Diagonal(4.9*ones(3))
-        Käd = Diagonal(2.7*ones(3))
+        Ref_model = ReferenceModelEnv(4; x_cmd_func=x_cmd_func)
         # position
         Kx = m*1*Matrix(I, 3, 3)
         Kv = m*1*1.82*Matrix(I, 3, 3)
@@ -41,34 +33,38 @@ struct BacksteppingPositionController
         Bp = [zeros(3, 3);
               (1/m)*Matrix(I, 3, 3)]
         P = lyapc(Ap, Q)
-        new(Ap, Bp, P, Kp, Kxd, Kvd, Kad, Kȧd, Käd, Kt, Kω)
+        new(Ref_model, Ap, Bp, P, Kp, Kt, Kω)
     end
 end
 
-function State(env::BacksteppingPositionController)
-    return function (pos0, m, g, vd=zeros(3), ad=zeros(3), ȧd=zeros(3), äd=zeros(3))
+"""
+# Notes
+ref_model.x_0 = xd
+ref_model.x_1 = vd
+ref_model.x_2 = ad
+ref_model.x_3 = ȧd
+ref_model.x_4 = äd
+"""
+function State(controller::BacksteppingPositionControllerEnv)
+    @unpack Ref_model = controller
+    return function (pos0, m, g)
         @assert m > 0
-        xd = pos0
+        ref_model = State(Ref_model)(pos0)
         Td = m*g
-        ComponentArray(xd=xd, vd=vd, ad=ad, ȧd=ȧd, äd=äd, Td=Td)
+        ComponentArray(ref_model=ref_model, Td=Td)
     end
 end
 
-function dynamics!(env::BacksteppingPositionController)
-    @unpack Kxd, Kvd, Kad, Kȧd, Käd = env
-    return function (dx_controller, x_controller, p_controller, t; pos_cmd, Ṫd)
-        @unpack xd, vd, ad, ȧd, äd, Td = x_controller
-        dx_controller.xd = vd
-        dx_controller.vd = ad
-        dx_controller.ad = ȧd
-        dx_controller.ȧd = äd
-        dx_controller.äd = (-Kxd*xd - Kvd*vd - Kad*ad - Kȧd*ȧd - Käd*äd + Kxd*pos_cmd)
-        dx_controller.Td = Ṫd
+function dynamics!(controller::BacksteppingPositionControllerEnv)
+    @unpack Ref_model = controller
+    return function (dX, X, p, t; pos_cmd=nothing, Ṫd)
+        dynamics!(Ref_model)(dX.ref_model, X.ref_model, (), t; x_cmd=pos_cmd)  # be careful; parameter = ()
+        dX.Td = Ṫd
         nothing
     end
 end
 
-function command(env::BacksteppingPositionController)
+function command(controller::BacksteppingPositionControllerEnv)
     T_u_inv(T) = [   0 1/T  0;
                   -1/T   0  0;
                      0   0 -1]
@@ -84,7 +80,7 @@ function command(env::BacksteppingPositionController)
     return function(p, v, R, ω,
                     xd, vd, ad, ȧd, äd, Td,
                     m::Real, J, g::Real,)
-        @unpack Ap, Bp, P, Kp, Kt, Kω = env
+        @unpack Ap, Bp, P, Kp, Kt, Kω = controller
         ex = xd - p
         ev = vd - v
         ep = vcat(ex, ev)
