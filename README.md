@@ -123,7 +123,7 @@ function main()
     savefig(p_traj, "traj.png")
 end
 ```
-![ex_screenshot](./figures/backstepping_tracking.png)
+<!-- ![ex_screenshot](./figures/backstepping_tracking.png) -->
 
 ### Scientific machine learning
 - For an example usage of [Flux.jl](https://github.com/FluxML/Flux.jl), see `main/flux_example.jl`.
