@@ -46,26 +46,25 @@ function train!(env, irl; Δt=0.01, tf=10.0)
         _û = û(x, p, t)
         push!(∫rs, ∫r)
         if length(∫rs) > 1
-            push!(V̂_nexts, diff(∫rs[end-1:end])[1] + irl.V̂(x))
+            push!(V̂_nexts, diff(∫rs[end-1:end])[1] + irl.V̂(x)[1])
             push!(Φs, irl.V̂.basis(x))
         end
         if length(Φs) >= N
-            @show hcat(Φs[end-(N-1):end]...)' |> size
-            @show V̂_nexts[end-(N-1):end] |> size
+            # @show hcat(Φs[end-(N-1):end]...)' |> size
+            # @show hcat(V̂_nexts[end-(N-1):end]...) |> size
             irl.V̂.param = pinv(hcat(Φs[end-(N-1):end]...)') * hcat(V̂_nexts[end-(N-1):end]...)'
         end
     end
     cb_train = PresetTimeCallback(0.0:irl.T:tf, affect!)
     cb = CallbackSet(cb_train)
     # cb = CallbackSet()
-    # prob, sol = sim(env, x0, apply_inputs(dynamics!(env); u=û); tf=tf, callback=cb)
-    prob, sol = sim(env, X0, augmented_dynamics!(env); tf=tf, callback=cb)
+    # prob, sol = sim(x0, apply_inputs(dynamics!(env); u=û); tf=tf, callback=cb)
+    prob, sol = sim(X0, augmented_dynamics!(env); tf=tf, callback=cb)
     df = process(env)(prob, sol; Δt=Δt)
     xs = df.states |> Map(X -> X.x) |> collect
-    # xs = df.states |> Map(X -> X.x) |> collect
     # ∫rs = df.states |> Map(X -> X.∫r) |> collect
-    # plot(df.times, hcat(xs...)')
-    # plot(df.times, hcat(∫rs...)')
+    plot(df.times, hcat(xs...)')
+    plot(df.times, hcat(∫rs...)')
 end
 
 function main(; seed=1)
