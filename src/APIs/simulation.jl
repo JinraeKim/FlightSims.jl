@@ -7,17 +7,6 @@ function sim(state0, dyn, p=nothing;
     sol = solve(prob, solver; callback=callback, kwargs...)
     prob, sol
 end
-# deprecated
-# """
-#     sim(env::AbstractEnv, state0=State(env)(), dyn=dynamics!(env), p=nothing;
-#     t0=0.0, tf=1.0, solver=Tsit5())
-# """
-# function sim(env::AbstractEnv,
-#         state0=State(env)(), dyn=dynamics!(env), p=nothing;
-#         t0=0.0, tf=1.0, solver=Tsit5(), callback::DiffEqBase.DECallback=CallbackSet(), kwargs...
-#     )
-#     sim(state0, dyn, p; t0=t0, tf=tf, solver=solver, callback=callback, kwargs...)
-# end
 
 
 """

@@ -26,18 +26,4 @@ function dynamics!(env::GoodarziQuadcopterEnv)
     return function (dX, X, p, t; f, M)
         _dynamics!(env)(dX, X, p, t; f=f, M=M)
     end
-    # @unpack m, g, J, J_inv = env
-    # e3 = [0, 0, 1]
-    # skew(x) = [    0 -x[3]  x[2];
-    #             x[3]     0 -x[1];
-    #            -x[2]  x[1]    0]
-    # return function (dstate, state, p, t; f=f, M=M)
-    #     @unpack p, v, R, ω = state
-    #     Ω = skew(ω)
-    #     dstate.p = v
-    #     dstate.v = -(1/m)*f*R'*e3 + g*e3
-    #     dstate.R = -Ω*R
-    #     dstate.ω = J_inv * (-Ω*J*ω + M)
-    #     nothing
-    # end
 end

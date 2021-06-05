@@ -67,7 +67,6 @@ function dynamics!(env::ReferenceModelEnv)
                 error("Do not provide a manual command for auto_diff mode")
             end
             dx_d = -sum(Ks .* xs) + sum([Ks..., I] .* funcs(t))
-            # dx_d = -sum(Ks .* (xs-__funcs(t)))
         else
             dx_d = -sum(Ks .* xs) + Ks[1]*x_cmd
         end
