@@ -1,11 +1,12 @@
 using FlightSims
 const FS = FlightSims
+using UnPack, ComponentArrays
 using Transducers
 using Plots
 
 
 function make_env()
-    multicopter = GoodarziQuadcopterEnv()
+    multicopter = IslamQuadcopterEnv()
     @unpack m, g = multicopter
     x0_multicopter = State(multicopter)()
     pos0 = copy(x0_multicopter.p)

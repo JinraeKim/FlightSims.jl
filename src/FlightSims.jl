@@ -19,7 +19,7 @@ export AbstractEnv, State, dynamics, dynamics!, apply_inputs
 export sim, process, load
 # envs
 export TwoDimensionalNonlinearPolynomialEnv, LinearSystemEnv, ReferenceModelEnv
-export GoodarziQuadcopterEnv
+export IslamQuadcopterEnv, GoodarziQuadcopterEnv
 export BacksteppingPositionControllerEnv
 # algorithms
 export command

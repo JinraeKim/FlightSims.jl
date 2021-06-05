@@ -17,30 +17,27 @@ Base.@kwdef struct GoodarziQuadcopterEnv <: QuadcopterEnv
     g = 9.81  # m/s²
 end
 
-function State(env::GoodarziQuadcopterEnv)
-    return function (p=zeros(3), v=zeros(3), R=one(RotMatrix{3}), ω=zeros(3))
-        ComponentArray(p=p, v=v, R=R, ω=ω)
-    end
-end
-
 """
 # Variables
 f ∈ R: thrust magnitude
 M ∈ R^3: moment
 """
 function dynamics!(env::GoodarziQuadcopterEnv)
-    @unpack m, g, J, J_inv = env
-    e3 = [0, 0, 1]
-    skew(x) = [    0 -x[3]  x[2];
-                x[3]     0 -x[1];
-               -x[2]  x[1]    0]
-    return function (dstate, state, p, t; f=f, M=M)
-        @unpack p, v, R, ω = state
-        Ω = skew(ω)
-        dstate.p = v
-        dstate.v = -(1/m)*f*R'*e3 + g*e3
-        dstate.R = -Ω*R
-        dstate.ω = J_inv * (-Ω*J*ω + M)
-        nothing
+    return function (dX, X, p, t; f, M)
+        _dynamics!(env)(dX, X, p, t; f=f, M=M)
     end
+    # @unpack m, g, J, J_inv = env
+    # e3 = [0, 0, 1]
+    # skew(x) = [    0 -x[3]  x[2];
+    #             x[3]     0 -x[1];
+    #            -x[2]  x[1]    0]
+    # return function (dstate, state, p, t; f=f, M=M)
+    #     @unpack p, v, R, ω = state
+    #     Ω = skew(ω)
+    #     dstate.p = v
+    #     dstate.v = -(1/m)*f*R'*e3 + g*e3
+    #     dstate.R = -Ω*R
+    #     dstate.ω = J_inv * (-Ω*J*ω + M)
+    #     nothing
+    # end
 end
