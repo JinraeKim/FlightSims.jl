@@ -41,4 +41,3 @@ function running_cost(env::TwoDimensionalNonlinearPolynomialEnv)
         x1^4 + 2*(x1+x2)^2 + (3/4)*u^4
     end
 end
-
