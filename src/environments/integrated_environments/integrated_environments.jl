@@ -1,7 +1,7 @@
 function GoodarziQuadcopter_BacksteppingControllerEnv(; kwargs_multicopter=Dict(), kwargs_controller=Dict(:x_cmd_func => nothing))
     multicopter = GoodarziQuadcopterEnv(; kwargs_multicopter...)
     @unpack m = multicopter
-    controller = BacksteppingPositionControllerEnv(m)
+    controller = BacksteppingPositionControllerEnv(m; kwargs_controller...)
     multicopter, controller
 end
 
@@ -17,7 +17,7 @@ end
 
 function dynamics!(multicopter::GoodarziQuadcopterEnv, controller::BacksteppingPositionControllerEnv)
     @unpack m, J, g = multicopter
-    return function (dx, x, p, t; pos_cmd)
+    return function (dx, x, p, t; pos_cmd=nothing)
         @unpack p, v, R, ω = x.multicopter
         @unpack ref_model, Td = x.controller
         xd, vd, ad, ȧd, äd = ref_model.x_0, ref_model.x_1, ref_model.x_2, ref_model.x_3, ref_model.x_4

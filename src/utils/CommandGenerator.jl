@@ -28,7 +28,7 @@ end
 
 function PowerLoop(;
         p0=zeros(3), v0=[1, 0, 0], d=4, r=1.5,
-        t0=0.0, t_go_straight=1.0,)
+        t0=0.0, t_go_straight=5.0,)
     @assert r > 0
     @assert t_go_straight > 0
     Δp = d * (v0/norm(v0))

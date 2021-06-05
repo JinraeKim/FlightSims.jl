@@ -1,10 +1,14 @@
-function process(env::AbstractEnv)
+function process()
     return function (prob::ODEProblem, sol::ODESolution; Δt=0.01)
         t0, tf = prob.tspan
         ts = t0:Δt:tf
         xs = ts |> Map(t -> sol(t)) |> collect
         DataFrame(times=ts, states=xs)
     end
+end
+# will be deprecated
+function process(env::AbstractEnv)
+    process()
 end
 
 
