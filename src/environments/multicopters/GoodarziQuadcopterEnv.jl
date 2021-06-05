@@ -17,13 +17,13 @@ Base.@kwdef struct GoodarziQuadcopterEnv <: QuadcopterEnv
     g = 9.81  # m/s²
 end
 
-"""
-# Variables
-f ∈ R: thrust magnitude
-M ∈ R^3: moment
-"""
-function dynamics!(env::GoodarziQuadcopterEnv)
-    return function (dX, X, p, t; f, M)
-        _dynamics!(env)(dX, X, p, t; f=f, M=M)
-    end
-end
+# """
+# # Variables
+# f ∈ R: thrust magnitude
+# M ∈ R^3: moment
+# """
+# function dynamics!(env::GoodarziQuadcopterEnv)
+#     return function (dX, X, p, t; f, M)
+#         _dynamics!(env)(dX, X, p, t; f=f, M=M)
+#     end
+# end

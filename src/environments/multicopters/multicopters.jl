@@ -1,6 +1,7 @@
 # multicopter
 abstract type MulticopterEnv <: AbstractEnv end
-# mixer
-include("mixers.jl")
 # quadcopter
 include("quadcopters.jl")
+# mixer, faults
+include("mixers.jl")
+include("faults.jl")

@@ -21,23 +21,22 @@ Base.@kwdef struct IslamQuadcopterEnv <: QuadcopterEnv
     u_max = (m*g/kf) * ones(4)
 end
 
-function saturate_func(env::IslamQuadcopterEnv)
+function saturate(env::IslamQuadcopterEnv, u)
     @unpack u_min, u_max = env
-    return function (u)
-        u_saturated = clamp.(u, u_min, u_max)
-    end
+    u_saturated = clamp.(u, u_min, u_max)
 end
 
-"""
-u .>= 0: square of rotor angular rate
-"""
-function dynamics!(env::IslamQuadcopterEnv)
+function input_to_force_moment(env::IslamQuadcopterEnv, u)
     @unpack B = env
-    saturate = saturate_func(env)
-    return function (dX, X, p, t; u)
-        _u = saturate(u)
-        ν = B * _u
-        f, M = ν[1], ν[2:4]
-        _dynamics!(env)(dX, X, p, t; f=f, M=M)
-    end
+    ν = B * u
 end
+
+# function dynamics!(env::IslamQuadcopterEnv)
+#     @unpack B = env
+#     return function (dX, X, p, t; u)
+#         _u = saturate(env, u)
+#         ν = B * _u
+#         f, M = ν[1], ν[2:4]
+#         _dynamics!(env)(dX, X, p, t; f=f, M=M)
+#     end
+# end
