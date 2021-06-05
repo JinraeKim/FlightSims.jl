@@ -37,7 +37,7 @@ function approximate_optimal_input(irl::CTLinearIRL, env::LinearSystemEnv)
         ŵ = irl.V̂.param
         P = [  ŵ[1] ŵ[2]/2;
              ŵ[2]/2   ŵ[3]]
-        K = - inv(R) * B' * P
+        K = inv(R) * B' * P
         û = -K * x
     end
 end
