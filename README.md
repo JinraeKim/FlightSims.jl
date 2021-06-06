@@ -13,10 +13,29 @@ If you want more functionality, please feel free to report an issue!
 - One can generate user-defined nested environments (or, dynamical systems) for complex flight simulation.
 Also, some predefined environments are provided for reusability (i.e., environment zoo).
 Take a look at `src/environments`.
+- Examples include
+    - **basics**
+        - (Linear system) `LinearSystemEnv`
+        - (Reference model) `ReferenceModelEnv`
+    - **multicopters**
+        - (Quadcopter) `IslamQuadcopterEnv`, `GoodarziQuadcopterEnv`
+    - **controllers**
+        - (backstepping controller) `BacksteppingPositionControllerEnv`
+    - **integrated_environments**
+    and actuator fault models, etc.
 
 ### Utilities
 - Some utilities are also provided, for example, calculation of polynomial basis and 3D rotation.
 Take a look at `src/utils`.
+- Examples include
+    - **Function approximator**
+        - (Approximator) `LinearApproximator`, `PolynomialBasis`
+    - **Data manipulation for machine learning**
+        - (Split data) `partitionTrainTest`
+    - **Reference trajectory generator**
+        - (Command generator) `HelixCommandGenerator`, `PowerLoop`
+    - **Ridig body rotation**
+        - (Rotations) `euler`
 
 ## APIs
 Main APIs are provided in `src/APIs`.
