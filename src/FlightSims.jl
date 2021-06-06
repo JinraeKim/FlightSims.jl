@@ -3,7 +3,8 @@ module FlightSims
 # using Debugger  # tmp
 using DifferentialEquations
 using ComponentArrays, UnPack
-using JLD2, FileIO, DataFrames, SplitApplyCombine
+using JLD2, FileIO, DataFrames
+using SplitApplyCombine  # e.g., SplitApplyCombine.group
 using LinearAlgebra, Transducers, Rotations, Random, ForwardDiff
 using Combinatorics: multiexponents
 using NLopt
