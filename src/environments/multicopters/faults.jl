@@ -8,7 +8,7 @@ FaultSet(args...) = AbstractFault[args...]
 """
 Select the last fault (concerning the applied time) from given faults.
 """
-function select_last_before_t(faults::Vector{AbstractFault}, t)
+function select_last_before_t(faults::Vector{T} where T <: AbstractFault, t)
     faults_time_less_than_t = faults |> Map(fault -> fault.time) |> Filter(<=(t)) |> collect
     if length(faults_time_less_than_t) == 0
         # case 1: if there is no faults occured before t
