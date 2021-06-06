@@ -22,7 +22,8 @@ Take a look at `src/environments`.
     - **controllers**
         - (backstepping controller) `BacksteppingPositionControllerEnv`
     - **integrated_environments**
-    and actuator fault models, etc.
+    - others
+        - (Actuator fault) `LoE`
 
 ### Utilities
 - Some utilities are also provided, for example, calculation of polynomial basis and 3D rotation.
