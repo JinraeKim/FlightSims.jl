@@ -29,13 +29,18 @@ Common dynamics of QuadcopterEnv.
 f ∈ R: total thrust
 M ∈ R^3: moment
 """
-function dynamics!(env::QuadcopterEnv, faults::AbstractFault[])
+function dynamics!(env::QuadcopterEnv; faults::Vector{T} where T <: AbstractFault=AbstractFault[])
+    faults_groups = SplitApplyCombine.group(fault -> fault.index, faults)  # faults groups classified by fault index
     return function (dX, X, p, t; u)
-        _u = saturate(env, u)
-        # TODO: add "actuator faults" loop
-        # for fault in faults
-        # end
-        ν = input_to_force_moment(env, _u)
+        u_saturated = saturate(env, u)
+        _u_faulted = u_saturated
+        for faults_group in faults_groups
+            last_fault = select_last_before_t(faults_group, t)
+            _u_faulted = last_fault(t, _u_faulted)
+        end
+        u_faulted = _u_faulted
+        # @show u_faulted ./ u_saturated  # for debugging
+        ν = input_to_force_moment(env, u_faulted)
         f, M = ν[1], ν[2:4]
         _dynamics!(env)(dX, X, p, t; f=f, M=M)
     end

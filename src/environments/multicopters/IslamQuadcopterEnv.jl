@@ -30,13 +30,3 @@ function input_to_force_moment(env::IslamQuadcopterEnv, u)
     @unpack B = env
     ν = B * u
 end
-
-# function dynamics!(env::IslamQuadcopterEnv)
-#     @unpack B = env
-#     return function (dX, X, p, t; u)
-#         _u = saturate(env, u)
-#         ν = B * _u
-#         f, M = ν[1], ν[2:4]
-#         _dynamics!(env)(dX, X, p, t; f=f, M=M)
-#     end
-# end

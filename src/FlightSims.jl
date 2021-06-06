@@ -3,7 +3,7 @@ module FlightSims
 # using Debugger  # tmp
 using DifferentialEquations
 using ComponentArrays, UnPack
-using JLD2, FileIO, DataFrames
+using JLD2, FileIO, DataFrames, SplitApplyCombine
 using LinearAlgebra, Transducers, Rotations, Random, ForwardDiff
 using Combinatorics: multiexponents
 using NLopt
@@ -13,17 +13,22 @@ using Flux
 using Flux.Data: DataLoader
 using MatrixEquations
 
-# APIs
+### APIs
 export AbstractEnv, State, dynamics, dynamics!, apply_inputs
 export sim, process, load
-# envs
+### envs
+## basics
 export TwoDimensionalNonlinearPolynomialEnv, LinearSystemEnv, ReferenceModelEnv
-export IslamQuadcopterEnv, GoodarziQuadcopterEnv
+## controllers
 export BacksteppingPositionControllerEnv
-# algorithms
+## multicopters
+export IslamQuadcopterEnv, GoodarziQuadcopterEnv
+# faults
+export FaultSet, LoE
+### algorithms
 export command
 export CTValueIterationADP, BehaviouralCloning
-# utils
+### utils
 export AbstractApproximator, LinearApproximator
 export PolynomialBasis, euler
 export PowerLoop, command_generator
