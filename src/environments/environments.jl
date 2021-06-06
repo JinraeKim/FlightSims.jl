@@ -1,6 +1,9 @@
 ### Types
 abstract type AbstractEnv end
 
+### faults
+include("faults.jl")
+
 ### Envs
 ## Basic environments
 include("basics/basics.jl")
