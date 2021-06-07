@@ -19,6 +19,7 @@ NLopt = "76087f3c-5699-56af-9a33-bf431cd00edd"
 NumericalIntegration = "e7bfaba1-d571-5449-8927-abc22e82249b"
 Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
 Rotations = "6038ab10-8711-5258-84ad-4b1120ba62dc"
+SplitApplyCombine = "03a91e81-4c3e-53e1-a0a4-9c0c8f19dd66"
 Transducers = "28d57a85-8fef-5791-bfe6-a80928e7c999"
 UnPack = "3a884ed6-31ef-47d7-9d2a-63182c4928ed"
 
