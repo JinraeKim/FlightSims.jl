@@ -24,8 +24,11 @@ export TwoDimensionalNonlinearPolynomialEnv, LinearSystemEnv, ReferenceModelEnv
 export BacksteppingPositionControllerEnv
 ## multicopters
 export IslamQuadcopterEnv, GoodarziQuadcopterEnv
+export LeeHexacopterEnv
 # faults
 export FaultSet, LoE
+# mixers
+export PseudoInverseMixer
 ### algorithms
 export command
 export CTValueIterationADP, BehaviouralCloning

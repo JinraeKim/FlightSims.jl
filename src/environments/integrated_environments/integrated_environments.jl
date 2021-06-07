@@ -1,14 +1,7 @@
 """
-IslamQuadcopterEnv + BacksteppingPositionControllerEnv
+MulticopterEnv + BacksteppingPositionControllerEnv
 """
-function IslamQuadcopter_BacksteppingControllerEnv(; kwargs_multicopter=Dict(), kwargs_controller=Dict(:x_cmd_func => nothing))
-    multicopter = IslamQuadcopterEnv(; kwargs_multicopter...)
-    @unpack m = multicopter
-    controller = BacksteppingPositionControllerEnv(m; kwargs_controller...)
-    multicopter, controller
-end
-
-function State(multicopter::IslamQuadcopterEnv, controller::BacksteppingPositionControllerEnv)
+function State(multicopter::MulticopterEnv, controller::BacksteppingPositionControllerEnv)
     @unpack m, g = multicopter
     return function (args_multicopter=())
         x_multicopter = State(multicopter)(args_multicopter...)
@@ -18,25 +11,88 @@ function State(multicopter::IslamQuadcopterEnv, controller::BacksteppingPosition
     end
 end
 
-function dynamics!(multicopter::IslamQuadcopterEnv, controller::BacksteppingPositionControllerEnv;
-    mixer=Mixer(multicopter.B))
+function command(controller::BacksteppingPositionControllerEnv, mixer::AbstractMixer,
+        p, v, R, ω, xd, vd, ad, ȧd, äd, Td, m, J, g
+    )
+    νd, Ṫd = command(controller)(p, v, R, ω, xd, vd, ad, ȧd, äd, Td, m, J, g)
+    u_cmd = mixer(νd)
+    ComponentArray(νd=νd, Ṫd=Ṫd, u_cmd=u_cmd)
+end
+
+function dynamics!(multicopter::MulticopterEnv, controller::BacksteppingPositionControllerEnv,
+        mixer::AbstractMixer)
     @unpack m, J, g = multicopter
     return function (dx, x, p, t; pos_cmd=nothing)
         @unpack p, v, R, ω = x.multicopter
         @unpack ref_model, Td = x.controller
         xd, vd, ad, ȧd, äd = ref_model.x_0, ref_model.x_1, ref_model.x_2, ref_model.x_3, ref_model.x_4
-        νd, Ṫd = command(controller)(p, v, R, ω, xd, vd, ad, ȧd, äd, Td, m, J, g)
-        u_cmd = mixer(νd)
+        command_info = command(controller, mixer, p, v, R, ω, xd, vd, ad, ȧd, äd, Td, m, J, g)
+        @unpack νd, Ṫd, u_cmd = command_info
         dynamics!(multicopter)(dx.multicopter, x.multicopter, (), t; u=u_cmd)
         dynamics!(controller)(dx.controller, x.controller, (), t; pos_cmd=pos_cmd, Ṫd=Ṫd)
         nothing
     end
 end
 
+function process(multicopter::MulticopterEnv, controller::BacksteppingPositionControllerEnv,
+        mixer::AbstractMixer)
+    @unpack m, J, g = multicopter
+    return function (prob::ODEProblem, sol::ODESolution; Δt=0.01)
+        t0, tf = prob.tspan
+        ts = t0:Δt:tf
+        Xs = ts |> Map(t -> sol(t)) |> collect
+        ps = Xs |> Map(x -> x.multicopter.p) |> collect
+        vs = Xs |> Map(x -> x.multicopter.v) |> collect
+        Rs = Xs |> Map(x -> x.multicopter.R) |> collect
+        ωs = Xs |> Map(x -> x.multicopter.ω) |> collect
+        xds = Xs |> Map(x -> x.controller.ref_model.x_0) |> collect
+        vds = Xs |> Map(x -> x.controller.ref_model.x_1) |> collect
+        ads = Xs |> Map(x -> x.controller.ref_model.x_2) |> collect
+        ȧds = Xs |> Map(x -> x.controller.ref_model.x_3) |> collect
+        äds = Xs |> Map(x -> x.controller.ref_model.x_4) |> collect
+        Tds = Xs |> Map(x -> x.controller.Td) |> collect
+        u_cmds = (
+                  zip(ps, vs, Rs, ωs, xds, vds, ads, ȧds, äds, Tds) |>
+                  Map(args -> command(controller, mixer, args..., m, J, g)) |>
+                  Map(command_info -> command_info.u_cmd) |>
+                  collect
+                 )
+        DataFrame(
+                  times=ts,
+                  states=Xs,
+                  positions=ps,
+                  velocities=vs,
+                  rotation_matricies=Rs,
+                  angular_rates=ωs,
+                  u_commands=u_cmds,
+                 )
+    end
+end
+
+"""
+LeeHexacopterEnv + BacksteppingPositionControllerEnv
+"""
+function LeeHexacopter_BacksteppingPositionControllerEnv(; kwargs_multicopter=Dict(), kwargs_controller=Dict(:x_cmd_func => nothing))
+    multicopter = LeeHexacopterEnv(; kwargs_multicopter...)
+    @unpack m = multicopter
+    controller = BacksteppingPositionControllerEnv(m; kwargs_controller...)
+    multicopter, controller
+end
+
+"""
+IslamQuadcopterEnv + BacksteppingPositionControllerEnv
+"""
+function IslamQuadcopter_BacksteppingPositionControllerEnv(; kwargs_multicopter=Dict(), kwargs_controller=Dict(:x_cmd_func => nothing))
+    multicopter = IslamQuadcopterEnv(; kwargs_multicopter...)
+    @unpack m = multicopter
+    controller = BacksteppingPositionControllerEnv(m; kwargs_controller...)
+    multicopter, controller
+end
+
 """
 GoodarziQuadcopterEnv + BacksteppingPositionControllerEnv
 """
-function GoodarziQuadcopter_BacksteppingControllerEnv(; kwargs_multicopter=Dict(), kwargs_controller=Dict(:x_cmd_func => nothing))
+function GoodarziQuadcopter_BacksteppingPositionControllerEnv(; kwargs_multicopter=Dict(), kwargs_controller=Dict(:x_cmd_func => nothing))
     multicopter = GoodarziQuadcopterEnv(; kwargs_multicopter...)
     @unpack m = multicopter
     controller = BacksteppingPositionControllerEnv(m; kwargs_controller...)
