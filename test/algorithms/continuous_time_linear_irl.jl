@@ -44,41 +44,42 @@ function train!(env, irl; Δt=0.01, tf=3.0, w_tol=1e-3)
             dX.∫r = irl.running_cost(x, _û)
         end
     end
-    ∫rs = []
-    V̂_nexts = []
-    Φs = []
-    stop_conds_dict = []
-    affect! = function (integrator)
-        @unpack p, t = integrator
-        X = integrator.u
-        @unpack x, ∫r = X
-        _û = û(x, p, t)
-        push!(∫rs, ∫r)
-        push!(Φs, irl.V̂.basis(x))
-        if length(∫rs) > 1
-            push!(V̂_nexts, diff(∫rs[end-1:end])[1] + irl.V̂(x)[1])
-        end
+    # ∫rs = []
+    # V̂_nexts = []
+    # Φs = []
+    # stop_conds_dict = []
+    # affect! = function (integrator)
+    #     @unpack p, t = integrator
+    #     X = integrator.u
+    #     @unpack x, ∫r = X
+    #     _û = û(x, p, t)
+    #     push!(∫rs, ∫r)
+    #     push!(Φs, irl.V̂.basis(x))
+    #     if length(∫rs) > 1
+    #         push!(V̂_nexts, diff(∫rs[end-1:end])[1] + irl.V̂(x)[1])
+    #     end
 
-        # @show t, irl.V̂.param, any(values(stop_conds_dict))
-        if any(values(stop_conds_dict)) == false
-            if length(V̂_nexts) >= N
-                i += 1
-                # @show hcat(Φs[end-N:end-1]...)' |> size
-                # @show hcat(V̂_nexts...)' |> size
-                irl.V̂.param = pinv(hcat(Φs[end-N:end-1]...)') * hcat(V̂_nexts...)'
-                stop_conds_dict = stop_conds(norm(irl.V̂.param-w_prev))
-                w_prev = deepcopy(irl.V̂.param)
-                V̂_nexts = []
-                @show i, irl.V̂.param
-            end
-        elseif t == tf
-            P = [  irl.V̂.param[1] irl.V̂.param[2]/2;
-                 irl.V̂.param[2]/2   irl.V̂.param[3]]
-            @show stop_conds_dict
-            @show P
-        end
-    end
-    cb_train = PresetTimeCallback(0.0:irl.T:tf, affect!)
+    #     # @show t, irl.V̂.param, any(values(stop_conds_dict))
+    #     if any(values(stop_conds_dict)) == false
+    #         if length(V̂_nexts) >= N
+    #             i += 1
+    #             # @show hcat(Φs[end-N:end-1]...)' |> size
+    #             # @show hcat(V̂_nexts...)' |> size
+    #             irl.V̂.param = pinv(hcat(Φs[end-N:end-1]...)') * hcat(V̂_nexts...)'
+    #             stop_conds_dict = stop_conds(norm(irl.V̂.param-w_prev))
+    #             w_prev = deepcopy(irl.V̂.param)
+    #             V̂_nexts = []
+    #             @show i, irl.V̂.param
+    #         end
+    #     elseif t == tf
+    #         P = [  irl.V̂.param[1] irl.V̂.param[2]/2;
+    #              irl.V̂.param[2]/2   irl.V̂.param[3]]
+    #         @show stop_conds_dict
+    #         @show P
+    #     end
+    # end
+    # cb_train = PresetTimeCallback(0.0:irl.T:tf, affect!)
+    cb_train = FS.update_params_callback(irl)
     cb = CallbackSet(cb_train)
     # prob, sol = sim(x0, apply_inputs(dynamics!(env); u=û); tf=tf, callback=cb)
     prob, sol = sim(X0, augmented_dynamics!(env); tf=tf, callback=cb)
