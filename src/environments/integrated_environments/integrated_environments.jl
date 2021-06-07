@@ -122,3 +122,28 @@ function Dynamics!(multicopter::GoodarziQuadcopterEnv, controller::BacksteppingP
         nothing
     end
 end
+
+# """
+# LinearSystemEnv + running_cost
+# """
+# function LinearSystem_CostEnv(; kwargs_linearsystem=Dict())
+#     linearsystem = LinearSystemEnv(; kwargs_linearsystem...)
+#     cost = FS.running_cost(LinearSystemEnv)
+#     linearsystem, cost
+# end
+
+# function State(linearsystem::LinearSystemEnv)
+#     return function (args_linearsystem=())
+#         x_linearsystem = State(linearsystem)(args_linearsystem...)
+#         x_cost = State()(args_cost...)
+#         ComponentArray(linearsystem=x_linearsystem, cost=x_cost)
+#     end
+# end
+
+# function dynamics!(linearsystem::LinearSystemEnv)
+#     return function (dx, x, p, t)
+#         dynamics!(linearsystem)(dx.linearsystem, x.linearsystem, (), t; u=u)
+#         dX.cost = FS.running_cost(LinearSystemEnv)(x_linearsystem, u)
+#         nothing
+#     end
+# end

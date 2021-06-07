@@ -13,6 +13,7 @@ mutable struct CTLinearIRL
     V̂::LinearApproximator
     running_cost::Function
     T::Real
+    N::Int
 end
 
 """
@@ -21,11 +22,11 @@ m: input dim.
 d: polynomial degree
 """
 function CTLinearIRL(n::Int, m::Int, running_cost,
-        T=0.04, d_value::Int=2, d_controller::Int=4;
+        T=0.04, N=3, d_value::Int=2, d_controller::Int=4;
         V̂=LinearApproximator(2, 2; with_bias=false),
     )
     @assert T > 0
-    CTLinearIRL(n, m, V̂, running_cost, T)
+    CTLinearIRL(n, m, V̂, running_cost, T, N)
 end
 
 """
@@ -42,16 +43,17 @@ function approximate_optimal_input(irl::CTLinearIRL, env::LinearSystemEnv)
     end
 end
 
-function update_params_callback(irl::CTLinearIRL)
+function update_params_callback(irl::CTLinearIRL, tf, stop_conds)
+    i = 0
+    w_prev = [1, 1, 1]
     ∫rs = []
     V̂_nexts = []
     Φs = []
-    stop_conds_dict = []
+    stop_conds_dict = false
     affect! = function (integrator)
         @unpack p, t = integrator
         X = integrator.u
         @unpack x, ∫r = X
-        _û = û(x, p, t)
         push!(∫rs, ∫r)
         push!(Φs, irl.V̂.basis(x))
         if length(∫rs) > 1
@@ -60,11 +62,11 @@ function update_params_callback(irl::CTLinearIRL)
 
         # @show t, irl.V̂.param, any(values(stop_conds_dict))
         if any(values(stop_conds_dict)) == false
-            if length(V̂_nexts) >= N
+            if length(V̂_nexts) >= irl.N
                 i += 1
                 # @show hcat(Φs[end-N:end-1]...)' |> size
                 # @show hcat(V̂_nexts...)' |> size
-                irl.V̂.param = pinv(hcat(Φs[end-N:end-1]...)') * hcat(V̂_nexts...)'
+                irl.V̂.param = pinv(hcat(Φs[end-irl.N:end-1]...)') * hcat(V̂_nexts...)'
                 stop_conds_dict = stop_conds(norm(irl.V̂.param-w_prev))
                 w_prev = deepcopy(irl.V̂.param)
                 V̂_nexts = []
