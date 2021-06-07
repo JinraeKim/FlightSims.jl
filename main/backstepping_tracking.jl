@@ -10,7 +10,6 @@ function make_env()
     @unpack m, g = multicopter
     x0_multicopter = State(multicopter)()
     pos0 = copy(x0_multicopter.p)
-    vel0 = copy(x0_multicopter.v)
     helixCG = FS.HelixCommandGenerator(pos0)
     cg = command_generator(helixCG)
     controller = BacksteppingPositionControllerEnv(m; x_cmd_func=cg)

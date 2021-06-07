@@ -53,13 +53,6 @@ function State(controller::BacksteppingPositionControllerEnv)
     end
 end
 
-function Params(controller::BacksteppingPositionControllerEnv)
-    return function ()
-        @warn "TODO"
-        nothing
-    end
-end
-
 function dynamics!(controller::BacksteppingPositionControllerEnv)
     @unpack Ref_model = controller
     return function (dX, X, p, t; pos_cmd=nothing, Ṫd)
@@ -117,7 +110,8 @@ function _command(controller::BacksteppingPositionControllerEnv)
         Md = cross(ω, J*ω) + J*(T_ω(controller, T)'*R*et + ω̇d + Kω*eω)
         # νd = vcat(Td, Md)
         νd = ComponentArray(f=Td, M=Md)
-        ComponentArray(νd=νd, Ṫd=Ṫd, e=e, zB=zB)
+        e = vcat(ep, et, eω)
+        ComponentArray(νd=νd, Ṫd=Ṫd, e=e, zB=zB, T=T)
     end
 end
 

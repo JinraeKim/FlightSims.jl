@@ -7,9 +7,10 @@ Proc. Am. Control Conf., vol. 2016-July, pp. 6760–6766, 2016.
 """
 struct AdaptiveCABacksteppingPositionControllerEnv <: AbstractEnv
     baseline::BacksteppingPositionControllerEnv
-    function AdaptiveCABacksteppingPositionControllerEnv(args...; kwargs...)
+    γ
+    function AdaptiveCABacksteppingPositionControllerEnv(args...; γ=1e-1, kwargs...)
         baseline = BacksteppingPositionControllerEnv(args...; kwargs...)
-        new(baseline)
+        new(baseline, γ)
     end
 end
 
@@ -25,18 +26,10 @@ function State(controller::AdaptiveCABacksteppingPositionControllerEnv)
     end
 end
 
-function Params(controller::AdaptiveCABacksteppingPositionControllerEnv)
-    @unpack baseline = controller
-    return function (args...; γ=1e-1, kwargs...) 
-        p_baseline = Params(baseline)(args...; kwargs...)
-        ComponentArray(baseline=p_baseline, γ=γ)
-    end
-end
-
 function dynamics!(controller::AdaptiveCABacksteppingPositionControllerEnv)
     @unpack baseline = controller
     return function (dX, X, p, t; pos_cmd=nothing, Ṫd, Θ̂̇)
-        dynamics!(baseline)(dX.baseline, X.baseline, p.baseline, t; pos_cmd=pos_cmd, Ṫd=Ṫd)
+        dynamics!(baseline)(dX.baseline, X.baseline, (), t; pos_cmd=pos_cmd, Ṫd=Ṫd)
         dX.Θ̂ = Θ̂̇
         nothing
     end
@@ -65,13 +58,13 @@ function Proj_R(controller::AdaptiveCABacksteppingPositionControllerEnv, C, Y)
 end
 
 function command(controller::AdaptiveCABacksteppingPositionControllerEnv)
-    @unpack baseline = controller
+    @unpack baseline, γ = controller
     @unpack Ap, Bp, P, Kp, Kt = baseline
     return function (p, v, R, ω,
                      xd, vd, ad, ȧd, äd, Td, Θ̂,
-                     m::Real, J, g::Real, B_A, γ)
+                     m::Real, J, g::Real, B_A,)
         _cmd = _command(baseline)(p, v, R, ω, xd, vd, ad, ȧd, äd, Td, m, J, g)
-        @unpack νd, Ṫd, e, zB = _cmd
+        @unpack νd, Ṫd, e, zB, T = _cmd
         P̄ = [          P          zeros(6, 6);
              zeros(6, 6)  0.5*Matrix(I, 6, 6)]
         θ_ėp = Bp
