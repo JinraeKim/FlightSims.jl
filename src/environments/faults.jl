@@ -1,23 +1,28 @@
 abstract type AbstractFault end
 abstract type AbstractActuatorFault <: AbstractFault end
 
+# API
+(fault::AbstractFault)(t, u) = error("Not implemented fault")
 # FaultSet
 FaultSet(args...) = AbstractFault[args...]
-
-function select_last_before_t(faults, t)
-    faults_before_t = faults |> Filter(fault -> fault.time <= t) |> collect
-    if length(faults_before_t) == 0
+# select_last
+"""
+Select the last fault (concerning the applied time) among given faults.
+"""
+function select_last_before_t(faults::Vector{T} where T <: AbstractFault, t)
+    fault_times_less_than_t = faults |> Map(fault -> fault.time) |> Filter(<=(t)) |> collect
+    if length(fault_times_less_than_t) == 0
+        # case 1: if there is no faults occured before t
         return (t, u) -> u
     else
-        fault_times_before_t = faults_before_t |> Map(fault -> fault.time) |> collect
-        faults_last_time = faults_before_t |> Filter(fault -> fault.time == maximum(fault_times_before_t)) |> collect
-        fault_last_time = length(faults_last_time) == 1 ? faults_last_time[1] : error("More than one faults are applied at the same time")
-        return fault_last_time
+        # case 2: if there are some faults occured before t
+        fault_last_indices = findall(fault -> fault.time == maximum(fault_times_less_than_t), faults)
+        fault_last_idx = length(fault_last_indices) == 1 ? fault_last_indices[1] : error("Among given faults, more than one faults occured at the same time")
+        return faults[fault_last_idx]
     end
 end
 
-## ActuatorFault
-# LoE
+
 """
 Loss of effectiveness (LoE).
 """
@@ -34,6 +39,8 @@ end
 function (fault::LoE)(t, u)
     @unpack time, index, level = fault
     effectiveness = ones(size(u))
-    effectiveness[index] = level
-    effectiveness .* u
+    if t >= time
+        effectiveness[index] = level
+    end
+    return effectiveness .* u
 end

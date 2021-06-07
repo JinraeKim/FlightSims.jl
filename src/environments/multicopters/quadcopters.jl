@@ -43,7 +43,7 @@ function dynamics!(env::QuadcopterEnv;
             _u_faulted = last_actuator_fault(t, _u_faulted)
         end
         u_faulted = _u_faulted
-        # @show u_faulted ./ u_saturated, t  # for debugging
+        @show u_faulted ./ u_saturated, t  # for debugging
         ν = input_to_force_moment(env, u_faulted)
         f, M = ν[1], ν[2:4]
         _dynamics!(env)(dX, X, p, t; f=f, M=M)
