@@ -1,11 +1,9 @@
 """
 # References
-- Controller (it may be modified in this implementation)
+- Controller (modified for non-FTC (fault tolerant control))
 [1] G. P. Falconi and F. Holzapfel,
 “Adaptive Fault Tolerant Control Allocation for a Hexacopter System,”
 Proc. Am. Control Conf., vol. 2016-July, pp. 6760–6766, 2016.
-- Reference model (e.g., xd, vd, ad, ad_dot, ad_ddot)
-[2] S. J. Su, Y. Y. Zhu, H. R. Wang, and C. Yun, “A Method to Construct a Reference Model for Model Reference Adaptive Control,” Adv. Mech. Eng., vol. 11, no. 11, pp. 1–9, 2019.
 """
 struct BacksteppingPositionControllerEnv <: AbstractEnv
     Ref_model
@@ -50,8 +48,15 @@ function State(controller::BacksteppingPositionControllerEnv)
     return function (pos0, m, g)
         @assert m > 0
         ref_model = State(Ref_model)(pos0)
-        Td = m*g
+        Td = m*g  # default
         ComponentArray(ref_model=ref_model, Td=Td)
+    end
+end
+
+function Params(controller::BacksteppingPositionControllerEnv)
+    return function ()
+        @warn "TODO"
+        nothing
     end
 end
 
@@ -64,23 +69,21 @@ function dynamics!(controller::BacksteppingPositionControllerEnv)
     end
 end
 
-function command(controller::BacksteppingPositionControllerEnv)
-    T_u_inv(T) = [   0 1/T  0;
-                  -1/T   0  0;
-                     0   0 -1]
-    T_u_inv_dot(T, Ṫ) = [    0 -Ṫ/T^2 0;
-                         Ṫ/T^2      0 0;
-                             0      0 0]
-    T_ω(T) = [0 -T  0;
-              T  0  0;
-              0  0  0]
-    skew(x) = [    0  -x[3]   x[2];
-                x[3]      0  -x[1];
-               -x[2]   x[1]     0]
+# utils; will also be used in AdaptiveCABacksteppingPositionControllerEnv
+T_u_inv(controller::BacksteppingPositionControllerEnv, T) = [   0 1/T  0;
+                                                             -1/T   0  0;
+                                                                0   0 -1]
+T_u_inv_dot(controller::BacksteppingPositionControllerEnv, T, Ṫ) = [    0 -Ṫ/T^2 0;
+                                                                    Ṫ/T^2      0 0;
+                                                                        0      0 0]
+T_ω(controller::BacksteppingPositionControllerEnv, T) = [0 -T  0;
+                                                         T  0  0;
+                                                         0  0  0]
+function _command(controller::BacksteppingPositionControllerEnv)
+    @unpack Ap, Bp, P, Kp, Kt, Kω = controller
     return function(p, v, R, ω,
                     xd, vd, ad, ȧd, äd, Td,
                     m::Real, J, g::Real,)
-        @unpack Ap, Bp, P, Kp, Kt, Kω = controller
         ex = xd - p
         ev = vd - v
         ep = vcat(ex, ev)
@@ -94,26 +97,35 @@ function command(controller::BacksteppingPositionControllerEnv)
         u̇1 = m*ȧd + Kp*ėp
         T = Td  # TODO: no lag
         # u2
-        u2 = T_u_inv(T) * R * (2*Bp' * P * ep + u̇1 + Kt*et)
+        u2 = T_u_inv(controller, T) * R * (2*Bp' * P * ep + u̇1 + Kt*et)
         Ṫd = u2[end]  # third element
         Ṫ = Ṫd  # TODO: no lag
-        żB = -R' * T_ω(1.0) * ω
+        żB = -R' * T_ω(controller, 1.0) * ω
         ėt = u̇1 + u2[end]*zB + Td*żB
         ëp = Ap*ėp + Bp*ėt
         ü1 = m*äd + Kp*ëp
-        Ṙ = -skew(ω) * R
+        Ṙ = -skew(copy(ω)) * R  # see `utils/skew.jl`
         u̇2 = (
-              (T_u_inv_dot(T, Ṫ)*R + T_u_inv(T)*Ṙ) * (2*Bp'*P*ep + u̇1 + Kt*et)
-              + T_u_inv(T) * R * (2*Bp'*P*ėp + ü1 + Kt*ėt)
+              (T_u_inv_dot(controller, T, Ṫ)*R + T_u_inv(controller, T)*Ṙ) * (2*Bp'*P*ep + u̇1 + Kt*et)
+              + T_u_inv(controller, T) * R * (2*Bp'*P*ėp + ü1 + Kt*ėt)
              )
         ω̇d = [1 0 0;
               0 1 0;
               0 0 0] * u̇2
         ωd = [u2[1:2]..., 0]
         eω = ωd - ω
-        Md = cross(ω, J*ω) + J*(T_ω(T)'*R*et + ω̇d + Kω*eω)
+        Md = cross(ω, J*ω) + J*(T_ω(controller, T)'*R*et + ω̇d + Kω*eω)
         # νd = vcat(Td, Md)
         νd = ComponentArray(f=Td, M=Md)
-        νd, Ṫd
+        ComponentArray(νd=νd, Ṫd=Ṫd, e=e, zB=zB)
+    end
+end
+
+function command(controller::BacksteppingPositionControllerEnv)
+    return function(p, v, R, ω,
+                    xd, vd, ad, ȧd, äd, Td,
+                    m::Real, J, g::Real,)
+        _cmd = _command(controller)(p, v, R, ω, xd, vd, ad, ȧd, äd, Td, m, J, g,)
+        _cmd.νd, _cmd.Ṫd
     end
 end

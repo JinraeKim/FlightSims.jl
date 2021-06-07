@@ -45,6 +45,7 @@ Main APIs are provided in `src/APIs`.
 - `AbstractEnv`: an abstract type for user-defined and predefined environments.
 All environment structures should be sub-type of `AbstractEnv`.
 - `State(env::AbstractEnv)`: return a function that produces structured states.
+- `Params(env::AbstractEnv)`: return a function that produces structured parameters.
 - `dynamics!(env::AbstractEnv)` and `dynamics(env::AbstractEnv)`: return a function that maps in-place (**recommended**) and out-of-place dynamics (resp.),
 compatible with `DifferentialEquations`. User can extend these methods or simply define other methods.
 - `apply_inputs(func; kwargs...)`: It is borrowed from [an MRAC example](https://jonniedie.github.io/ComponentArrays.jl/stable/examples/adaptive_control/). By using this, user can easily apply various kind of inputs into the dynamical system (environment).
