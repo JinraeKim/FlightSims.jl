@@ -1,5 +1,5 @@
 function process(env::AbstractEnv)
-    return function (prob::DEProblem, sol::DESolution; Δt=0.01)
+    return function (prob::DiffEqBase.DEProblem, sol::DESolution; Δt=0.01)
         t0, tf = prob.tspan
         ts = t0:Δt:tf
         xs = ts |> Map(t -> sol(t)) |> collect
@@ -10,11 +10,11 @@ end
 # save and load
 """
     save(path::String,
-    env::AbstractEnv, prob::DEProblem, sol::DESolution;
+    env::AbstractEnv, prob::DiffEqBase.DEProblem, sol::DESolution;
     process=nothing)
 """
 function FileIO.save(path::String,
-        env::AbstractEnv, prob::DEProblem, sol::DESolution;
+        env::AbstractEnv, prob::DiffEqBase.DEProblem, sol::DESolution;
         process=nothing,)
     will_be_saved = Dict("env" => env, "prob" => prob, "sol" => sol)
     if process != nothing
