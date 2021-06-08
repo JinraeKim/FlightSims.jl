@@ -1,25 +1,20 @@
-function process()
-    return function (prob::ODEProblem, sol::ODESolution; Δt=0.01)
+function process(env::AbstractEnv)
+    return function (prob::DEProblem, sol::DESolution; Δt=0.01)
         t0, tf = prob.tspan
         ts = t0:Δt:tf
         xs = ts |> Map(t -> sol(t)) |> collect
         DataFrame(times=ts, states=xs)
     end
 end
-# will be deprecated
-function process(env::AbstractEnv)
-    process()
-end
-
 
 # save and load
 """
     save(path::String,
-    env::AbstractEnv, prob::ODEProblem, sol::ODESolution;
+    env::AbstractEnv, prob::DEProblem, sol::DESolution;
     process=nothing)
 """
 function FileIO.save(path::String,
-        env::AbstractEnv, prob::ODEProblem, sol::ODESolution;
+        env::AbstractEnv, prob::DEProblem, sol::DESolution;
         process=nothing,)
     will_be_saved = Dict("env" => env, "prob" => prob, "sol" => sol)
     if process != nothing
