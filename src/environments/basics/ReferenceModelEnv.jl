@@ -43,7 +43,7 @@ function State(env::ReferenceModelEnv)
     end
 end
 
-function dynamics!(env::ReferenceModelEnv)
+function Dynamics!(env::ReferenceModelEnv)
     @unpack d, Ks, auto_diff, x_cmd_func = env
     # derivatives for auto_diff
     funcs = nothing

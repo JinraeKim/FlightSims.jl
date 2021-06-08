@@ -15,8 +15,8 @@ using Flux.Data: DataLoader
 using MatrixEquations
 
 ### APIs
-export AbstractEnv, State, dynamics, dynamics!, apply_inputs
-export sim, process, load
+export AbstractEnv, State, Dynamics, Dynamics!, apply_inputs
+export sim, Process, load
 ### envs
 ## basics
 export TwoDimensionalNonlinearPolynomialEnv, LinearSystemEnv, ReferenceModelEnv

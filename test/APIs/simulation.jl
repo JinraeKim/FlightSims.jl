@@ -8,7 +8,7 @@ using Transducers
 
 function test()
     n = 3
-    dynamics!(dx, x, p, t) = dx .= -p*x
+    Dynamics!(dx, x, p, t) = dx .= -p*x
     x0 = ones(n)
     p0 = 1.0
     tf = -1.00
@@ -20,7 +20,7 @@ function test()
     cb_update2 = PeriodicCallback(affect2!, Δt2; initial_affect=false)
     saving_func(x, t, integrator) = t > 0.5 ? (; p=integrator.p) : (; x=x, p=integrator.p)  # varying keys
     cb = CallbackSet(cb_update, cb_update2)
-    prob, sol, df = sim(x0, dynamics!, p0;
+    prob, sol, df = sim(x0, Dynamics!, p0;
                         tf=tf, callback=cb,
                         saving_func=saving_func)
     df

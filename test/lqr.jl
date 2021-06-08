@@ -19,10 +19,10 @@ function test()
     u_lqr(x, p, t) = -K*x
     prob, sol = sim(
                     x0,  # initial condition
-                    apply_inputs(dynamics!(env); u=u_lqr);  # dynamics with input of LQR
+                    apply_inputs(Dynamics!(env); u=u_lqr);  # dynamics with input of LQR
                     tf=10.0,  # final time
                    )
-    df = process(env)(prob, sol; Δt=0.01)  # DataFrame; `Δt` means data sampling period.
+    df = Process(env)(prob, sol; Δt=0.01)  # DataFrame; `Δt` means data sampling period.
     plot(df.times, hcat(df.states...)'; label=["x1" "x2"])  # Plots
     savefig("figures/lqr.png")
 end

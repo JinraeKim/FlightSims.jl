@@ -8,7 +8,7 @@ function State(env::TwoDimensionalNonlinearPolynomialEnv)
     end
 end
 
-function dynamics!(env::TwoDimensionalNonlinearPolynomialEnv)
+function Dynamics!(env::TwoDimensionalNonlinearPolynomialEnv)
     return function (dx, x, p, t; u)
         @assert length(u) == 1
         _u = u[1]  # Real or Array

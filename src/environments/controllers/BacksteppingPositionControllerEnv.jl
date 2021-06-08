@@ -55,10 +55,10 @@ function State(controller::BacksteppingPositionControllerEnv)
     end
 end
 
-function dynamics!(controller::BacksteppingPositionControllerEnv)
+function Dynamics!(controller::BacksteppingPositionControllerEnv)
     @unpack Ref_model = controller
     return function (dX, X, p, t; pos_cmd=nothing, Ṫd)
-        dynamics!(Ref_model)(dX.ref_model, X.ref_model, (), t; x_cmd=pos_cmd)  # be careful; parameter = ()
+        Dynamics!(Ref_model)(dX.ref_model, X.ref_model, (), t; x_cmd=pos_cmd)  # be careful; parameter = ()
         dX.Td = Ṫd
         nothing
     end

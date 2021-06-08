@@ -8,9 +8,9 @@ function test_bak()
     multicopter, controller = FS.GoodarziQuadcopter_BacksteppingControllerEnv()
     x0 = State(multicopter, controller)()
     pos_cmd = [1, 2, 3]
-    prob, sol = sim(x0, apply_inputs(dynamics!(multicopter, controller); pos_cmd=pos_cmd);
+    prob, sol = sim(x0, apply_inputs(Dynamics!(multicopter, controller); pos_cmd=pos_cmd);
                     tf=10.0)
-    df = process()(prob, sol; Δt=0.01)
+    df = Process()(prob, sol; Δt=0.01)
     ts = df.times
     poss = df.states |> Map(state -> state.multicopter.p) |> collect
     pos_cmds = poss |> Map(pos -> pos_cmd) |> collect
@@ -25,9 +25,9 @@ function test()
     mixer = PseudoInverseMixer(multicopter.B)
     x0 = State(multicopter, controller)()
     pos_cmd = [2, 1, 3]
-    prob, sol = sim(x0, apply_inputs(dynamics!(multicopter, controller, mixer); pos_cmd=pos_cmd);
+    prob, sol = sim(x0, apply_inputs(Dynamics!(multicopter, controller, mixer); pos_cmd=pos_cmd);
                     tf=10.0)
-    df = process(multicopter, controller, mixer)(prob, sol)
+    df = Process(multicopter, controller, mixer)(prob, sol)
     p_pos = plot(df.times, hcat(df.positions...)')
     savefig(p_pos, "pos.png")
     p_u_cmd = plot(df.times, hcat(df.u_commands...)')
