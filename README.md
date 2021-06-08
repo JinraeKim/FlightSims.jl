@@ -56,6 +56,7 @@ Note that these interfaces are also provided for some **integrated environments*
 - `sim`: return `prob::ODEProblem` and `sol::ODESolution`.
     - With a keyword argument `datum_format`, it results `prob`, `sol`, and `df::DataFrame`.
 - `DatumFormat`: return a function `(x, t, integrator::DiffEqBase.DEIntegrator) -> nt::NamedTuple` for saving data.
+- `save_inputs(func; kwargs...)`: this mimics `apply_inputs(func; kwargs...)`.
 - `Process`: return a function that processes `prob` and `sol` to get simulation data.
 - `save`: save `env`, `prob`, `sol`, and optionally `process`,
 in a `.jld2` file.
