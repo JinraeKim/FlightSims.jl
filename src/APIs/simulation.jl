@@ -20,14 +20,15 @@ function sim(state0, dyn, p=nothing;
     saved_values = nothing
     if datum_format != nothing
         saved_values = SavedValues(Float64, NamedTuple)
-        cb_save = SavingCallback(datum_format, saved_values; saveat=saveat, tdir=Int(sign(tspan[2]-tspan[1])))
+        cb_save = SavingCallback(datum_format, saved_values;
+                                 saveat=saveat, tdir=Int(sign(tspan[2]-tspan[1])))
         callback = CallbackSet(callback, cb_save)  # save values "after all other callbacks"
     end
     sol = solve(prob, solver; callback=callback, kwargs...)
     if datum_format == nothing
         return prob, sol
     else
-        df = DataFrame(times=saved_values.t)
+        df = DataFrame(time=saved_values.t)
         all_keys = (saved_values.saveval |> Map(keys) |> union)[1]
         for key in all_keys
             _getproperty(x) = isdefined(x, key) ? getproperty(x, key) : missing
@@ -53,3 +54,8 @@ function apply_inputs(func; kwargs...)
     return simfunc
 end
 
+function save_inputs(func; kwargs...)
+    datum_format(x, t, integrator) = func(x, t, integrator;
+                                          map(f -> maybe_apply(f, x, integrator.p, t), (; kwargs...))...)
+    datum_format
+end

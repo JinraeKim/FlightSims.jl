@@ -18,10 +18,14 @@ function test()
     affect2!(integrator) = integrator.p = 0.99*integrator.p
     cb_update = PeriodicCallback(affect!, Δt; initial_affect=false)
     cb_update2 = PeriodicCallback(affect2!, Δt2; initial_affect=false)
-    saving_func(x, t, integrator) = t > 0.5 ? (; p=integrator.p) : (; x=x, p=integrator.p)  # varying keys
+    function datum_format(x, t, integrator)
+        p = copy(integrator.p)
+        x = copy(x)
+        t > 0.5 ? (; p=p) : (; x=x, p=p)  # varying keys
+    end
     cb = CallbackSet(cb_update, cb_update2)
     prob, sol, df = sim(x0, Dynamics!, p0;
                         tf=tf, callback=cb,
-                        saving_func=saving_func)
+                        datum_format=datum_format)
     df
 end
