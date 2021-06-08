@@ -98,14 +98,14 @@ function test()
                         apply_inputs(Dynamics!(env); u=u_lqr),  # dynamics with input of LQR
                         p;
                         t0=t0, tf=tf,  # final time
-                        datum_format=save_inputs(DatumFormat(env); u=u_lqr),  # saving data
+                        datum_format=save_inputs(DatumFormat(env); input=u_lqr),  # saving data
                         saveat=t0:Δt:tf,
                        )
     # case 2: processing data after simulation
     # df = Process(env)(prob, sol; Δt=0.01)  # DataFrame; `Δt` means data sampling period.
     plot(df.time, hcat(df.state...)'; title="state variable", label=["x1" "x2"])  # Plots
     savefig("figures/x_lqr.png")
-    plot(df.time, hcat(df.u...)'; title="control input", label="u")  # Plots
+    plot(df.time, hcat(df.input...)'; title="control input", label="u")  # Plots
     savefig("figures/u_lqr.png")
 end
 ```
