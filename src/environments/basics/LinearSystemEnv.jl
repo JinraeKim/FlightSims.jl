@@ -13,7 +13,7 @@ function State(env::LinearSystemEnv)
     end
 end
 
-function dynamics!(env::LinearSystemEnv)
+function Dynamics!(env::LinearSystemEnv)
     @unpack A, B = env
     return function (dx, x, p, t; u)
         _u = length(u) == 1 ? u[1] : u

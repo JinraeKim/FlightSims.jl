@@ -1,4 +1,4 @@
-function process(env::AbstractEnv)
+function Process(env::AbstractEnv)
     return function (prob::DiffEqBase.DEProblem, sol::DESolution; Δt=0.01)
         t0, tf = prob.tspan
         ts = t0:Δt:tf

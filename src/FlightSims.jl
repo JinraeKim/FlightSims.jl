@@ -15,7 +15,7 @@ using Flux.Data: DataLoader
 using MatrixEquations
 
 ### APIs
-export AbstractEnv, State, dynamics, dynamics!, apply_inputs
+export AbstractEnv, State, Dynamics, Dynamics!, apply_inputs
 export sim, process, load
 ### envs
 ## basics

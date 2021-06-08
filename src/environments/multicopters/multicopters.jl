@@ -48,7 +48,7 @@ Common dynamics of QuadcopterEnv.
 f ∈ R: total thrust
 M ∈ R^3: moment
 """
-function dynamics!(env::MulticopterEnv;
+function Dynamics!(env::MulticopterEnv;
         faults::Vector{T} where T <: AbstractFault=AbstractFault[],
     )
     actuator_faults = faults |> Filter(fault -> typeof(fault) <: AbstractActuatorFault) |> collect

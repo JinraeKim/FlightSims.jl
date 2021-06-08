@@ -45,7 +45,7 @@ Main APIs are provided in `src/APIs`.
 - `AbstractEnv`: an abstract type for user-defined and predefined environments.
 All environment structures should be sub-type of `AbstractEnv`.
 - `State(env::AbstractEnv)`: return a function that produces structured states.
-- `dynamics!(env::AbstractEnv)` and `dynamics(env::AbstractEnv)`: return a function that maps in-place (**recommended**) and out-of-place dynamics (resp.),
+- `Dynamics!(env::AbstractEnv)` and `Dynamics(env::AbstractEnv)`: return a function that maps in-place (**recommended**) and out-of-place dynamics (resp.),
 compatible with `DifferentialEquations`. User can extend these methods or simply define other methods.
 - `apply_inputs(func; kwargs...)`: It is borrowed from [an MRAC example](https://jonniedie.github.io/ComponentArrays.jl/stable/examples/adaptive_control/). By using this, user can easily apply various kind of inputs into the dynamical system (environment).
 
@@ -53,7 +53,7 @@ Note that these interfaces are also provided for some **integrated environments*
 
 ### Simulation and data saving & loading
 - `sim`: return `prob::ODEProblem` and `sol::ODESolution`.
-- `process`: process `prob` and `sol` to get simulation data.
+- `Process`: return a function that processes `prob` and `sol` to get simulation data.
 - `save`: save `env`, `prob`, `sol`, and optionally `process`,
 in a `.jld2` file.
 - `load`: load `env`, `prob`, `sol`, and optionally `process`,
@@ -85,10 +85,10 @@ function test()
     u_lqr(x, p, t) = -K*x
     prob, sol = sim(
                     x0,  # initial condition
-                    apply_inputs(dynamics!(env); u=u_lqr);  # dynamics with input of LQR
+                    apply_inputs(Dynamics!(env); u=u_lqr);  # dynamics with input of LQR
                     tf=10.0,  # final time
                    )
-    df = process(env)(prob, sol; Δt=0.01)  # DataFrame; `Δt` means data sampling period.
+    df = Process(env)(prob, sol; Δt=0.01)  # DataFrame; `Δt` means data sampling period.
     plot(df.times, hcat(df.states...)'; label=["x1" "x2"])  # Plots
 end
 ```
@@ -125,8 +125,8 @@ end
 
 function main()
     multicopter, controller, x0, cg = make_env()
-    prob, sol = sim(x0, dynamics!(multicopter, controller); tf=40.0)
-    df = process()(prob, sol; Δt=0.01)
+    prob, sol = sim(x0, Dynamics!(multicopter, controller); tf=40.0)
+    df = Process()(prob, sol; Δt=0.01)
     ts = df.times
     poss = df.states |> Map(state -> state.multicopter.p) |> collect
     poss_true = ts |> Map(t -> cg(t)) |> collect

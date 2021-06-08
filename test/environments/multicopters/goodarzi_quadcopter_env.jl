@@ -14,7 +14,7 @@ using Test
     state0 = State(env)()
     state0.ω += [0.01, 0, -0.1]
     @unpack m, g = env
-    @time prob, sol = sim(state0, apply_inputs(dynamics!(env); u=[m*g, zeros(3)...]); tf=10.0)
+    @time prob, sol = sim(state0, apply_inputs(Dynamics!(env); u=[m*g, zeros(3)...]); tf=10.0)
     ts = prob.tspan[1]:0.01:prob.tspan[end]
     data = ts |> Map(t -> sol(t)) |> collect
     for sym in [:p, :v, :R, :ω]

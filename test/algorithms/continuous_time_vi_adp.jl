@@ -33,13 +33,13 @@ function explore(dir_log, env, adp, u_explorer;
         X0 = ComponentArray(x=x0, ∫Ψ=zeros(1, adp.N_Ψ))  # append system, 1 x N
         appended_dynamics! = function (env::TwoDimensionalNonlinearPolynomialEnv)
             return function (dX, X, p, t; u)
-                dynamics!(env)(dX.x, X.x, (), t; u=u)
+                Dynamics!(env)(dX.x, X.x, (), t; u=u)
                 dX.∫Ψ = FlightSims.Ψ(adp)(dX.x, u)
             end
         end
         prob, sol = sim(X0, apply_inputs(appended_dynamics!(env); u=u_explorer); tf=tf)
     else
-        prob, sol = sim(x0, apply_inputs(dynamics!(env); u=u_explorer); tf=tf)
+        prob, sol = sim(x0, apply_inputs(Dynamics!(env); u=u_explorer); tf=tf)
     end
     FlightSims.save(file_path, env, prob, sol)
     if exact_integration
@@ -55,7 +55,7 @@ function explore(dir_log, env, adp, u_explorer;
         end
         df = appended_process(env)(prob, sol; Δt=Δt)
     else
-        df = process(env)(prob, sol; Δt=Δt)
+        df = Process(env)(prob, sol; Δt=Δt)
     end
     df.inputs = zip(df.times, df.states) |> MapSplat((t, x) -> u_explorer(x, (), t)) |> collect
     df
@@ -95,8 +95,8 @@ end
 
 function demonstrate(env, adp; Δt=0.01, tf=10.0)
     x0 = State(env)(-2.9, -2.9)
-    prob, sol = sim(x0, apply_inputs(dynamics!(env); u=FS.approximate_optimal_input(adp)); tf=tf)
-    df = process(env)(prob, sol; Δt=Δt)
+    prob, sol = sim(x0, apply_inputs(Dynamics!(env); u=FS.approximate_optimal_input(adp)); tf=tf)
+    df = Process(env)(prob, sol; Δt=Δt)
     plot(df.times, hcat(df.states...)')
 end
 
