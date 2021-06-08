@@ -16,8 +16,7 @@ end
 function dynamics!(env::LinearSystemEnv)
     @unpack A, B = env
     return function (dx, x, p, t; u)
-        @assert length(u) == 1
-        _u = u[1]
+        _u = length(u) == 1 ? u[1] : u
         dx .= A*x + B*_u
         nothing
     end
