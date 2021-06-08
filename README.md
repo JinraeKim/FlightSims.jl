@@ -40,6 +40,7 @@ Take a look at `src/utils`.
 
 ## APIs
 Main APIs are provided in `src/APIs`.
+Note that among APIs, "a function whose output is a function" will have the uppercase first letter (#55).
 
 ### Make an environment
 - `AbstractEnv`: an abstract type for user-defined and predefined environments.
