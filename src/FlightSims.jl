@@ -16,7 +16,7 @@ using MatrixEquations
 
 ### APIs
 export AbstractEnv, State, Dynamics, Dynamics!, apply_inputs
-export sim, process, load
+export sim, Process, load
 ### envs
 ## basics
 export TwoDimensionalNonlinearPolynomialEnv, LinearSystemEnv, ReferenceModelEnv

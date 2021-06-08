@@ -1,9 +1,10 @@
 ## Simulation
 """
 # Notes
-- `saving_func` should be a function
+- `datum_format` should be a function
     - whose input is `(x, t, integrator::DiffEqBase.DEIntegrator)`
-    - and whose output is `nt::NamedTuple`.
+    and whose output is `nt::NamedTuple`.
+    - See `src/APIs/data_processing.jl`.
 - Default settings for saving
     - save values "after all other callbacks"
     - `saveat=[]` will save data at every time step.
@@ -11,19 +12,19 @@
 function sim(state0, dyn, p=nothing;
         t0=0.0, tf=1.0, solver=Tsit5(),
         callback::DiffEqBase.DECallback=CallbackSet(),
-        saving_func=nothing, saveat=[],
+        datum_format=nothing, saveat=[],
         kwargs...,
     )
     tspan = (t0, tf)
     prob = ODEProblem(dyn, state0, tspan, p)
     saved_values = nothing
-    if saving_func != nothing
+    if datum_format != nothing
         saved_values = SavedValues(Float64, NamedTuple)
-        cb_save = SavingCallback(saving_func, saved_values; saveat=saveat, tdir=Int(sign(tspan[2]-tspan[1])))
+        cb_save = SavingCallback(datum_format, saved_values; saveat=saveat, tdir=Int(sign(tspan[2]-tspan[1])))
         callback = CallbackSet(callback, cb_save)  # save values "after all other callbacks"
     end
     sol = solve(prob, solver; callback=callback, kwargs...)
-    if saving_func == nothing
+    if datum_format == nothing
         return prob, sol
     else
         df = DataFrame(times=saved_values.t)
