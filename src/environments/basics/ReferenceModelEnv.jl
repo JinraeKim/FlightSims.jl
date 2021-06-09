@@ -9,24 +9,13 @@ x_cmd_func(t): function of time
 """
 struct ReferenceModelEnv <: AbstractEnv
     d::Int  # degree
-    Ks::AbstractArray
     auto_diff::Bool
     x_cmd_func::Union{Function, Nothing}
 end
 function ReferenceModelEnv(d::Int; x_cmd_func=nothing)
     @assert d >= 0
-    Ks = []
-    if d == 4
-        push!(Ks, Diagonal(1.0*ones(3)))
-        push!(Ks, Diagonal(3.4*ones(3)))
-        push!(Ks, Diagonal(5.4*ones(3)))
-        push!(Ks, Diagonal(4.9*ones(3)))
-        push!(Ks, Diagonal(2.7*ones(3)))
-    else
-        error("Assign values of matrix `Kx` manually")
-    end
     auto_diff = x_cmd_func == nothing ? false : true
-    ReferenceModelEnv(d, Ks, auto_diff, x_cmd_func)
+    ReferenceModelEnv(d, auto_diff, x_cmd_func)
 end
 
 """
@@ -43,8 +32,25 @@ function State(env::ReferenceModelEnv)
     end
 end
 
+function Params(env::ReferenceModelEnv)
+    @unpack d = env
+    return function (Ks=[])
+        if d == 4 && Ks == []
+            Ks = []
+            push!(Ks, Diagonal(1.0*ones(3)))
+            push!(Ks, Diagonal(3.4*ones(3)))
+            push!(Ks, Diagonal(5.4*ones(3)))
+            push!(Ks, Diagonal(4.9*ones(3)))
+            push!(Ks, Diagonal(2.7*ones(3)))
+        elseif length(Ks) != d+1
+            error("Incorrect coefficient matricies")
+        end
+        Ks
+    end
+end
+
 function Dynamics!(env::ReferenceModelEnv)
-    @unpack d, Ks, auto_diff, x_cmd_func = env
+    @unpack d, auto_diff, x_cmd_func = env
     # derivatives for auto_diff
     funcs = nothing
     if auto_diff
@@ -54,7 +60,7 @@ function Dynamics!(env::ReferenceModelEnv)
         end
     end
     funcs(t) = [_func(t) for _func in _funcs]
-    return function (dX, X, p, t; x_cmd=nothing)
+    return function (dX, X, Ks, t; x_cmd=nothing)
         xs = [getproperty(X, Symbol(:x_, 0))]
         for i in 0:d-1
             _x_next = getproperty(X, Symbol(:x_, i+1))
