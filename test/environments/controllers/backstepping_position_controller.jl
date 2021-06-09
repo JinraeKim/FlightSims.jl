@@ -8,11 +8,14 @@ function test()
     m = 1.0
     pos0 = zeros(3)
     g = 9.81
-    controller = BacksteppingPositionControllerEnv(m)
+    # controller = BacksteppingPositionControllerEnv(m)
+    controller = BacksteppingPositionControllerEnv()
     x0_controller = State(controller)(pos0, m, g)
+    p_controller = Params(controller)(m)
     prob, sol = sim(x0_controller,
                     apply_inputs(Dynamics!(controller),
-                                 pos_cmd=[2, 1, 3], Ṫd=1.0);
+                                 pos_cmd=[2, 1, 3], Ṫd=1.0),
+                    p_controller;
                     tf=10.0)
     df = Process(controller)(prob, sol; Δt=0.01)
     ts = df.time

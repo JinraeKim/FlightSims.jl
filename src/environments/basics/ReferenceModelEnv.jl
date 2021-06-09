@@ -34,18 +34,19 @@ end
 
 function Params(env::ReferenceModelEnv)
     @unpack d = env
-    return function (Ks=[])
-        if d == 4 && Ks == []
-            Ks = []
-            push!(Ks, Diagonal(1.0*ones(3)))
-            push!(Ks, Diagonal(3.4*ones(3)))
-            push!(Ks, Diagonal(5.4*ones(3)))
-            push!(Ks, Diagonal(4.9*ones(3)))
-            push!(Ks, Diagonal(2.7*ones(3)))
-        elseif length(Ks) != d+1
-            error("Incorrect coefficient matricies")
+    return function (p=ComponentArray())
+        if d == 4
+            p = ComponentArray(
+                               K_4=Diagonal(2.7*ones(3)),
+                               K_3=Diagonal(4.9*ones(3)),
+                               K_2=Diagonal(5.4*ones(3)),
+                               K_1=Diagonal(3.4*ones(3)),
+                               K_0=Diagonal(1.0*ones(3)),
+                              )
+        else
+            error("Not defined degree $(d)")
         end
-        Ks
+        p
     end
 end
 
@@ -60,12 +61,15 @@ function Dynamics!(env::ReferenceModelEnv)
         end
     end
     funcs(t) = [_func(t) for _func in _funcs]
-    return function (dX, X, Ks, t; x_cmd=nothing)
+    return function (dX, X, p, t; x_cmd=nothing)
         xs = [getproperty(X, Symbol(:x_, 0))]
+        Ks = [getproperty(p, Symbol(:K_, 0))]
         for i in 0:d-1
             _x_next = getproperty(X, Symbol(:x_, i+1))
+            _p_next = getproperty(p, Symbol(:K_, i+1))
             setproperty!(dX, Symbol(:x_, i), _x_next)  # e.g., dX.x0 = x1
             push!(xs, _x_next)
+            push!(Ks, _p_next)
         end
         dx_d = nothing
         if auto_diff

@@ -9,31 +9,9 @@ Proc. Am. Control Conf., vol. 2016-July, pp. 6760–6766, 2016.
 """
 struct BacksteppingPositionControllerEnv <: AbstractEnv
     Ref_model
-    Ap
-    Bp
-    P
-    Kp
-    Kt
-    Kω
-    function BacksteppingPositionControllerEnv(m::Real; x_cmd_func=nothing)
-        @assert m > 0
+    function BacksteppingPositionControllerEnv(x_cmd_func=nothing)
         Ref_model = ReferenceModelEnv(4; x_cmd_func=x_cmd_func)
-        # position
-        Kx = m*1*Matrix(I, 3, 3)
-        Kv = m*1*1.82*Matrix(I, 3, 3)
-        Kp = hcat(Kx, Kv)
-        Q = Diagonal(1*ones(6))
-        # thrust
-        Kt = Diagonal(4*ones(3))
-        # angular
-        Kω = Diagonal(20*ones(3))
-        # reference model
-        Ap = [zeros(3, 3) Matrix(I, 3, 3);
-              -(1/m)*Kx -(1/m)*Kv]
-        Bp = [zeros(3, 3);
-              (1/m)*Matrix(I, 3, 3)]
-        P = lyapc(Ap, Q)
-        new(Ref_model, Ap, Bp, P, Kp, Kt, Kω)
+        new(Ref_model)
     end
 end
 
@@ -55,10 +33,35 @@ function State(controller::BacksteppingPositionControllerEnv)
     end
 end
 
+function Params(controller::BacksteppingPositionControllerEnv)
+    @unpack Ref_model = controller
+    return function (m::Real;
+                     Kx = m*Matrix(I, 3, 3),
+                     Kv = m*1.82*Matrix(I, 3, 3),
+                     Q = Diagonal(ones(6)),
+                     Kt = Diagonal(4*ones(3)),  # thrust
+                     Kω = Diagonal(20*ones(3)),  # angular
+                     args_Ref_model=(nothing,),
+                     kwargs_Ref_model=Dict(),
+                    )
+        @assert m > 0
+        # position
+        Kp = hcat(Kx, Kv)
+        # reference model
+        Ap = [zeros(3, 3) Matrix(I, 3, 3);
+              -(1/m)*Kx -(1/m)*Kv]
+        Bp = [zeros(3, 3);
+              (1/m)*Matrix(I, 3, 3)]
+        P = lyapc(Ap, Q)
+        p_ref_model = Params(Ref_model)(args_Ref_model...; kwargs_Ref_model...)
+        ComponentArray(ref_model=p_ref_model, Ap=Ap, Bp=Bp, P=P, Kp=Kp, Kt=Kt, Kω=Kω)
+    end
+end
+
 function Dynamics!(controller::BacksteppingPositionControllerEnv)
     @unpack Ref_model = controller
     return function (dX, X, p, t; pos_cmd=nothing, Ṫd)
-        Dynamics!(Ref_model)(dX.ref_model, X.ref_model, (), t; x_cmd=pos_cmd)  # be careful; parameter = ()
+        Dynamics!(Ref_model)(dX.ref_model, X.ref_model, p.ref_model, t; x_cmd=pos_cmd)  # be careful; parameter = ()
         dX.Td = Ṫd
         nothing
     end
@@ -112,7 +115,6 @@ function command(controller::BacksteppingPositionControllerEnv)
         ωd = [u2[1:2]..., 0]
         eω = ωd - ω
         Md = cross(ω, J*ω) + J*(T_ω(T)'*R*et + ω̇d + Kω*eω)
-        # νd = vcat(Td, Md)
         νd = ComponentArray(f=Td, M=Md)
         νd, Ṫd
     end
