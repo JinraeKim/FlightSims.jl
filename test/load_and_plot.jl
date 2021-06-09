@@ -12,5 +12,5 @@ function _load()
     saved_data = load(joinpath(dir_log, "test.jld2"))
     @unpack env, prob, sol = saved_data
     df = Process(env)(prob, sol)
-    plot(df.times, hcat(df.states...)')
+    plot(df.time, hcat(df.state...)')
 end

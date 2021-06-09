@@ -19,21 +19,21 @@ function Dynamics!(env::TwoDimensionalNonlinearPolynomialEnv)
     end
 end
 
-function optimal_input(env::TwoDimensionalNonlinearPolynomialEnv)
+function OptimalController(env::TwoDimensionalNonlinearPolynomialEnv)
     return function (x::ComponentArray, p, t)
         @unpack x1, x2 = x
         -x2
     end
 end
 
-function optimal_value(env::TwoDimensionalNonlinearPolynomialEnv)
+function OptimalValue(env::TwoDimensionalNonlinearPolynomialEnv)
     return function (x::ComponentArray)
         @unpack x1, x2 = x
         x1^2 + x2^2
     end
 end
 
-function running_cost(env::TwoDimensionalNonlinearPolynomialEnv)
+function RunningCost(env::TwoDimensionalNonlinearPolynomialEnv)
     return function (x::ComponentArray, _u)
         @assert length(_u) == 1
         u = _u[1]  # Real or Array

@@ -11,8 +11,8 @@ function test_bak()
     prob, sol = sim(x0, apply_inputs(Dynamics!(multicopter, controller); pos_cmd=pos_cmd);
                     tf=10.0)
     df = Process()(prob, sol; Δt=0.01)
-    ts = df.times
-    poss = df.states |> Map(state -> state.multicopter.p) |> collect
+    ts = df.time
+    poss = df.state |> Map(state -> state.multicopter.p) |> collect
     pos_cmds = poss |> Map(pos -> pos_cmd) |> collect
     # figures
     p = plot(title="position")
@@ -28,8 +28,8 @@ function test()
     prob, sol = sim(x0, apply_inputs(Dynamics!(multicopter, controller, mixer); pos_cmd=pos_cmd);
                     tf=10.0)
     df = Process(multicopter, controller, mixer)(prob, sol)
-    p_pos = plot(df.times, hcat(df.positions...)')
+    p_pos = plot(df.time, hcat(df.positions...)')
     savefig(p_pos, "pos.png")
-    p_u_cmd = plot(df.times, hcat(df.u_commands...)')
+    p_u_cmd = plot(df.time, hcat(df.u_commands...)')
     savefig(p_u_cmd, "u_cmd.png")
 end

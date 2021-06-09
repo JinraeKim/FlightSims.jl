@@ -15,12 +15,13 @@ using Flux.Data: DataLoader
 using MatrixEquations
 
 ### APIs
-export AbstractEnv, State, Dynamics, Dynamics!, apply_inputs
+export AbstractEnv, State, Params, Dynamics, Dynamics!, apply_inputs, DatumFormat, save_inputs
 export sim, Process, load
 ### envs
 ## basics
 export TwoDimensionalNonlinearPolynomialEnv, LinearSystemEnv, ReferenceModelEnv
 ## controllers
+export LQR
 export BacksteppingPositionControllerEnv
 ## multicopters
 export IslamQuadcopterEnv, GoodarziQuadcopterEnv

@@ -1,9 +1,12 @@
 """
 Datum format function compatible with `sim` and `SavingCallback` in `DifferetialEquations.jl`.
+# Notes
+As written in the [description](https://diffeq.sciml.ai/stable/features/callback_library/#saving_callback),
+this should allocate the output (not as a view to `x`).
 """
 function DatumFormat(env::AbstractEnv)
-    return function (x, t, integrator::DiffEqBase.DEIntegrator)::NamedTuple
-        (; x=x)
+    return function (x, t, integrator::DiffEqBase.DEIntegrator; kwargs...)
+        (; state=copy(x), kwargs...)
     end
 end
 
@@ -17,7 +20,7 @@ function Process(env::AbstractEnv)
         t0, tf = prob.tspan
         ts = t0:Δt:tf
         xs = ts |> Map(t -> sol(t)) |> collect
-        DataFrame(times=ts, states=xs)
+        DataFrame(time=ts, state=xs)
     end
 end
 

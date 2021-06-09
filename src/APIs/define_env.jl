@@ -1,13 +1,18 @@
 ### Default APIs
 ## Environments
 function State(env::AbstractEnv)
-    error("Define the structure of state for your env")
+    error("Define the structure of state for your environment")
 end
 
-function Dynamics(env::AbstractEnv)
-    error("Undefined out-of-place dynamics")
+function Params(env::AbstractEnv)
+    error("Define the structure of parameters for your environment")
 end
 
 function Dynamics!(env::AbstractEnv)
-    error("Undefined in-place dynamics")
+    error("Define in-place dynamics")
+end
+
+function Dynamics(env::AbstractEnv)
+    @warn "It is recommended to use `Dynamics!`; see https://github.com/JinraeKim/FlightSims.jl/issues/16"
+    error("Define out-of-place dynamics")
 end
