@@ -19,7 +19,8 @@ function command(controller::BacksteppingPositionControllerEnv, mixer::AbstractM
     ComponentArray(νd=νd, Ṫd=Ṫd, u_cmd=u_cmd)
 end
 
-function Dynamics!(multicopter::MulticopterEnv, controller::BacksteppingPositionControllerEnv,
+function Dynamics!(multicopter::MulticopterEnv,
+        controller::BacksteppingPositionControllerEnv,
         mixer::AbstractMixer)
     @unpack m, J, g = multicopter
     return function (dx, x, p, t; pos_cmd=nothing)
@@ -34,7 +35,7 @@ function Dynamics!(multicopter::MulticopterEnv, controller::BacksteppingPosition
     end
 end
 
-function process(multicopter::MulticopterEnv, controller::BacksteppingPositionControllerEnv,
+function Process(multicopter::MulticopterEnv, controller::BacksteppingPositionControllerEnv,
         mixer::AbstractMixer)
     @unpack m, J, g = multicopter
     return function (prob::ODEProblem, sol::ODESolution; Δt=0.01)
