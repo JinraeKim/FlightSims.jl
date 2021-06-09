@@ -113,7 +113,7 @@ end
 ![ex_screenshot](./figures/x_lqr.png)
 ![ex_screenshot](./figures/u_lqr.png)
 
-- For an example of **continuous-time value-iteration adaptive dynamic programming (CT-VI-ADP)**, take a look at `main/continuous_time_vi_adp.jl`.
+- For an example of **continuous-time value-iteration adaptive dynamic programming (CT-VI-ADP)**, take a look at `test/continuous_time_vi_adp.jl`.
     - [T. Bian and Z.-P. Jiang, “Value Iteration, Adaptive Dynamic Programming, and Optimal Control of Nonlinear Systems,” in 2016 IEEE 55th Conference on Decision and Control (CDC), Las Vegas, NV, USA, Dec. 2016, pp. 3375–3380. doi: 10.1109/CDC.2016.7798777.](https://ieeexplore.ieee.org/document/7798777)
 
 ### Nonlinear control
@@ -145,19 +145,19 @@ function main()
     multicopter, controller, x0, cg = make_env()
     prob, sol = sim(x0, Dynamics!(multicopter, controller); tf=40.0)
     df = Process()(prob, sol; Δt=0.01)
-    ts = df.times
-    poss = df.states |> Map(state -> state.multicopter.p) |> collect
-    poss_true = ts |> Map(t -> cg(t)) |> collect
+    ts = df.time
+    poss = df.state |> Map(state -> state.multicopter.p) |> collect
+    poss_ref = ts |> Map(t -> cg(t)) |> collect
     ## plot
     # time vs position
     p_pos = plot(; title="position", legend=:outertopright)
     plot!(p_pos, ts, hcat(poss...)'; label=["x" "y" "z"], color="red", ls=[:dash :dot :dashdot])
-    plot!(p_pos, ts, hcat(poss_true...)'; label=["x (true)" "y (true)" "z (true)"], color="black", ls=[:dash :dot :dashdot])
+    plot!(p_pos, ts, hcat(poss_ref...)'; label=["x (ref)" "y (ref)" "z (ref)"], color="black", ls=[:dash :dot :dashdot])
     savefig(p_pos, "t_vs_pos.png")
     # 3d traj
     p_traj = plot3d(; title="position", legend=:outertopright)
     plot!(p_traj, hcat(poss...)'[:, 1], hcat(poss...)'[:, 2], hcat(poss...)'[:, 3]; label="position", color="red")
-    plot!(p_traj, hcat(poss_true...)'[:, 1], hcat(poss_true...)'[:, 2], hcat(poss_true...)'[:, 3]; label="position (true)", color="black")
+    plot!(p_traj, hcat(poss_ref...)'[:, 1], hcat(poss_ref...)'[:, 2], hcat(poss_ref...)'[:, 3]; label="position (ref)", color="black")
     savefig(p_traj, "traj.png")
 end
 ```
