@@ -4,7 +4,7 @@ using Transducers
 using Plots
 using Random, LinearAlgebra, ComponentArrays
 using DynamicPolynomials, UnPack
-using OrdinaryDiffEq, DataFrames
+using DifferentialEquations, DataFrames
 
 
 function initialise()
@@ -17,7 +17,7 @@ function initialise()
     __u = u_explorer(__x, (), __t) 
     m = length(__u)
     u_norm_max = 5.0  # input constraint for numerical optimisation; TODO: can be deprecated
-    adp = CTValueIterationADP(n, m, FS.running_cost(env), u_norm_max)
+    adp = CTValueIterationADP(n, m, FS.RunningCost(env), u_norm_max)
     env, u_explorer, adp
 end
 
@@ -57,7 +57,7 @@ function explore(dir_log, env, adp, u_explorer;
     else
         df = Process(env)(prob, sol; Δt=Δt)
     end
-    df.inputs = zip(df.time, df.state) |> MapSplat((t, x) -> u_explorer(x, (), t)) |> collect
+    df.input = zip(df.time, df.state) |> MapSplat((t, x) -> u_explorer(x, (), t)) |> collect
     df
 end
 
