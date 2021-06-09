@@ -10,7 +10,8 @@ Supporting full compatibility with [DifferentialEquations.jl](https://github.com
 If you want more functionality, please feel free to report an issue!
 
 ### Nested Environments and Zoo
-- One can generate user-defined nested environments (or, dynamical systems) for complex flight simulation.
+- Environments usually stand for **dynamical systems** but also contain **other utilities**, for example, controllers.
+- One can generate user-defined nested environments using provided APIs.
 Also, some predefined environments are provided for reusability (i.e., environment zoo).
 Take a look at `src/environments`.
 - Examples include
@@ -20,7 +21,8 @@ Take a look at `src/environments`.
     - **multicopters**
         - (Quadcopter) `IslamQuadcopterEnv`, `GoodarziQuadcopterEnv`
     - **controllers**
-        - (backstepping controller) `BacksteppingPositionControllerEnv`
+        - (Linear quadratic regulator) `LQR`
+        - (Backstepping controller) `BacksteppingPositionControllerEnv`
     - **integrated_environments**
     - others
         - (Actuator fault) `LoE`
