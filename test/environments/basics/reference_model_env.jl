@@ -10,8 +10,8 @@ function test()
     X0_ref = State(env)(x0)
     prob, sol = sim(X0_ref, apply_inputs(Dynamics!(env); x_cmd=[1, 2, 3]); tf=10.0)
     df = Process(env)(prob, sol)
-    xs = df.states |> Map(X -> X.x_0) |> collect
-    plot(df.times, hcat(xs...)')
+    xs = df.state |> Map(X -> X.x_0) |> collect
+    plot(df.time, hcat(xs...)')
 end
 
 function test_auto_diff()
@@ -26,10 +26,10 @@ function test_auto_diff()
     df_ad = Process(env)(prob_ad, sol_ad)
     df = Process(env)(prob, sol)
     p = plot(; legend=:outertopleft)
-    xs = df.states |> Map(X -> X.x_0) |> collect
-    xs_ad = df_ad.states |> Map(X -> X.x_0) |> collect
-    xs_true = df.times |> Map(t -> _x_cmd_func(t)) |> collect
-    plot!(p, df.times, hcat(xs...)'; label="naive tracking as set-point regulation", color="red")
-    plot!(p, df_ad.times, hcat(xs_ad...)'; label="tracking with auto_diff", color="blue")
-    plot!(p, df.times, hcat(xs_true...)'; label="true", color="black")
+    xs = df.state |> Map(X -> X.x_0) |> collect
+    xs_ad = df_ad.state |> Map(X -> X.x_0) |> collect
+    xs_true = df.time |> Map(t -> _x_cmd_func(t)) |> collect
+    plot!(p, df.time, hcat(xs...)'; label="naive tracking as set-point regulation", color="red")
+    plot!(p, df_ad.time, hcat(xs_ad...)'; label="tracking with auto_diff", color="blue")
+    plot!(p, df.time, hcat(xs_true...)'; label="true", color="black")
 end

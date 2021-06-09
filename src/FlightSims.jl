@@ -21,6 +21,7 @@ export sim, Process, load
 ## basics
 export TwoDimensionalNonlinearPolynomialEnv, LinearSystemEnv, ReferenceModelEnv
 ## controllers
+export LQR
 export BacksteppingPositionControllerEnv
 ## multicopters
 export IslamQuadcopterEnv, GoodarziQuadcopterEnv

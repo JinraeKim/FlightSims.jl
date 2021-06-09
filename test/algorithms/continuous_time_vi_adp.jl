@@ -50,14 +50,14 @@ function explore(dir_log, env, adp, u_explorer;
                 Xs = ts |> Map(t -> sol(t)) |> collect
                 xs = Xs |> Map(X -> X.x) |> collect
                 ∫Ψs = Xs |> Map(X -> X.∫Ψ) |> collect
-                DataFrame(times=ts, states=xs, ∫Ψs=∫Ψs)
+                DataFrame(time=ts, state=xs, ∫Ψs=∫Ψs)
             end
         end
         df = appended_process(env)(prob, sol; Δt=Δt)
     else
         df = Process(env)(prob, sol; Δt=Δt)
     end
-    df.inputs = zip(df.times, df.states) |> MapSplat((t, x) -> u_explorer(x, (), t)) |> collect
+    df.inputs = zip(df.time, df.state) |> MapSplat((t, x) -> u_explorer(x, (), t)) |> collect
     df
 end
 
@@ -97,7 +97,7 @@ function demonstrate(env, adp; Δt=0.01, tf=10.0)
     x0 = State(env)(-2.9, -2.9)
     prob, sol = sim(x0, apply_inputs(Dynamics!(env); u=FS.approximate_optimal_input(adp)); tf=tf)
     df = Process(env)(prob, sol; Δt=Δt)
-    plot(df.times, hcat(df.states...)')
+    plot(df.time, hcat(df.state...)')
 end
 
 

@@ -1,6 +1,6 @@
 using FlightSims
+const FS = FlightSims
 using LinearAlgebra
-using ControlSystems: lqr
 using Plots
 
 
@@ -17,8 +17,8 @@ function test()
     # optimal control
     Q = Matrix(I, n, n)
     R = Matrix(I, m, m)
-    K = lqr(A, B, Q, R)
-    u_lqr(x, p, t) = -K*x
+    lqr = LQR(A, B, Q, R)  # exported from FlightSims
+    u_lqr = FS.OptimalController(lqr)  # (x, p, t) -> -K*x; minimise J = ∫ (x' Q x + u' R u) from 0 to ∞
     # simulation
     t0, tf = 0.0, 10.0
     Δt = 0.01  # save period; not simulation time step
@@ -28,7 +28,7 @@ function test()
                         apply_inputs(Dynamics!(env); u=u_lqr),  # dynamics with input of LQR
                         p;
                         t0=t0, tf=tf,  # final time
-                        datum_format=save_inputs(DatumFormat(env); input=u_lqr),  # saving data
+                        datum_format=save_inputs(DatumFormat(env); input=u_lqr),  # saving data; default key: time, state
                         saveat=t0:Δt:tf,
                        )
     # case 2: processing data after simulation

@@ -23,8 +23,8 @@ function main()
     multicopter, controller, x0, cg = make_env()
     prob, sol = sim(x0, Dynamics!(multicopter, controller); tf=40.0)
     df = Process()(prob, sol; Δt=0.01)
-    ts = df.times
-    poss = df.states |> Map(state -> state.multicopter.p) |> collect
+    ts = df.time
+    poss = df.state |> Map(state -> state.multicopter.p) |> collect
     poss_ref = ts |> Map(t -> cg(t)) |> collect
     ## plot
     # time vs position
