@@ -78,14 +78,13 @@ using Plots
 
 function test()
     # linear system
-    n, m = 2, 1
-    env = LinearSystemEnv(n, m)  # exported from FlightSims
-    x0 = State(env)([1.0, 2.0])
     A = [0 1;
          0 0]
     B = [0;
          1]
-    p = Params(env)(A, B)
+    n, m = 2, 1
+    env = LinearSystemEnv(A, B)  # exported from FlightSims
+    x0 = State(env)([1.0, 2.0])
     # optimal control
     Q = Matrix(I, n, n)
     R = Matrix(I, m, m)
@@ -97,8 +96,7 @@ function test()
     # case 1: processing data simultaneously
     prob, sol, df = sim(
                         x0,  # initial condition
-                        apply_inputs(Dynamics!(env); u=u_lqr),  # dynamics with input of LQR
-                        p;
+                        apply_inputs(Dynamics!(env); u=u_lqr);  # dynamics with input of LQR
                         t0=t0, tf=tf,  # final time
                         datum_format=save_inputs(DatumFormat(env); input=u_lqr),  # saving data; default key: time, state
                         saveat=t0:Δt:tf,
