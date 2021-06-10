@@ -54,10 +54,10 @@ function update_params_callback(irl::CTLinearIRL, tf, stop_conds)
         @unpack p, t = integrator
         X = integrator.u
         @unpack x, ∫r = X
-        push!(∫rs, ∫r)
+        push!(∫rs, ∫r[1])
         push!(Φs, irl.V̂.basis(x))
         if length(∫rs) > 1
-            push!(V̂_nexts, diff(∫rs[end-1:end])[1] + irl.V̂(x)[1])
+            push!(V̂_nexts, diff(∫rs[end-1:end])[1][1] + irl.V̂(x)[1])
         end
 
         # @show t, irl.V̂.param, any(values(stop_conds_dict))

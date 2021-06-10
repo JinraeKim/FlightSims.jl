@@ -1,3 +1,7 @@
+using FlightSims
+const FS = FlightSims
+
+
 """
 MulticopterEnv + BacksteppingPositionControllerEnv
 """
@@ -123,27 +127,32 @@ function Dynamics!(multicopter::GoodarziQuadcopterEnv, controller::BacksteppingP
     end
 end
 
-# """
-# LinearSystemEnv + running_cost
-# """
-# function LinearSystem_CostEnv(; kwargs_linearsystem=Dict())
-#     linearsystem = LinearSystemEnv(; kwargs_linearsystem...)
-#     cost = FS.running_cost(LinearSystemEnv)
-#     linearsystem, cost
-# end
+"""
+LinearSystemEnv + IntegratorEnv
+"""
+function LinearSystem_IntegratorEnv(args_linearsystem)
+    linearsystem = LinearSystemEnv(args_linearsystem...)
+    integ = IntegratorEnv()
+    linearsystem, integ
+end
 
-# function State(linearsystem::LinearSystemEnv)
-#     return function (args_linearsystem=())
-#         x_linearsystem = State(linearsystem)(args_linearsystem...)
-#         x_cost = State()(args_cost...)
-#         ComponentArray(linearsystem=x_linearsystem, cost=x_cost)
-#     end
-# end
+"""
+# Notes
+- `r` denotes integrand of `integ`.
+"""
+function State(linearsystem::LinearSystemEnv, integ::IntegratorEnv)
+    return function (x0_linearsystem, x0_integrator=[0.0])
+        x_linearsystem = State(linearsystem)(x0_linearsystem)
+        x_integrator = State(integ)(x0_integrator)
+        ComponentArray(x=x_linearsystem, ∫r=x_integrator)
+    end
+end
 
-# function dynamics!(linearsystem::LinearSystemEnv)
-#     return function (dx, x, p, t)
-#         dynamics!(linearsystem)(dx.linearsystem, x.linearsystem, (), t; u=u)
-#         dX.cost = FS.running_cost(LinearSystemEnv)(x_linearsystem, u)
-#         nothing
-#     end
-# end
+function dynamics!(linearsystem::LinearSystemEnv, integ::IntegratorEnv)
+    return function (dX, X, p, t; u)
+        dynamics!(linearsystem)(dX.x, X.x, (), t; u=u)
+        r = FS.running_cost(linearsystem)(X.x, u)
+        dynamics!(integ)(dX.∫r, X.∫r, (), t; u=r)
+        nothing
+    end
+end

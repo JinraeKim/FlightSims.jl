@@ -29,22 +29,17 @@ function train!(env, irl; Δt=0.01, tf=3.0, w_tol=1e-3)
                                :w_tol => w_diff_norm < w_tol,
                               )
     end
-    x0 = State(env)([0.4, 4.0])
-    X0 = ComponentArray(x=x0, ∫r=0.0)
+    @unpack A, B, Q, R = env
+    args_linearsystem = (A, B, Q, R)
+    linearsystem, cost = FS.LinearSystem_IntegratorEnv(args_linearsystem)
+    x0 = State(linearsystem, cost)([0.4, 4.0])
     irl.V̂.param = [0, 0, 0]
     û = FS.approximate_optimal_input(irl, env)
-    augmented_dynamics! = function(env::LinearSystemEnv)
-        return function (dX, X, p, t)
-            @unpack x, ∫r = X
-            _û = û(x, (), t)
-            dynamics!(env)(dX.x, x, (), t; u=_û)
-            dX.∫r = irl.running_cost(x, _û)
-        end
-    end
+    _û = (X, p, t) -> û(X.x, p, t)
+
     cb_train = FS.update_params_callback(irl, tf, stop_conds)
     cb = CallbackSet(cb_train)
-    # prob, sol = sim(x0, apply_inputs(dynamics!(env); u=û); tf=tf, callback=cb)
-    prob, sol = sim(X0, augmented_dynamics!(env); tf=tf, callback=cb)
+    prob, sol = sim(x0, apply_inputs(dynamics!(linearsystem, cost); u=_û); tf=tf, callback=cb)
     df = process(env)(prob, sol; Δt=Δt)
     xs = df.states |> Map(X -> X.x) |> collect
     # ∫rs = df.states |> Map(X -> X.∫r) |> collect
