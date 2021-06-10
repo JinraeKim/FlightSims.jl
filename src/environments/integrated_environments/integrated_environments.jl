@@ -59,13 +59,13 @@ function Process(multicopter::MulticopterEnv, controller::BacksteppingPositionCo
                   collect
                  )
         DataFrame(
-                  times=ts,
-                  states=Xs,
-                  positions=ps,
-                  velocities=vs,
-                  rotation_matricies=Rs,
-                  angular_rates=ωs,
-                  u_commands=u_cmds,
+                  time=ts,
+                  state=Xs,
+                  position=ps,
+                  velocity=vs,
+                  rotation_matrix=Rs,
+                  angular_rate=ωs,
+                  u_command=u_cmds,
                  )
     end
 end
