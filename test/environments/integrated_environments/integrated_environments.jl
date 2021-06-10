@@ -28,8 +28,8 @@ function test()
     prob, sol = sim(x0, apply_inputs(Dynamics!(multicopter, controller, mixer); pos_cmd=pos_cmd);
                     tf=10.0)
     df = Process(multicopter, controller, mixer)(prob, sol)
-    p_pos = plot(df.time, hcat(df.positions...)')
+    p_pos = plot(df.time, hcat(df.position...)')
     savefig(p_pos, "pos.png")
-    p_u_cmd = plot(df.time, hcat(df.u_commands...)')
+    p_u_cmd = plot(df.time, hcat(df.u_command...)')
     savefig(p_u_cmd, "u_cmd.png")
 end
