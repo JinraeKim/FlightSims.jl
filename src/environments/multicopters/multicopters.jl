@@ -90,8 +90,6 @@ function process(env::MulticopterEnv)
 end
 
 
-# mixer
-include("mixers.jl")
 # multicopters
 include("quadcopters.jl")
 include("hexacopters.jl")

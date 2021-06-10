@@ -8,7 +8,7 @@ using Plots
 function make_env()
     multicopter = IslamQuadcopterEnv()
     @unpack m, g, B = multicopter
-    mixer = PseudoInverseMixer(multicopter.B)
+    allocator = PseudoInverseControlAllocator(multicopter.B)
     x0_multicopter = State(multicopter)()
     pos0 = copy(x0_multicopter.p)
     vel0 = copy(x0_multicopter.v)
@@ -17,12 +17,12 @@ function make_env()
     controller = BacksteppingPositionControllerEnv(m; x_cmd_func=cg)
     x0_controller = State(controller)(pos0, m, g)
     x0 = ComponentArray(multicopter=x0_multicopter, controller=x0_controller)
-    multicopter, controller, mixer, x0, cg
+    multicopter, controller, allocator, x0, cg
 end
 
 function main()
-    multicopter, controller, mixer, x0, cg = make_env()
-    prob, sol = sim(x0, Dynamics!(multicopter, controller, mixer); tf=40.0)
+    multicopter, controller, allocator, x0, cg = make_env()
+    prob, sol = sim(x0, Dynamics!(multicopter, controller, allocator); tf=40.0)
     t0, tf = prob.tspan
     Δt = 0.01  # data sampling period; not simulation time step
     ts = t0:Δt:tf

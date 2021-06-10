@@ -22,12 +22,12 @@ end
 
 function test()
     multicopter, controller = FS.LeeHexacopter_BacksteppingPositionControllerEnv()
-    mixer = PseudoInverseMixer(multicopter.B)
+    allocator = PseudoInverseControlAllocator(multicopter.B)
     x0 = State(multicopter, controller)()
     pos_cmd = [2, 1, 3]
-    prob, sol = sim(x0, apply_inputs(Dynamics!(multicopter, controller, mixer); pos_cmd=pos_cmd);
+    prob, sol = sim(x0, apply_inputs(Dynamics!(multicopter, controller, allocator); pos_cmd=pos_cmd);
                     tf=10.0)
-    df = Process(multicopter, controller, mixer)(prob, sol)
+    df = Process(multicopter, controller, allocator)(prob, sol)
     p_pos = plot(df.time, hcat(df.position...)')
     savefig(p_pos, "pos.png")
     p_u_cmd = plot(df.time, hcat(df.u_command...)')
