@@ -28,8 +28,8 @@ export IslamQuadcopterEnv, GoodarziQuadcopterEnv
 export LeeHexacopterEnv
 # faults
 export FaultSet, LoE
-# mixers
-export PseudoInverseMixer
+# control allocator
+export PseudoInverseControlAllocator
 ### algorithms
 export command
 export CTValueIterationADP, BehaviouralCloning

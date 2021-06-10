@@ -11,23 +11,23 @@ function State(multicopter::MulticopterEnv, controller::BacksteppingPositionCont
     end
 end
 
-function command(controller::BacksteppingPositionControllerEnv, mixer::AbstractMixer,
+function command(controller::BacksteppingPositionControllerEnv, allocator::PseudoInverseControlAllocator,
         p, v, R, ω, xd, vd, ad, ȧd, äd, Td, m, J, g
     )
     νd, Ṫd = command(controller)(p, v, R, ω, xd, vd, ad, ȧd, äd, Td, m, J, g)
-    u_cmd = mixer(νd)
+    u_cmd = allocator(νd)
     ComponentArray(νd=νd, Ṫd=Ṫd, u_cmd=u_cmd)
 end
 
 function Dynamics!(multicopter::MulticopterEnv,
         controller::BacksteppingPositionControllerEnv,
-        mixer::AbstractMixer)
+        allocator::PseudoInverseControlAllocator)
     @unpack m, J, g = multicopter
     return function (dx, x, p, t; pos_cmd=nothing)
         @unpack p, v, R, ω = x.multicopter
         @unpack ref_model, Td = x.controller
         xd, vd, ad, ȧd, äd = ref_model.x_0, ref_model.x_1, ref_model.x_2, ref_model.x_3, ref_model.x_4
-        command_info = command(controller, mixer, p, v, R, ω, xd, vd, ad, ȧd, äd, Td, m, J, g)
+        command_info = command(controller, allocator, p, v, R, ω, xd, vd, ad, ȧd, äd, Td, m, J, g)
         @unpack νd, Ṫd, u_cmd = command_info
         Dynamics!(multicopter)(dx.multicopter, x.multicopter, (), t; u=u_cmd)
         Dynamics!(controller)(dx.controller, x.controller, (), t; pos_cmd=pos_cmd, Ṫd=Ṫd)
@@ -36,7 +36,7 @@ function Dynamics!(multicopter::MulticopterEnv,
 end
 
 function Process(multicopter::MulticopterEnv, controller::BacksteppingPositionControllerEnv,
-        mixer::AbstractMixer)
+        allocator::PseudoInverseControlAllocator)
     @unpack m, J, g = multicopter
     return function (prob::ODEProblem, sol::ODESolution; Δt=0.01)
         t0, tf = prob.tspan
@@ -54,7 +54,7 @@ function Process(multicopter::MulticopterEnv, controller::BacksteppingPositionCo
         Tds = Xs |> Map(x -> x.controller.Td) |> collect
         u_cmds = (
                   zip(ps, vs, Rs, ωs, xds, vds, ads, ȧds, äds, Tds) |>
-                  Map(args -> command(controller, mixer, args..., m, J, g)) |>
+                  Map(args -> command(controller, allocator, args..., m, J, g)) |>
                   Map(command_info -> command_info.u_cmd) |>
                   collect
                  )
