@@ -19,16 +19,8 @@ end
 function Dynamics!(env::LinearSystemEnv)
     @unpack A, B = env
     return function (dx, x, p, t; u)
-        # _u = length(u) == 1 ? u[1] : u
-        # dx .= A*x + B*_u
-        dx .= A*x + B*u
+        _u = length(u) == 1 ? u[1] : u
+        dx .= A*x + B*_u
         nothing
-    end
-end
-
-function running_cost(env::LinearSystemEnv)
-    @unpack Q, R = env
-    return function (x, u)
-        (x'*Q*x + u'*R*u)
     end
 end

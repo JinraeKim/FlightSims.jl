@@ -10,8 +10,9 @@ V̂ ∈ R: the estimate of (state) value function
 mutable struct CTLinearIRL
     n::Int
     m::Int
+    Q
+    R
     V̂::LinearApproximator
-    running_cost::Function
     T::Real
     N::Int
 end
@@ -21,26 +22,36 @@ n: state dim.
 m: input dim.
 d: polynomial degree
 """
-function CTLinearIRL(n::Int, m::Int, running_cost,
+function CTLinearIRL(n::Int, m::Int, Q, R,
         T=0.04, N=3, d_value::Int=2, d_controller::Int=4;
         V̂=LinearApproximator(2, 2; with_bias=false),
     )
     @assert T > 0
-    CTLinearIRL(n, m, V̂, running_cost, T, N)
+    CTLinearIRL(n, m, Q, R, V̂, T, N)
+end
+
+function RunningCost(irl::CTLinearIRL)
+    @unpack Q, R = irl
+    return QuadraticCost(Q, R)
 end
 
 """
 Infer the approximate optimal input.
 """
-function approximate_optimal_input(irl::CTLinearIRL, env::LinearSystemEnv)
-    @unpack B, R = env
+function ApproximateOptimalInput(irl::CTLinearIRL, B)
+    @unpack R = irl
     return function (x, p, t)
-        ŵ = irl.V̂.param
-        P = [  ŵ[1] ŵ[2]/2;
-             ŵ[2]/2   ŵ[3]]
+        P = ARE_solution(irl)
         K = inv(R) * B' * P
         û = -K * x
     end
+end
+
+function ARE_solution(irl::CTLinearIRL)
+    ŵ = irl.V̂.param
+    P = [  ŵ[1] ŵ[2]/2;
+         ŵ[2]/2   ŵ[3]]
+    P
 end
 
 function update_params_callback(irl::CTLinearIRL, tf, stop_conds)
@@ -51,13 +62,14 @@ function update_params_callback(irl::CTLinearIRL, tf, stop_conds)
     Φs = []
     stop_conds_dict = false
     affect! = function (integrator)
-        @unpack p, t = integrator
+        @unpack t = integrator
         X = integrator.u
         @unpack x, ∫r = X
-        push!(∫rs, ∫r[1])
+        ∫r = length(∫r) == 1 ? ∫r[1] : error("Invalid ∫r")  # for both Number and Array
+        push!(∫rs, ∫r)
         push!(Φs, irl.V̂.basis(x))
         if length(∫rs) > 1
-            push!(V̂_nexts, diff(∫rs[end-1:end])[1][1] + irl.V̂(x)[1])
+            push!(V̂_nexts, diff(∫rs[end-1:end])[1] + irl.V̂(x)[1])
         end
 
         # @show t, irl.V̂.param, any(values(stop_conds_dict))
@@ -73,8 +85,7 @@ function update_params_callback(irl::CTLinearIRL, tf, stop_conds)
                 @show i, irl.V̂.param
             end
         elseif t == tf
-            P = [  irl.V̂.param[1] irl.V̂.param[2]/2;
-                 irl.V̂.param[2]/2   irl.V̂.param[3]]
+            P = ARE_solution(irl)
             @show stop_conds_dict
             @show P
         end

@@ -12,14 +12,12 @@ using NumericalIntegration: integrate
 function initialise()
     # setting
     A, B = [-10 1; -0.002 -2], [0; 2]
-    Q, R = I, 1
-    env = LinearSystemEnv(A, B, Q, R)
-    __x = State(env)()
+    Q, R = I, I
+    env = LinearSystemEnv(A, B)
+    n = 2
+    m = 1
     __t = 0.0
-    n = length(__x)
-    __u = 0.0 
-    m = length(__u)
-    irl = CTLinearIRL(n, m, FS.running_cost(env))
+    irl = CTLinearIRL(n, m, Q, R)
     env, irl
 end
 
@@ -29,21 +27,22 @@ function train!(env, irl; Δt=0.01, tf=3.0, w_tol=1e-3)
                                :w_tol => w_diff_norm < w_tol,
                               )
     end
-    @unpack A, B, Q, R = env
-    args_linearsystem = (A, B, Q, R)
-    linearsystem, cost = FS.LinearSystem_IntegratorEnv(args_linearsystem)
-    x0 = State(linearsystem, cost)([0.4, 4.0])
+    @unpack A, B = env
+    args_linearsystem = (A, B)
+    linearsystem, integ = FS.LinearSystem_IntegratorEnv(args_linearsystem)
+    x0 = State(linearsystem, integ)([0.4, 4.0])
     irl.V̂.param = [0, 0, 0]
-    û = FS.approximate_optimal_input(irl, env)
+    û = FS.ApproximateOptimalInput(irl, B)
     _û = (X, p, t) -> û(X.x, p, t)
 
     cb_train = FS.update_params_callback(irl, tf, stop_conds)
     cb = CallbackSet(cb_train)
-    prob, sol = sim(x0, apply_inputs(dynamics!(linearsystem, cost); u=_û); tf=tf, callback=cb)
-    df = process(env)(prob, sol; Δt=Δt)
-    xs = df.states |> Map(X -> X.x) |> collect
-    # ∫rs = df.states |> Map(X -> X.∫r) |> collect
-    plot(df.times, hcat(xs...)')
+    running_cost = FS.RunningCost(irl)
+    prob, sol = sim(x0, apply_inputs(Dynamics!(linearsystem, integ, running_cost); u=_û); tf=tf, callback=cb)
+    df = Process(env)(prob, sol; Δt=Δt)
+    xs = df.state |> Map(X -> X.x) |> collect
+    # ∫rs = df.state |> Map(X -> X.∫r) |> collect
+    plot(df.time, hcat(xs...)')
     # plot(hcat(∫rs...)')
 end
 

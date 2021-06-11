@@ -1,7 +1,3 @@
-using FlightSims
-const FS = FlightSims
-
-
 """
 MulticopterEnv + BacksteppingPositionControllerEnv
 """
@@ -148,11 +144,16 @@ function State(linearsystem::LinearSystemEnv, integ::IntegratorEnv)
     end
 end
 
-function dynamics!(linearsystem::LinearSystemEnv, integ::IntegratorEnv)
+"""
+# Notes
+running_cost: integrand; function of (x, u)
+"""
+function Dynamics!(linearsystem::LinearSystemEnv, integ::IntegratorEnv, running_cost::Function)
     return function (dX, X, p, t; u)
-        dynamics!(linearsystem)(dX.x, X.x, (), t; u=u)
-        r = FS.running_cost(linearsystem)(X.x, u)
-        dynamics!(integ)(dX.∫r, X.∫r, (), t; u=r)
+        @unpack x = X
+        Dynamics!(linearsystem)(dX.x, X.x, (), t; u=u)
+        r = running_cost(x, u)
+        Dynamics!(integ)(dX.∫r, X.∫r, (), t; u=r)
         nothing
     end
 end
