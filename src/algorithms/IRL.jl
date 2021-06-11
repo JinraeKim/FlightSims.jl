@@ -8,8 +8,6 @@ V̂ ∈ R: the estimate of (state) value function
     - V̂.param: w
 """
 mutable struct CTLinearIRL
-    n::Int
-    m::Int
     Q
     R
     V̂::LinearApproximator
@@ -18,16 +16,14 @@ mutable struct CTLinearIRL
 end
 
 """
-n: state dim.
-m: input dim.
 d: polynomial degree
 """
-function CTLinearIRL(n::Int, m::Int, Q, R,
+function CTLinearIRL(Q, R,
         T=0.04, N=3, d_value::Int=2, d_controller::Int=4;
         V̂=LinearApproximator(2, 2; with_bias=false),
     )
     @assert T > 0
-    CTLinearIRL(n, m, Q, R, V̂, T, N)
+    CTLinearIRL(Q, R, V̂, T, N)
 end
 
 function RunningCost(irl::CTLinearIRL)
