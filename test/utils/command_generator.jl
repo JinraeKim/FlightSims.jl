@@ -7,7 +7,7 @@ using Plots
 
 function test()
     power_loop = PowerLoop()
-    cg = command_generator(power_loop)
+    cg = Command(power_loop)
     @unpack t0, t_go_straight, t_loop = power_loop
     Δt = 0.01
     tf = t0 + 2*t_go_straight + t_loop + 5
