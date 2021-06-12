@@ -64,10 +64,13 @@ function Dynamics!(env::ReferenceModelEnv)
         dx_d = nothing
         if auto_diff
             if x_cmd != nothing
-                error("Do not provide a manual command for auto_diff mode")
+                error("Do not provide a manual command for mode auto_diff=$(auto_diff)")
             end
             dx_d = -sum(Ks .* xs) + sum([Ks..., I] .* funcs(t))
         else
+            if x_cmd == nothing
+                error("Provide a manual command for mode auto_diff=$(auto_diff)")
+            end
             dx_d = -sum(Ks .* xs) + Ks[1]*x_cmd
         end
         setproperty!(dX, Symbol(:x_, d), dx_d)

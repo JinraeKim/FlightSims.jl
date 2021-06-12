@@ -3,6 +3,8 @@ abstract type AbstractEnv end
 
 ### faults
 include("faults.jl")
+### FDI (Fault Detection and Isoltion)
+include("FDI.jl")
 
 ### Envs
 ## Basic environments
