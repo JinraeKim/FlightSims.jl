@@ -16,4 +16,16 @@ Base.@kwdef struct GoodarziQuadcopterEnv <: QuadcopterEnv
     J = 1e-2 * Diagonal([0.557, 0.557, 1.050])  # kg m²
     J_inv = inv(J)
     g = 9.81  # m/s²
+    # input limits
+    u_min = zeros(4)
+    u_max = (m*g) * ones(4)
+end
+
+function saturate(env::GoodarziQuadcopterEnv, u)
+    @unpack u_min, u_max = env
+    u_saturated = clamp.(u, u_min, u_max)
+end
+
+function input_to_force_moment(env::GoodarziQuadcopterEnv, u)
+    ν = u
 end

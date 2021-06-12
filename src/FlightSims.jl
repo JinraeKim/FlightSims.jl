@@ -4,7 +4,7 @@ module FlightSims
 using DifferentialEquations
 using ComponentArrays, UnPack
 using JLD2, FileIO, DataFrames
-using SplitApplyCombine  # e.g., SplitApplyCombine.group
+# using SplitApplyCombine  # e.g., SplitApplyCombine.group
 using LinearAlgebra, Transducers, Rotations, Random, ForwardDiff
 using Combinatorics: multiexponents
 using NLopt
@@ -12,7 +12,7 @@ using NumericalIntegration: integrate
 using DynamicPolynomials: @polyvar, PolyVar, AbstractPolynomialLike
 using Flux
 using Flux.Data: DataLoader
-using MatrixEquations
+# using MatrixEquations
 
 ### APIs
 export AbstractEnv, State, Params, Dynamics, Dynamics!, apply_inputs, DatumFormat, save_inputs
@@ -22,16 +22,17 @@ export sim, Process, load
 export TwoDimensionalNonlinearPolynomialEnv, LinearSystemEnv, ReferenceModelEnv
 ## controllers
 export LQR
-export BacksteppingPositionControllerEnv
+# export BacksteppingPositionControllerEnv
 ## multicopters
-export IslamQuadcopterEnv, GoodarziQuadcopterEnv
-export LeeHexacopterEnv
-# faults
-export FaultSet, LoE
-# control allocator
-export PseudoInverseControlAllocator
+export MulticopterEnv
+export QuadcopterEnv, IslamQuadcopterEnv, GoodarziQuadcopterEnv
+export HexacopterEnv, LeeHexacopterEnv
+# # faults
+# export FaultSet, LoE
+# # control allocator
+# export PseudoInverseControlAllocator
 ### algorithms
-export command
+# export command
 export CTValueIterationADP, BehaviouralCloning, CTLinearIRL
 # utils
 export AbstractApproximator, LinearApproximator
