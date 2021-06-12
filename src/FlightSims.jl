@@ -24,8 +24,9 @@ export TwoDimensionalNonlinearPolynomialEnv, LinearSystemEnv, ReferenceModelEnv
 export LQR
 export BacksteppingPositionControllerEnv
 ## multicopters
-export IslamQuadcopterEnv, GoodarziQuadcopterEnv
-export LeeHexacopterEnv
+export MulticopterEnv
+export QuadcopterEnv, IslamQuadcopterEnv, GoodarziQuadcopterEnv
+export HexaCopterEnv, LeeHexacopterEnv
 # faults
 export FaultSet, LoE
 # control allocator
