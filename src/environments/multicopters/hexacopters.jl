@@ -1,3 +1,3 @@
-abstract type HexaCopterEnv <: MulticopterEnv end
+abstract type HexacopterEnv <: MulticopterEnv end
 
 include("LeeHexacopterEnv.jl")

@@ -9,7 +9,7 @@ in 49th IEEE Conference on Decision and Control (CDC), Atlanta, GA, Dec. 2010, p
 # Variables
 u ∈ R^6: rotor forces
 """
-Base.@kwdef struct LeeHexacopterEnv <: HexaCopterEnv
+Base.@kwdef struct LeeHexacopterEnv <: HexacopterEnv
     J = Diagonal([0.0820, 0.0845, 0.1377])  # kg m^2
     l = 0.315  # m
     kM = 8.004e-4  # m s^2
