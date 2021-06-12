@@ -36,7 +36,7 @@ export CTValueIterationADP, BehaviouralCloning, CTLinearIRL
 # utils
 export AbstractApproximator, LinearApproximator
 export PolynomialBasis, euler
-export PowerLoop, command_generator
+export PowerLoop, Command
 
 
 include("utils/utils.jl")

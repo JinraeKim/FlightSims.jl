@@ -11,17 +11,21 @@ function DatumFormat(env::AbstractEnv)
 end
 
 """
-Post processing function.
+Post processing function (default).
 # Notes
 - It would be deprecated.
 """
-function Process(env::AbstractEnv)
+function Process()
     return function (prob::DiffEqBase.DEProblem, sol::DESolution; Δt=0.01)
         t0, tf = prob.tspan
         ts = t0:Δt:tf
         xs = ts |> Map(t -> sol(t)) |> collect
         DataFrame(time=ts, state=xs)
     end
+end
+
+function Process(env::AbstractEnv)
+    Process()
 end
 
 # save and load

@@ -2,8 +2,19 @@ abstract type AbstractCommandGenerator end
 abstract type AbstractMulticopterCommandGenerator <: AbstractCommandGenerator end
 
 
-function command_generator(cg::AbstractCommandGenerator)
+function Command(cg::AbstractCommandGenerator)
     error("Not implemented")
+end
+
+struct ConstantCommandGenerator <: AbstractCommandGenerator
+    c
+end
+
+function Command(cg::ConstantCommandGenerator)
+    @unpack c = cg
+    return function (t)
+        c
+    end
 end
 
 """
@@ -42,7 +53,7 @@ function HelixCommandGenerator(pos0, dir=[0, 0, 1],
     HelixCommandGenerator(pos0, t0, dir_unit, dir_perp_unit, r, ω, θ, c)
 end
 
-function command_generator(cg::HelixCommandGenerator)
+function Command(cg::HelixCommandGenerator)
     @unpack pos0, t0, dir, dir_perp, r, ω, θ, c = cg
     dir_perp2 = cross(dir, dir_perp)
     dir_perp2_unit = dir_perp2 / norm(dir_perp2)
@@ -95,7 +106,7 @@ norm(v0)*(t-t0) + 0.5*a*(t-t0)^2 = norm(Δp)
 - loop
 r*θ = V*(t-t0-t_go_straight)
 """
-function command_generator(cg::PowerLoop; coordinate=:NED)
+function Command(cg::PowerLoop; coordinate=:NED)
     @unpack t0, p0, v0, Δp, t_go_straight, r, a, ΔV, t_loop = cg
     Δp_norm = norm(Δp)
     v0_norm = norm(v0)
