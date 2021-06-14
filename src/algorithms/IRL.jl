@@ -86,5 +86,6 @@ function update_params_callback(irl::CTLinearIRL, tf, stop_conds)
             @show P
         end
     end
-    cb_train = PresetTimeCallback(0.0:irl.T:tf, affect!)
+    # cb_train = PresetTimeCallback(0.0:irl.T:tf, affect!)
+    cb_train = PeriodicCallback(affect!, irl.T, initial_affect=true)
 end
