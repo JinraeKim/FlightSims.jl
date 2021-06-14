@@ -20,11 +20,6 @@ function initialise()
 end
 
 function train!(env, irl; Δt=0.01, tf=3.0, w_tol=1e-3)
-    stop_conds = function(w_diff_norm)
-        stop_conds_dict = Dict(
-                               :w_tol => w_diff_norm < w_tol,
-                              )
-    end
     @unpack A, B = env
     args_linearsystem = (A, B)
     linearsystem, integ = FS.LinearSystem_IntegratorEnv(args_linearsystem)  # integrated system with scalar integrator ∫r
@@ -33,7 +28,7 @@ function train!(env, irl; Δt=0.01, tf=3.0, w_tol=1e-3)
     û = FS.ApproximateOptimalInput(irl, B)
     _û = (X, p, t) -> û(X.x, p, t)  # for integrated system
 
-    cb_train = FS.update_params_callback(irl, tf, stop_conds)
+    cb_train = FS.update_params_callback(irl, x0, tf, w_tol)
     cb = CallbackSet(cb_train)
     running_cost = FS.RunningCost(irl)
     prob, sol = sim(x0, apply_inputs(Dynamics!(linearsystem, integ, running_cost); u=_û); tf=tf, callback=cb)
