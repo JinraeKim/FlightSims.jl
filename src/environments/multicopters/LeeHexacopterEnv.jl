@@ -19,8 +19,10 @@ Base.@kwdef struct LeeHexacopterEnv <: HexacopterEnv
          -l   l         0.5*l         -0.5*l        -0.5*l          0.5*l;
           0   0 0.5*sqrt(3)*l -0.5*sqrt(3)*l 0.5*sqrt(3)*l -0.5*sqrt(3)*l;
          kM -kM            kM            -kM           -kM             kM]
-    u_min = zeros(6)
-    u_max = (m*g) * ones(6)
+    # actuator limit
+    dim_input = 6
+    u_min = zeros(dim_input)
+    u_max = (m*g) * ones(dim_input)
 end
 
 function saturate(env::LeeHexacopterEnv, u)
