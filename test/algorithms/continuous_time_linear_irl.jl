@@ -28,10 +28,11 @@ function train!(env, irl; Δt=0.01, tf=3.0, w_tol=1e-3)
     û = FS.ApproximateOptimalInput(irl, B)
     _û = (X, p, t) -> û(X.x, p, t)  # for integrated system
 
-    cb_train = FS.update_params_callback(irl, x0, tf, w_tol)
+    cb_train = FS.update_params_callback(irl, w_tol)
     cb = CallbackSet(cb_train)
     running_cost = FS.RunningCost(irl)
     prob, sol = sim(x0, apply_inputs(Dynamics!(linearsystem, integ, running_cost); u=_û); tf=tf, callback=cb)
+    @show P = FS.ARE_solution(irl)
     df = Process(env)(prob, sol; Δt=Δt)
     xs = df.state |> Map(X -> X.x) |> collect
     plot(df.time, hcat(xs...)')

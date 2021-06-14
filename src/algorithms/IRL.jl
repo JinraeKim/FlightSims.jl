@@ -50,18 +50,18 @@ function ARE_solution(irl::CTLinearIRL)
     P
 end
 
-function update_params_callback(irl::CTLinearIRL, x0, tf, w_tol)
-    stop_conds = function(w_diff_norm)
+function update_params_callback(irl::CTLinearIRL, w_tol)
+    stop_conds = function(w, w_prev)
         stop_conds_dict = Dict(
-                               :w_tol => w_diff_norm < w_tol,
+                               :w_tol => norm(w - w_prev) < w_tol,
                               )
     end
     i = 0
     w_prev = nothing
-    ∫rs = [0.0]
-    Φs = [irl.V̂.basis(x0)]
+    ∫rs = []
+    Φs = []
     V̂_nexts = []
-    stop_conds_dict = false
+    is_terminated = false
     affect! = function (integrator)
         @unpack t = integrator
         X = integrator.u
@@ -69,38 +69,22 @@ function update_params_callback(irl::CTLinearIRL, x0, tf, w_tol)
         ∫r = length(∫r) == 1 ? ∫r[1] : error("Invalid ∫r")  # for both Number and Array
         push!(∫rs, ∫r)
         push!(Φs, irl.V̂.basis(x))
-        """
-        By using PeriodicCallback, the initial affect, the dummy initial time, 
-        could be removed, which make the next line be simplified as follows.
-        If the initial affect is used, the line should be as follows.
         if length(∫rs) > 1
-            push!(V̂_nexts, diff(∫rs[end-1:end])[1] + irl.V̂(x)[1])
+            push!(V̂_nexts, diff(∫rs[end-1:end])[1] + irl.V̂(x)[1])  # initial_affect=true
         end
-        """
-        push!(V̂_nexts, diff(∫rs[end-1:end])[1] + irl.V̂(x)[1])
-
-        # @show t, irl.V̂.param, any(values(stop_conds_dict))
-        if any(values(stop_conds_dict)) == false
+        if is_terminated == false
             if length(V̂_nexts) >= irl.N
                 i += 1
-                # @show hcat(Φs[end-N:end-1]...)' |> size
-                # @show hcat(V̂_nexts...)' |> size
                 irl.V̂.param = pinv(hcat(Φs[end-irl.N:end-1]...)') * hcat(V̂_nexts...)'
-                if w_prev == nothing
-                    stop_conds_dict = false
-                else
-                    stop_conds_dict = stop_conds(norm(irl.V̂.param-w_prev))
+                if w_prev != nothing
+                    stop_conds_dict = stop_conds(irl.V̂.param, w_prev)
+                    is_terminated = stop_conds_dict |> values |> any
                 end
                 w_prev = deepcopy(irl.V̂.param)
                 V̂_nexts = []
-                @show i, irl.V̂.param
+                @show t, i, irl.V̂.param
             end
-        elseif t == tf
-            P = ARE_solution(irl)
-            @show stop_conds_dict
-            @show P
         end
     end
-    # cb_train = PresetTimeCallback(0.0:irl.T:tf, affect!)
-    cb_train = PeriodicCallback(affect!, irl.T; initial_affect = false)
+    cb_train = PeriodicCallback(affect!, irl.T; initial_affect=true)
 end
