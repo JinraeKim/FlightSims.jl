@@ -10,7 +10,7 @@
     - `saveat=[]` will save data at every time step.
 """
 function sim(state0, dyn, p=nothing;
-        t0=0.0, tf=1.0, solver=Tsit5(),
+        t0=0.0, tf=1.0, solver=nothing,  # DifferentialEquations.jl will find a default solver
         callback::DiffEqBase.DECallback=CallbackSet(),
         datum_format=nothing, saveat=[],
         kwargs...,

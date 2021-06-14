@@ -19,8 +19,9 @@ Base.@kwdef struct IslamQuadcopterEnv <: QuadcopterEnv
     # kt = Diagonal(0.1*ones(3))  # Ns / m
     # kr = Diagonal(0.1*ones(3))  # N m s
     # input limits
-    u_min = zeros(4)
-    u_max = (m*g/kf) * ones(4)
+    dim_input = 4
+    u_min = zeros(dim_input)
+    u_max = (m*g/kf) * ones(dim_input)
 end
 
 function saturate(env::IslamQuadcopterEnv, u)

@@ -17,8 +17,9 @@ Base.@kwdef struct GoodarziQuadcopterEnv <: QuadcopterEnv
     J_inv = inv(J)
     g = 9.81  # m/s²
     # input limits
-    u_min = zeros(4)
-    u_max = (m*g) * ones(4)
+    dim_input = 4
+    u_min = zeros(dim_input)
+    u_max = (m*g) * ones(dim_input)
 end
 
 function saturate(env::GoodarziQuadcopterEnv, u)
