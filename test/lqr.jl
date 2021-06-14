@@ -19,18 +19,16 @@ function test()
     lqr = LQR(A, B, Q, R)  # exported from FlightSims
     u_lqr = FS.OptimalController(lqr)  # (x, p, t) -> -K*x; minimise J = ∫ (x' Q x + u' R u) from 0 to ∞
     # simulation
-    t0, tf = 0.0, 10.0
-    Δt = 0.01  # save period; not simulation time step
     # case 1: processing data simultaneously
     prob, sol, df = sim(
                         x0,  # initial condition
                         apply_inputs(Dynamics!(env); u=u_lqr);  # dynamics with input of LQR
-                        t0=t0, tf=tf,  # final time
+                        tf=tf,  # final time
                         datum_format=save_inputs(DatumFormat(env); input=u_lqr),  # saving data; default key: time, state
-                        saveat=t0:Δt:tf,
+                        savestep=0.01,
                        )
     # case 2: processing data after simulation
-    # df = Process(env)(prob, sol; Δt=0.01)  # DataFrame; `Δt` means data sampling period.
+    # df = Process(env)(prob, sol; savestep=0.01)  # DataFrame; `savestep` means data sampling period.
     plot(df.time, hcat(df.state...)'; title="state variable", label=["x1" "x2"])  # Plots
     savefig("figures/x_lqr.png")
     plot(df.time, hcat(df.input...)'; title="control input", label="u")  # Plots
