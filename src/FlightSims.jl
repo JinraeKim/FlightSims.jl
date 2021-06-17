@@ -3,8 +3,8 @@ module FlightSims
 # using Debugger  # tmp
 using DifferentialEquations
 using ComponentArrays, UnPack
+using MacroTools
 using JLD2, FileIO, DataFrames
-# using SplitApplyCombine  # e.g., SplitApplyCombine.group
 using LinearAlgebra, Transducers, Rotations, Random, ForwardDiff
 using Combinatorics: multiexponents
 using NLopt
@@ -12,11 +12,11 @@ using NumericalIntegration: integrate
 using DynamicPolynomials: @polyvar, PolyVar, AbstractPolynomialLike
 using Flux
 using Flux.Data: DataLoader
-# using MatrixEquations
 
 ### APIs
 export AbstractEnv, State, Params, Dynamics, Dynamics!, apply_inputs, DatumFormat, save_inputs
 export sim, Process, load
+export @log, @log_only
 ### envs
 ## basics
 export TwoDimensionalNonlinearPolynomialEnv, LinearSystemEnv, ReferenceModelEnv
