@@ -22,9 +22,11 @@ function test()
     # case 1: processing data simultaneously
     tf = 10.0
     # prob, sol = sim(
-    function dynamics!(dx, x, p, t)
+    @LOG function dynamics!(dx, x, p, t)
         u = u_lqr(x, p, t)
         _u = length(u) == 1 ? u[1] : u
+        @log time = t
+        @log state = x
         @log input = _u
         dx .= A*x + B*_u
         nothing
@@ -35,6 +37,7 @@ function test()
                         # apply_inputs(dynamics!; u=u_lqr);  # dynamics with input of LQR
                         dynamics!;  # dynamics with input of LQR
                         tf=tf,  # final time
+                        log_func=dynamics!__LOG__,
                         # datum_format=save_inputs(DatumFormat(env); input=u_lqr),  # saving data; default key: time, state
                         # log_off=true,
                         savestep=0.01,

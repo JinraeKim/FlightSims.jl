@@ -1,5 +1,3 @@
-# using FlightSims
-# const FS = FlightSims
 using MacroTools
 
 
@@ -27,7 +25,7 @@ macro LOG(defun)
         # __LOGGER_DICT__[:state] = $(args[end-2])  # default saving data: state
         # __LOGGER_DICT__[:time] = $(args[end])  # default saving data: time
         $(body.args[1:end-1]...)  # remove the last line, return, to return __LOGGER_DICT__ 
-        return (; __LOGGER_DICT__...)  # NamedTuple (see `sim`; just a convention)
+        return __LOGGER_DICT__  # Dictionary (see `sim`; just a convention)
     end
     res = quote
         $(MacroTools.combinedef(_def))
@@ -85,9 +83,6 @@ macro log(__LOGGER_DICT__, expr)
         :(error("To log a variable, use either one of forms: `@log val` or `@log var_name = val`"))
     end
 end
-struct Integrator
-    p
-end
 
 macro nested_log(symbol, expr)
     if expr.head == :call
@@ -101,7 +96,11 @@ macro nested_log(symbol, expr)
         expr.args[end] = :integrator
         res = quote
             if @isdefined($:__LOGGER_DICT__)
-                __LOGGER_DICT__[$symbol] = $expr
+                if $symbol == :__NESTED_LOG__
+                    __LOGGER_DICT__ = $expr
+                else
+                    __LOGGER_DICT__[$symbol] = $expr
+                end
             else
                 $_expr
             end
@@ -110,6 +109,11 @@ macro nested_log(symbol, expr)
     else
         error("Call a function for subsystem")
     end
+end
+
+
+struct Integrator
+    p
 end
 
 function test()
@@ -121,8 +125,17 @@ function test()
         @log_only q  # activated only when logged
         return nothing  # necessary; ignore the lasts line of the function body
     end
+    @LOG function tmp2(dx, x, p, t; q)
+        @log p
+        @log x_log = x
+        @log a, b = p, x
+        @log_only k = t^2  # activated only when logged
+        @log_only q  # activated only when logged
+        return nothing  # necessary; ignore the lasts line of the function body
+    end
     @LOG function foo(dx, x, p, t)
-        @nested_log :subsystem tmp(dx, x, p, t; q=1)
+        @nested_log :__NESTED_LOG__ tmp(dx, x, p, t; q=1)
+        @nested_log :subsystem tmp2(dx, x, p, t; q=1)
         return x
     end
     x = [1, 2]
