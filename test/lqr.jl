@@ -20,11 +20,23 @@ function test()
     u_lqr = FS.OptimalController(lqr)  # (x, p, t) -> -K*x; minimise J = ∫ (x' Q x + u' R u) from 0 to ∞
     # simulation
     # case 1: processing data simultaneously
+    tf = 10.0
+    # prob, sol = sim(
+    function dynamics!(dx, x, p, t)
+        u = u_lqr(x, p, t)
+        _u = length(u) == 1 ? u[1] : u
+        @log input = _u
+        dx .= A*x + B*_u
+        nothing
+    end
     prob, sol, df = sim(
                         x0,  # initial condition
-                        apply_inputs(Dynamics!(env); u=u_lqr);  # dynamics with input of LQR
+                        # apply_inputs(Dynamics!(env); u=u_lqr);  # dynamics with input of LQR
+                        # apply_inputs(dynamics!; u=u_lqr);  # dynamics with input of LQR
+                        dynamics!;  # dynamics with input of LQR
                         tf=tf,  # final time
-                        datum_format=save_inputs(DatumFormat(env); input=u_lqr),  # saving data; default key: time, state
+                        # datum_format=save_inputs(DatumFormat(env); input=u_lqr),  # saving data; default key: time, state
+                        # log_off=true,
                         savestep=0.01,
                        )
     # case 2: processing data after simulation

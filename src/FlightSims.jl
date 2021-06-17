@@ -6,6 +6,7 @@ using ComponentArrays, UnPack
 using MacroTools
 using JLD2, FileIO, DataFrames
 using LinearAlgebra, Transducers, Rotations, Random, ForwardDiff
+using MatrixEquations
 using Combinatorics: multiexponents
 using NLopt
 using NumericalIntegration: integrate
