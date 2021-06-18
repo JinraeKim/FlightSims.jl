@@ -37,7 +37,7 @@ end
 macro log(expr)
     esc(:(@isdefined($:__LOGGER_DICT__) ? @log($:__LOGGER_DICT__, $expr) : $expr))
 end
-macro log_only(expr)
+macro onlylog(expr)
     esc(:(@isdefined($:__LOGGER_DICT__) ? @log($:__LOGGER_DICT__, $expr) : nothing))
 end
 
@@ -121,16 +121,16 @@ function test()
         @log p
         @log x_log = x
         @log a, b = p, x
-        @log_only k = t^2  # activated only when logged
-        @log_only q  # activated only when logged
+        @onlylog k = t^2  # activated only when logged
+        @onlylog q  # activated only when logged
         return nothing  # necessary; ignore the lasts line of the function body
     end
     @LOG function tmp2(dx, x, p, t; q)
         @log p
         @log x_log = x
         @log a, b = p, x
-        @log_only k = t^2  # activated only when logged
-        @log_only q  # activated only when logged
+        @onlylog k = t^2  # activated only when logged
+        @onlylog q  # activated only when logged
         return nothing  # necessary; ignore the lasts line of the function body
     end
     @LOG function foo(dx, x, p, t)
