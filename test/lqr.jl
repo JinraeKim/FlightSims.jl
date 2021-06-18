@@ -52,4 +52,5 @@ function test()
     savefig("figures/x_lqr.png")
     plot(df.time, hcat(df.input...)'; title="control input", label="u")  # Plots
     savefig("figures/u_lqr.png")
+    df
 end
