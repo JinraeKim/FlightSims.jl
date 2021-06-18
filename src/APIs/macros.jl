@@ -19,7 +19,7 @@ end
 macro log(expr)
     esc(:(@isdefined($:__LOGGER_DICT__) ? @log($:__LOGGER_DICT__, $expr) : $expr))
 end
-macro log_only(expr)
+macro onlylog(expr)
     esc(:(@isdefined($:__LOGGER_DICT__) ? @log($:__LOGGER_DICT__, $expr) : nothing))
 end
 
