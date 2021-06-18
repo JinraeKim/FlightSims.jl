@@ -52,7 +52,7 @@ Take a look at `src/environments`.
 
 ## APIs
 Main APIs are provided in `src/APIs`.
-Note that among APIs, **a function whose output is a function** will have the uppercase first letter ([#55](https://github.com/JinraeKim/FlightSims.jl/issues/55)).
+Note that among APIs, **[closure](https://docs.julialang.org/en/v1/devdocs/functions/#Closures) (a function whose output is a function)** will have the uppercase first letter ([#55](https://github.com/JinraeKim/FlightSims.jl/issues/55)).
 
 ### Make an environment
 - `AbstractEnv`: an abstract type for user-defined and predefined environments.
