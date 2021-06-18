@@ -45,7 +45,7 @@ function __Dynamics!(env::MulticopterEnv)
 end
 
 """
-Example code (to avoid conflict, it is commented out).
+Example code
 # Variables
 f ∈ R: total thrust
 M ∈ R^3: moment

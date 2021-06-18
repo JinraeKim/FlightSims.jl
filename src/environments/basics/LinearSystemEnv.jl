@@ -18,7 +18,7 @@ end
 
 function Dynamics!(env::LinearSystemEnv)
     @unpack A, B = env
-    return function (dx, x, p, t; u)
+    function dynamics!(dx, x, p, t; u)
         _u = length(u) == 1 ? u[1] : u
         dx .= A*x + B*_u
         nothing

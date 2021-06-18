@@ -19,7 +19,7 @@ end
 
 function ARE_solution(lqr::LQR)
     @unpack A, B, Q, R = lqr
-    P, _, _ = arec(A, B*inv(R)*B', Q)
+    P, _, _ = MatrixEquations.arec(A, B*inv(R)*B', Q)
     P
 end
 
