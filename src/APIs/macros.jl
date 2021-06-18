@@ -1,6 +1,6 @@
 macro Loggable(defun)
     _def = splitdef(defun)  # original
-    def = copy(_def)
+    def = deepcopy(_def)
     _body = _def[:body]
     args = _def[:args]
     def[:body] = quote
