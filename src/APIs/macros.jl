@@ -1,39 +1,99 @@
+"""
+    __LOG_INDICATOR__()
+
+Helper struct to specify a method as logging tool.
+"""
+struct __LOG_INDICATOR__
+end
+
+"""
+    @Loggable(defun)
+
+Generate two methods from a function definition (`defun`).
+
+# Notes
+Function definition with macro `@Loggable` will generate two methods with the same name (generic function).
+For example,
+
+```julia
+@Loggable function dynamics!(dx, x, p, t; kwargs...)
+    @log x
+    dx = -x
+end
+```
+will generate
+
+```julia
+function dynamics!(dx, x, p, t; kwargs...)
+    @log x
+    dx = -x
+end
+function dynamics!(dx, x, p, t, __log_indicator__::__LOG_INDICATOR__; kwargs...)
+    __LOGGER_DICT__ = @isdefined(:__LOGGER_DICT__) ? __LOGGER_DICT__ : Dict()  # if isdefined, nested logging will work
+    @log x
+    dx = -x
+    return __LOGGER_DICT__
+end
+```
+"""
 macro Loggable(defun)
     _def = splitdef(defun)  # original
     def = deepcopy(_def)
     _body = _def[:body]
-    args = _def[:args]
+    push!(def[:args], :(__log_indicator::__LOG_INDICATOR__))
     def[:body] = quote
         __LOGGER_DICT__ = @isdefined($(:__LOGGER_DICT__)) ? __LOGGER_DICT__ : Dict()
-        $(args[end-2]) = copy($(args[end-2]))  # dx, x, p, t or x, p, t -> x (copy for view issue: https://diffeq.sciml.ai/stable/features/callback_library/#Constructor-5)
-        $(_body.args[1:end]...)  # remove the last line, return, to return __LOGGER_DICT__ 
-        return __LOGGER_DICT__  # Dictionary (see `sim`; just a convention)
+        # if @isdefined($(:__LOGGER_DICT__))
+        #     $(def[:args][end-3]) = deepcopy($(def[:args][end-3]))  # dx, x, p, t, __log_indicator or x, p, t, __log_indicator -> x (copy for view issue: https://diffeq.sciml.ai/stable/features/callback_library/#Constructor-5)
+        # else
+        #     $(def[:args][end-2]) = deepcopy($(def[:args][end-2]))  # dx, x, p, t or x, p, t -> x (copy for view issue: https://diffeq.sciml.ai/stable/features/callback_library/#Constructor-5)
+        # end
+        $(_body.args...)  # remove the last line, return, to return __LOGGER_DICT__ 
+        __LOGGER_DICT__  # Dictionary (see `sim`; just a convention)
     end
     res = quote
-        # $(MacroTools.combinedef(_def))
+        $(MacroTools.combinedef(_def))
         $(MacroTools.combinedef(def))
     end
     esc(res)
 end
 
-macro log(expr)
-    esc(:(@isdefined($:__LOGGER_DICT__) ? @log($:__LOGGER_DICT__, $expr) : $expr))
-end
-macro onlylog(expr)
-    esc(:(@isdefined($:__LOGGER_DICT__) ? @log($:__LOGGER_DICT__, $expr) : nothing))
-end
+"""
+    @log(__LOGGER_DICT__, expr)
 
+A macro which logs annotated data (based on `expr`) to a privileged dictionary (`__LOGGER_DICT__`).
+For example,
+```julia
+@Loggable function dynamics!(dx, x, p, t; kwargs...)
+    @log x
+    dx = -x
+end
+```
+will generate
+
+```julia
+function dynamics!(dx, x, p, t; kwargs...)
+    @log x
+    dx = -x
+end
+function dynamics!(dx, x, p, t, __log_indicator__::__LOG_INDICATOR__; kwargs...)
+    __LOGGER_DICT__ = @isdefined(:__LOGGER_DICT__) ? __LOGGER_DICT__ : Dict()  # if isdefined, nested logging will work
+    @log x
+    dx = -x
+    return __LOGGER_DICT__
+end
+```
+Then, if `@isdefined(__LOGGER_DICT__) == false`,
+just evaluate given experssion `expr`.
+Otherwise, @log(`expr`) will add a variable to `__LOGGER_DICT__` based on `expr`,
+and also evaluate given experssion `expr`.
+"""
 macro log(__LOGGER_DICT__, expr)
     return if expr isa Symbol
         quote
-            # local val = $(:(copy($(esc(expr)))))
             local val = $(esc(expr))
             local var_name = $((expr,))[1]
             local logger_dict = $(esc(__LOGGER_DICT__))
-            # if !haskey(logger_dict, var_name)
-            #     logger_dict[var_name] = typeof(val)[]
-            # end
-            # push!(getindex(logger_dict, var_name), val)
             haskey(logger_dict, var_name) ? error("Already defined key: $(var_name)") : setindex!(logger_dict, val, var_name)
             nothing
         end
@@ -44,11 +104,6 @@ macro log(__LOGGER_DICT__, expr)
                 local var_names = $(esc(expr.args[1].args))
                 local logger_dict = $(esc(__LOGGER_DICT__))
                 for (var_name, val) in zip(var_names, vals)
-                    # if !haskey(logger_dict, var_name)
-                    #     logger_dict[var_name] = typeof(val)[]
-                    # end
-                    # push!(getindex(logger_dict, var_name), val)
-                    # logger_dict[var_name] = val
                     haskey(logger_dict, var_name) ? error("Already defined key: $(var_name)") : setindex!(logger_dict, val, var_name)
                 end
                 $(esc(expr))
@@ -58,11 +113,6 @@ macro log(__LOGGER_DICT__, expr)
                 local val = $(esc(expr.args[2]))
                 local var_name = $((expr.args[1],))[1]
                 local logger_dict = $(esc(__LOGGER_DICT__))
-                # if !haskey(logger_dict, var_name)
-                #     logger_dict[var_name] = typeof(val)[]
-                # end
-                # push!(getindex(logger_dict, var_name), val)
-                # logger_dict[var_name] = val
                 haskey(logger_dict, var_name) ? error("Already defined key: $(var_name)") : setindex!(logger_dict, val, var_name)
                 $(esc(expr))
             end
@@ -72,25 +122,41 @@ macro log(__LOGGER_DICT__, expr)
     end
 end
 
+macro log(expr)
+    esc(:(@isdefined($:__LOGGER_DICT__) ? @log($:__LOGGER_DICT__, $expr) : $expr))
+end
+
+"""
+    @onlylog(expr)
+
+A macro that activates given expression (`expr`) only when logging data.
+Unlike `@log(expr)`,
+this macro does not evaluate given experssion `expr`.
+"""
+macro onlylog(expr)
+    esc(:(@isdefined($:__LOGGER_DICT__) ? @log($:__LOGGER_DICT__, $expr) : nothing))
+end
+
+"""
+    @onlylog(symbol, expr)
+
+A macro that enables us to log data in a nested sense.
+For example,
+```julia
+@nested_log :subsystem dynamics!(dx.sub, x.sub, p.sub, t)
+```
+will log data from `dynamics!(dx.sub, x.sub, p.sub, t)` as
+`__LOGGER_DICT__[:subsystem]`.
+"""
 macro nested_log(symbol, expr)
     if expr.head == :call
-        # _expr = copy(expr)
-        # expr.args[1] = Symbol(String(_expr.args[1]) * String(:__LOG__))  # function name (e.g., my_func -> my_func__LOG__)
-        # if length(expr.args) >= 5 && typeof(expr.args[end-3]) == Symbol
-        #     expr.args = [expr.args[1:end-4]..., expr.args[end-2:end]...]  # remove dx
-        # end
-        # expr.args[end-2] = _expr.args[end-2]  # dx, x, p, t or x, p, t -> x
-        # expr.args[end-1] = _expr.args[end]  # dx, x, p, t or x, p, t -> t
-        # expr.args[end] = :integrator
+        _expr = deepcopy(expr)
+        push!(expr.args, :(__LOG_INDICATOR__()))
         res = quote
             if @isdefined($:__LOGGER_DICT__)
-                if $symbol == :__NESTED_LOG__
-                    __LOGGER_DICT__ = $expr
-                else
-                    __LOGGER_DICT__[$symbol] = $expr
-                end
+                __LOGGER_DICT__[$symbol] = $expr
             else
-                $expr
+                $_expr
             end
         end
         esc(res)

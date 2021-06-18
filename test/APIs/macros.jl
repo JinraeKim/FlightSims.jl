@@ -8,17 +8,21 @@ macro Loggable(defun)
     _def = splitdef(defun)  # original
     def = deepcopy(_def)
     _body = _def[:body]
-    args = _def[:args]
-    args = push!(args, :(__LOG_INDICATOR__::LOG_INDICATOR))
+    push!(def[:args], :(__LOG_INDICATOR__::LOG_INDICATOR))
     def[:body] = quote
         __LOGGER_DICT__ = @isdefined($(:__LOGGER_DICT__)) ? __LOGGER_DICT__ : Dict()
-        $(args[end-2]) = copy($(args[end-2]))  # dx, x, p, t or x, p, t -> x (copy for view issue: https://diffeq.sciml.ai/stable/features/callback_library/#Constructor-5)
-        $(_body.args[1:end]...)  # remove the last line, return, to return __LOGGER_DICT__ 
-        return __LOGGER_DICT__  # Dictionary (see `sim`; just a convention)
+        if @isdefined($(:__LOGGER_DICT__))
+            $(_def[:args][end-3]) = copy($(_def[:args][end-3]))  # dx, x, p, t, __LOG_INDICATOR__ or x, p, t, __LOG_INDICATOR__ -> x (copy for view issue: https://diffeq.sciml.ai/stable/features/callback_library/#Constructor-5)
+        else
+            $(_def[:args][end-2]) = copy($(_def[:args][end-2]))  # dx, x, p, t or x, p, t -> x (copy for view issue: https://diffeq.sciml.ai/stable/features/callback_library/#Constructor-5)
+        end
+        $(_body.args...)  # remove the last line, return, to return __LOGGER_DICT__ 
+        __LOGGER_DICT__  # Dictionary (see `sim`; just a convention)
     end
     res = quote
-        # $(MacroTools.combinedef(_def))
+        $(MacroTools.combinedef(_def))
         $(MacroTools.combinedef(def))
+        # $(def[:name])  # function have two methods
     end
     esc(res)
 end
@@ -81,7 +85,8 @@ end
 
 macro nested_log(symbol, expr)
     if expr.head == :call
-        # _expr = copy(expr)
+        _expr = deepcopy(expr)
+        push!(expr.args, :(LOG_INDICATOR()))
         # expr.args[1] = Symbol(String(_expr.args[1]) * String(:__LOG__))  # function name (e.g., my_func -> my_func__LOG__)
         # if length(expr.args) >= 5 && typeof(expr.args[end-3]) == Symbol
         #     expr.args = [expr.args[1:end-4]..., expr.args[end-2:end]...]  # remove dx
@@ -97,7 +102,7 @@ macro nested_log(symbol, expr)
                     __LOGGER_DICT__[$symbol] = $expr
                 end
             else
-                $expr
+                $_expr
             end
         end
         esc(res)
@@ -109,6 +114,22 @@ end
 
 function test()
     @Loggable function dynamics!(dx, x, p, t)
+        @log x
         dx .= -x
+        nothing
     end
+    @Loggable function nested_dynamics!(dx, x, p, t)
+        @nested_log :sub dynamics!(dx, x, p, t)
+    end
+    #
+    x = ones(3)
+    dx = zero.(x)
+    p = nothing
+    t = 0.0
+    @show methods(dynamics!)
+    @show methods(nested_dynamics!)
+    @show nested_dynamics!(dx, x, p, t)
+    @show nested_dynamics!(dx, x, p, t, LOG_INDICATOR())
+    @show dynamics!(dx, x, p, t)
+    @show dynamics!(dx, x, p, t, LOG_INDICATOR())
 end

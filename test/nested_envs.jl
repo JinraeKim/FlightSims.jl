@@ -30,10 +30,6 @@ function test()
     u_lqr2 = FS.OptimalController(lqr2)  # (x, p, t) -> -K*x; minimise J = ∫ (x' Q x + u' R u) from 0 to ∞
     # simulation
     tf = 10.0
-    # @Loggable will generate a hidden dictionary (NEVER USE THE PRIVILEGED NAME, `__LOGGER_DICT__`)
-    # @Loggable will also automatically return the privileged dictionary
-    # @Loggable will also copy the state `x` to avoid view issue; https://diffeq.sciml.ai/stable/features/callback_library/#Constructor-5
-    # @log will automatically log annotated data in the privileged dictionary
     @Loggable function dynamics1!(dx, x, p, t; u)
         @log state = x
         @log input = u
@@ -53,11 +49,11 @@ function test()
         @nested_log :sys2 dynamics2!(dx.sys2, x.sys2, (), t; u=u2)  # predefined dynamics exported from FlightSims
         # NEVER RETURN SOMETHING; just mutate dx
     end
-    prob, sol, df = sim(
-                        x0,  # initial condition
-                        dynamics!;  # dynamics with input of LQR
-                        tf=tf,  # final time
-                        savestep=0.01,
-                       )
-    df
+    prob, df = sim(
+                   x0,  # initial condition
+                   dynamics!;  # dynamics with input of LQR
+                   tf=tf,  # final time
+                   savestep=0.01,
+                  )
+    df.sys1
 end

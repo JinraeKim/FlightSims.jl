@@ -23,10 +23,6 @@ function test()
 
     # simulation
     tf = 10.0
-    # @Loggable will generate a hidden dictionary (NEVER USE THE PRIVILEGED NAME, `__LOGGER_DICT__`)
-    # @Loggable will also automatically return the privileged dictionary
-    # @Loggable will also copy the state `x` to avoid view issue; https://diffeq.sciml.ai/stable/features/callback_library/#Constructor-5
-    # @log will automatically log annotated data in the privileged dictionary
     @Loggable function dynamics!(dx, x, p, t; u)
         @log state = x
         @log input = u
@@ -37,14 +33,14 @@ function test()
     Δt = 0.01
     affect!(integrator) = integrator.p = copy(integrator.u)  # auxiliary callback
     cb = PeriodicCallback(affect!, Δt; initial_affect=true)
-    prob, sol, df = sim(
-                        x0,  # initial condition
-                        apply_inputs(dynamics!; u=u_lqr),  # dynamics with input of LQR
-                        p0;
-                        tf=tf,  # final time
-                        callback=cb,
-                        savestep=Δt,
-                       )
+    prob, df = sim(
+                   x0,  # initial condition
+                   apply_inputs(dynamics!; u=u_lqr),  # dynamics with input of LQR
+                   p0;
+                   tf=tf,  # final time
+                   callback=cb,
+                   savestep=Δt,
+                  )
     p_x = plot(df.time, hcat(df.state...)';
                title="state variable", label=["x1" "x2"], color=[:black :black], lw=1.5,
               )  # Plots
