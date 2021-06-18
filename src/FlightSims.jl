@@ -41,9 +41,9 @@ export PolynomialBasis, euler
 export PowerLoop, Command
 
 
+include("APIs/APIs.jl")
 include("utils/utils.jl")
 include("environments/environments.jl")
-include("APIs/APIs.jl")
 include("algorithms/algorithms.jl")
 
 

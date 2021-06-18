@@ -141,12 +141,17 @@ end
     @onlylog(symbol, expr)
 
 A macro that enables us to log data in a nested sense.
-For example,
+# Examples
+- Example 1
 ```julia
 @nested_log :subsystem dynamics!(dx.sub, x.sub, p.sub, t)
 ```
 will log data from `dynamics!(dx.sub, x.sub, p.sub, t)` as
 `__LOGGER_DICT__[:subsystem]`.
+- Example 2
+```julia
+@nested_log :subsystem state = x
+```
 """
 macro nested_log(symbol, expr)
     if expr.head == :call
@@ -154,7 +159,19 @@ macro nested_log(symbol, expr)
         push!(expr.args, :(__LOG_INDICATOR__()))
         res = quote
             if @isdefined($:__LOGGER_DICT__)
-                __LOGGER_DICT__[$symbol] = $expr
+                __LOGGER_DICT__[$symbol] = haskey(__LOGGER_DICT__, $symbol) ? merge(__LOGGER_DICT__[$symbol], $expr) : $expr
+            else
+                $_expr
+            end
+        end
+        esc(res)
+    elseif expr.head == :(=)
+        _expr = deepcopy(expr)
+        res = quote
+            if @isdefined($:__LOGGER_DICT__)
+                __TMP_DICT__ = Dict()
+                @log(__TMP_DICT__, $expr)
+                __LOGGER_DICT__[$symbol] = haskey(__LOGGER_DICT__, $symbol) ? merge(__LOGGER_DICT__[$symbol], __TMP_DICT__) : __TMP_DICT__
             else
                 $_expr
             end
