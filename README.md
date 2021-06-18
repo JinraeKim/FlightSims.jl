@@ -1,8 +1,11 @@
 # FlightSims
-[FlightSims.jl](https://github.com/JinraeKim/FlightSims.jl) is a general-purpose numerical simulator by defining nested environments.
-## Plans
-- Some controllers and utilities will be separated in `v0.5`; see [FaultTolerantControl.jl](https://github.com/JinraeKim/FaultTolerantControl.jl).
-- Convenient logger will be added in `v0.6`; see [the related project](https://github.com/JinraeKim/FlightSims.jl/projects/4) and [#77](https://github.com/JinraeKim/FlightSims.jl/pull/77).
+[FlightSims.jl](https://github.com/JinraeKim/FlightSims.jl) is a general-purpose numerical simulator supporting nested environments and convenient macro-based data logging.
+## Plans and Changes
+### v0.6
+- [x] Convenient logger will be added in `v0.6`; see [the related project](https://github.com/JinraeKim/FlightSims.jl/projects/4) and [#77](https://github.com/JinraeKim/FlightSims.jl/pull/77).
+- [x] Default output of `sim` has been changed from `(prob::DEProblem, sol::DESolution)` to `(prob::DEProblem, df::DataFrame)`.
+### v0.5
+- [x] Some controllers and utilities will be separated in `v0.5`; see [FaultTolerantControl.jl](https://github.com/JinraeKim/FaultTolerantControl.jl).
 ## Notes
 ### Why is it FlightSims.jl?
 This package is for any kind of numerical simulation with dynamical systems
@@ -13,14 +16,14 @@ fault tolerant control (FTC) with various models and algorithms of faults, fault
 
 ## Features
 ### Compatibility
-- It is highly based on [OrdinaryDiffEq.jl](https://github.com/SciML/OrdinaryDiffEq.jl).
-Supporting full compatibility with [DifferentialEquations.jl](https://github.com/SciML/DifferentialEquations.jl) is not on the road map for now.
+- It is highly based on [DifferentialEquations.jl](https://github.com/SciML/DifferentialEquations.jl) but mainly focusing on ODE (ordinary differential equations).
 - The construction of nested environments are based on [ComponentArrays.jl](https://github.com/jonniedie/ComponentArrays.jl).
+- The structure of the resulting data from simulation result is based on [DataFrames.jl](https://github.com/JuliaData/DataFrames.jl).
 
 If you want more functionality, please feel free to report an issue!
 
 ### Nested Environments and Zoo
-- Environments usually stand for **dynamical systems** but also contain **other utilities**, for example, controllers.
+- Environments usually stand for **dynamical systems** but also include **other utilities**, for example, controllers.
 - One can generate user-defined nested environments using provided APIs.
 Also, some predefined environments are provided for reusability (i.e., environment zoo).
 Take a look at `src/environments`.
@@ -52,7 +55,7 @@ Take a look at `src/environments`.
 
 ## APIs
 Main APIs are provided in `src/APIs`.
-Note that among APIs, **[closure](https://docs.julialang.org/en/v1/devdocs/functions/#Closures) (a function whose output is a function)** will have the uppercase first letter ([#55](https://github.com/JinraeKim/FlightSims.jl/issues/55)).
+Note that among APIs, most **[closures](https://docs.julialang.org/en/v1/devdocs/functions/#Closures) (a function whose output is a function)** will have the uppercase first letter ([#55](https://github.com/JinraeKim/FlightSims.jl/issues/55)).
 
 ### Make an environment
 - `AbstractEnv`: an abstract type for user-defined and predefined environments.
@@ -60,16 +63,19 @@ In general, environments is a sub-type of `AbstractEnv`.
 - `State(env::AbstractEnv)`: return a function that produces structured states.
 - `Dynamics!(env::AbstractEnv)`, `Dynamics(env::AbstractEnv)`: return a function that maps in-place (**recommended**) and out-of-place dynamics (resp.),
 compatible with [DifferentialEquations.jl](https://github.com/SciML/DifferentialEquations.jl). User can extend these methods or simply define other methods.
-- `apply_inputs(func; kwargs...)`: It is borrowed from [an MRAC example of ComponentArrays.jl](https://jonniedie.github.io/ComponentArrays.jl/stable/examples/adaptive_control/). By using this, user can easily apply various kind of inputs into the environment.
 
 Note that these interfaces are also provided for some **integrated environments**, e.g., `State(system, controller)`.
 
 ### Simulation, logging, and data saving & loading
 **Core APIs**
-- `sim`: return `prob::DEProblem` and `sol::DESolution`.
+- `sim`
+    - return `prob::DEProblem` and `df::DataFrame`.
     - For now, only [**in-place** method (iip)](https://diffeq.sciml.ai/stable/basics/problem/#In-place-vs-Out-of-Place-Function-Definition-Forms) is supported.
     <!-- - With a keyword argument `datum_format`, it results `prob`, `sol`, and `df::DataFrame`. -->
-- `@Loggable` (usage: `@Loggable function my_func(dx, x, p, t) #blahblah end`): make your ODE function loggable. Use this macro when **defining** your ODEFunction. This actually makes a hidden dictionary and return it.
+- `apply_inputs(func; kwargs...)`
+    - By using this, user can easily apply external inputs into environments. It is borrowed from [an MRAC example of ComponentArrays.jl](https://jonniedie.github.io/ComponentArrays.jl/stable/examples/adaptive_control/).
+- `@Loggable`
+    - (usage: `@Loggable function my_func(dx, x, p, t) #blahblah end`) make your ODE function loggable. Use this macro when **defining** your ODEFunction. This actually makes a hidden dictionary and return it.
     - **DO NOT** use `return` syntax in the function annotated by `@Loggable`. Instead, just mutate `dx` or simply leave any result without `return` as
         ```julia
         @Loggable function my_func(dx, x, p, t)
@@ -79,9 +85,11 @@ Note that these interfaces are also provided for some **integrated environments*
         ```
 
     - `__LOGGER_DICT__`:  This is an alias of the hidden dictionary generated by `@Loggable`. **NEVER USE THE NAME `__LOGGER_DICT__` in usual cases**.
-- `@log` (usage: `@log var_name = val`): variables annotated by this macro will be logged (Actually this stands for `__LOGGER_DICT__[var_name] = val`).
-    - `@onlylog`: the same as `@log` but it will be activated only when logging variables. It is not activated when solving DEProblem.
-    - This macro is highly inspired by [SimulationLogs.jl](https://github.com/jonniedie/SimulationLogs.jl).
+- `@log`
+    - (usage: `@log var_name = val`) variables annotated by this macro will be logged (Actually this stands for `__LOGGER_DICT__[var_name] = val`).
+- `@onlylog`
+    - The same as `@log` but it will be activated only when logging variables. It is not activated when solving DEProblem.
+    - This basic form of this macro is inspired by [SimulationLogs.jl](https://github.com/jonniedie/SimulationLogs.jl). But there are some differences. For example, `@log` in this package is based on [SavingCallback](https://diffeq.sciml.ai/stable/features/callback_library/#saving_callback), while `@log` in [SimulationLogs.jl](https://github.com/jonniedie/SimulationLogs.jl) will save data in the sense of postprocessing.
 - `@nested_log`
     - (usage 1) `@nested_log env_name ODEFunction_call`): this macro will save all variables logged in `ODEFunction_call` as `__LOGGER_DICT__[env_name]`. `ODEFunction_call` should be annotated by `@Loggable`.
     - (usage 2) `@nested_log env_name var_name=val`): this macro will save value `val` as `var_name` in a nested sense (at `env_name`).
@@ -96,10 +104,12 @@ Note that these interfaces are also provided for some **integrated environments*
     - It is recommended users to use `Process(env::AbstractEnv)` when the simulation is **deterministic** (including parameter updates).
 
 *Not actively maintained*
-- `save`: save `env`, `prob`, `sol`, and optionally `process`,
+- `save`
+    - Save `env`, `prob`, `sol`, and optionally `process`,
     - Not actively maintained. Please report issues about new features of saving data.
 in a `.jld2` file.
-- `load`: load `env`, `prob`, `sol`, and optionally `process`,
+- `load`
+    - Load `env`, `prob`, `sol`, and optionally `process`,
 from a `.jld2` file.
     - Not actively maintained. Please report issues about new features of loading data.
 
