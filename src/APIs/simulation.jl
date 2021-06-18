@@ -55,7 +55,7 @@ function sim(state0, __dyn, p=nothing;
         t0=0.0, tf=1.0, solver=nothing,  # DifferentialEquations.jl will find a default solver
         callback::DiffEqBase.DECallback=CallbackSet(),
         log_off=false,
-        log_func=nothing,
+        # log_func=nothing,
         saveat=nothing,
         savestep=nothing,
         kwargs...,
@@ -82,6 +82,12 @@ function sim(state0, __dyn, p=nothing;
     #     # end  # @LOG generates logger function whose name is dyn__LOG__(x, t, integrator)
     #     error("Not yet tested")
     # end
+    log_func = nothing
+    if isinplace(prob)
+        log_func = (x, t, integrator::DiffEqBase.DEIntegrator; kwargs...) -> __dyn(zero.(x), x, integrator.p, t; kwargs...)
+    else
+        error("Not tested")
+    end
     saved_values = nothing
     if log_off == false
         saved_values = SavedValues(Float64, Dict)
@@ -95,8 +101,7 @@ function sim(state0, __dyn, p=nothing;
     if log_off == true
         return prob, sol
     else
-        # df = DataFrame(time=saved_values.t)
-        df = DataFrame()
+        df = DataFrame(time=saved_values.t)
         all_keys = (saved_values.saveval |> Map(keys) |> union)[1]
         for key in all_keys
             # _getproperty(x) = isdefined(x, key) ? getproperty(x, key) : missing

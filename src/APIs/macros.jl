@@ -1,31 +1,30 @@
 macro LOG(defun)
     _def = splitdef(defun)  # original
     def = copy(_def)
-    def[:name] = Symbol(String(_def[:name]) * String(:__LOG__))
-    body = _def[:body]
+    # def[:name] = Symbol(String(_def[:name]) * String(:__LOG__))
+    _body = _def[:body]
     args = _def[:args]
-    x_expr = args[end-2]  # dx, x, p, t or x, p, t -> x
-    p_expr = args[end-1]  # dx, x, p, t or x, p, t -> p
-    t_expr = args[end]  # dx, x, p, t or x, p, t -> t
-    def[:args] = (x_expr, t_expr, :integrator)
+    # x_expr = args[end-2]  # dx, x, p, t or x, p, t -> x
+    # p_expr = args[end-1]  # dx, x, p, t or x, p, t -> p
+    # t_expr = args[end]  # dx, x, p, t or x, p, t -> t
+    # def[:args] = (x_expr, t_expr, :integrator)
     def[:body] = quote
         __LOGGER_DICT__ = @isdefined($(:__LOGGER_DICT__)) ? __LOGGER_DICT__ : Dict()
         # __LOGGER_DICT__ = Dict()
         # copy for view issue: https://diffeq.sciml.ai/stable/features/callback_library/#Constructor-5
-        $(args[end-2]) = copy($(def[:args][1]))  # dx, x, p, t or x, p, t -> x
-        if length($args) == 4
-            $(args[end-3]) = zero.($(args[end-2]))  # dx; zero-initialisation
-        end
-        $(args[end-1]) = getfield($(def[:args][3]), :p) == nothing ? getfield($(def[:args][3]), :p) : copy(getfield($(def[:args][3]), :p))  # dx, x, p, t or x, p, t -> p
-        # $(args[end-1]) = getfield($(def[:args][3]), :p)  # dx, x, p, t or x, p, t -> p
-        $(args[end]) = copy($(def[:args][2]))  # dx, x, p, t or x, p, t -> t
-        # __LOGGER_DICT__[:state] = $(args[end-2])  # default saving data: state
-        # __LOGGER_DICT__[:time] = $(args[end])  # default saving data: time
-        $(body.args[1:end-1]...)  # remove the last line, return, to return __LOGGER_DICT__ 
+        # $(args[end-2]) = copy($(def[:args][1]))  # dx, x, p, t or x, p, t -> x
+        # if length($args) == 4
+        #     $(args[end-3]) = zero.($(args[end-2]))  # dx; zero-initialisation
+        # end
+        # $(args[end-1]) = getfield($(def[:args][3]), :p) == nothing ? getfield($(def[:args][3]), :p) : copy(getfield($(def[:args][3]), :p))  # dx, x, p, t or x, p, t -> p
+        # # $(args[end-1]) = getfield($(def[:args][3]), :p)  # dx, x, p, t or x, p, t -> p
+        # $(args[end]) = copy($(def[:args][2]))  # dx, x, p, t or x, p, t -> t
+        __LOGGER_DICT__[:state] = copy($(args[end-2]))  # (default saved data) dx, x, p, t or x, p, t -> x
+        $(_body.args[1:end-1]...)  # remove the last line, return, to return __LOGGER_DICT__ 
         return __LOGGER_DICT__  # Dictionary (see `sim`; just a convention)
     end
     res = quote
-        $(MacroTools.combinedef(_def))
+        # $(MacroTools.combinedef(_def))
         $(MacroTools.combinedef(def))
     end
     esc(res)
@@ -88,14 +87,14 @@ end
 
 macro nested_log(symbol, expr)
     if expr.head == :call
-        _expr = copy(expr)
-        expr.args[1] = Symbol(String(_expr.args[1]) * String(:__LOG__))  # function name (e.g., my_func -> my_func__LOG__)
-        if length(expr.args) >= 5 && typeof(expr.args[end-3]) == Symbol
-            expr.args = [expr.args[1:end-4]..., expr.args[end-2:end]...]  # remove dx
-        end
-        expr.args[end-2] = _expr.args[end-2]  # dx, x, p, t or x, p, t -> x
-        expr.args[end-1] = _expr.args[end]  # dx, x, p, t or x, p, t -> t
-        expr.args[end] = :integrator
+        # _expr = copy(expr)
+        # expr.args[1] = Symbol(String(_expr.args[1]) * String(:__LOG__))  # function name (e.g., my_func -> my_func__LOG__)
+        # if length(expr.args) >= 5 && typeof(expr.args[end-3]) == Symbol
+        #     expr.args = [expr.args[1:end-4]..., expr.args[end-2:end]...]  # remove dx
+        # end
+        # expr.args[end-2] = _expr.args[end-2]  # dx, x, p, t or x, p, t -> x
+        # expr.args[end-1] = _expr.args[end]  # dx, x, p, t or x, p, t -> t
+        # expr.args[end] = :integrator
         res = quote
             if @isdefined($:__LOGGER_DICT__)
                 if $symbol == :__NESTED_LOG__
@@ -109,7 +108,7 @@ macro nested_log(symbol, expr)
         end
         esc(res)
     else
-        error("Call a function for subsystem")
+        error("Call the ODE function of a sub-environment, e.g., `@nested_log :env_name dynamics!(dx.sub, x.sub, p.sub, t)`")
     end
 end
 
