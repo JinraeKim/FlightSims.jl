@@ -17,7 +17,7 @@ using Flux.Data: DataLoader
 ### APIs
 export AbstractEnv, State, Params, Dynamics, Dynamics!, apply_inputs, DatumFormat, save_inputs
 export sim, Process, load
-export @log, @onlylog, @Loggable, @nested_log
+export @log, @onlylog, @Loggable, @nested_log, __LOG_INDICATOR__
 ### envs
 ## basics
 export TwoDimensionalNonlinearPolynomialEnv, LinearSystemEnv, ReferenceModelEnv
@@ -41,9 +41,9 @@ export PolynomialBasis, euler
 export PowerLoop, Command
 
 
+include("APIs/APIs.jl")
 include("utils/utils.jl")
 include("environments/environments.jl")
-include("APIs/APIs.jl")
 include("algorithms/algorithms.jl")
 
 

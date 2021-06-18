@@ -18,7 +18,9 @@ end
 
 function Dynamics!(env::LinearSystemEnv)
     @unpack A, B = env
-    function dynamics!(dx, x, p, t; u)
+    @Loggable function dynamics!(dx, x, p, t; u)
+        @log state = x
+        @log input = u
         _u = length(u) == 1 ? u[1] : u
         dx .= A*x + B*_u
         nothing

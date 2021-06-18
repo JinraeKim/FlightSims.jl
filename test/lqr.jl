@@ -1,7 +1,7 @@
 using FlightSims
 const FS = FlightSims
-using LinearAlgebra
 using DifferentialEquations
+using LinearAlgebra
 using Plots
 
 
@@ -23,28 +23,26 @@ function test()
 
     # simulation
     tf = 10.0
-    # @Loggable will generate a hidden dictionary (NEVER USE THE PRIVILEGED NAME, `__LOGGER_DICT__`)
-    # @Loggable will also automatically return the privileged dictionary
-    # @Loggable will also copy the state `x` to avoid view issue; https://diffeq.sciml.ai/stable/features/callback_library/#Constructor-5
-    # @log will automatically log annotated data in the privileged dictionary
-    @Loggable function dynamics!(dx, x, p, t; u)
-        @log state = x
-        @log input = u
-        @onlylog p  # execute this line only when logging data; not when solving DEProblem
-        Dynamics!(env)(dx, x, p, t; u)  # predefined dynamics exported from FlightSims
-        # NEVER RETURN SOMETHING; just mutate dx
-    end
     Δt = 0.01
     affect!(integrator) = integrator.p = copy(integrator.u)  # auxiliary callback
     cb = PeriodicCallback(affect!, Δt; initial_affect=true)
-    prob, sol, df = sim(
-                        x0,  # initial condition
-                        apply_inputs(dynamics!; u=u_lqr),  # dynamics with input of LQR
-                        p0;
-                        tf=tf,  # final time
-                        callback=cb,
-                        savestep=Δt,
-                       )
+    @Loggable function dynamics!(dx, x, p, t; u)
+        @onlylog p  # activate this line only when logging data
+        @log state = x
+        @log input = u
+        # nested logging
+        @nested_log :linear state_square = x .^ 2  # to put additional data into the same symbol (:linear)
+        @nested_log :linear Dynamics!(env)(dx, x, p, t; u=u)
+    end
+    prob, df = sim(
+                   x0,  # initial condition
+                   # apply_inputs(Dynamics!(env); u=u_lqr),  # dynamics with input of LQR
+                   apply_inputs(dynamics!; u=u_lqr),  # dynamics with input of LQR
+                   p0;
+                   tf=tf,  # final time
+                   callback=cb,
+                   savestep=Δt,
+                  )
     p_x = plot(df.time, hcat(df.state...)';
                title="state variable", label=["x1" "x2"], color=[:black :black], lw=1.5,
               )  # Plots
@@ -54,4 +52,5 @@ function test()
     savefig("figures/x_lqr.png")
     plot(df.time, hcat(df.input...)'; title="control input", label="u")  # Plots
     savefig("figures/u_lqr.png")
+    df
 end
