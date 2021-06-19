@@ -4,7 +4,6 @@ module FlightSims
 using DifferentialEquations
 using SimulationLogger
 using ComponentArrays, UnPack
-using MacroTools
 using JLD2, FileIO, DataFrames
 using LinearAlgebra, Transducers, Rotations, Random, ForwardDiff
 using MatrixEquations
