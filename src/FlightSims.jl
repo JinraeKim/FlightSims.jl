@@ -2,6 +2,7 @@ module FlightSims
 
 # using Debugger  # tmp
 using DifferentialEquations
+using SimulationLogger
 using ComponentArrays, UnPack
 using MacroTools
 using JLD2, FileIO, DataFrames
