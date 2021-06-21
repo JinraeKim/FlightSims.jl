@@ -26,6 +26,17 @@ function input_to_force_moment(env::MulticopterEnv, u)
     error("Transformation of input to force and moment not defined: `input_to_force_moment`")
 end
 
+"""
+# Variables
+## State
+p ∈ R^3: (inertial) position
+v ∈ R^3: (inertial) velocity
+R ∈ so(3): rotation matrix of body frame w.r.t. inertial frame (I to B)
+ω ∈ R^3: angular rate of body frame w.r.t. inertial frame (I to B)
+## (Virtual) input
+f ∈ R: total thrust
+M ∈ R^3: moment
+"""
 function __Dynamics!(env::MulticopterEnv)
     @unpack m, g, J = env
     J_inv = inv(J)
@@ -35,6 +46,8 @@ function __Dynamics!(env::MulticopterEnv)
                -x[2]  x[1]    0]
     @Loggable function dynamics!(dX, X, p, t; f, M)
         @unpack p, v, R, ω = X
+        @onlylog p, v, R, ω
+        @onlylog f, M
         Ω = skew(ω)
         dX.p = v
         dX.v = -(1/m)*f*R'*e3 + g*e3
@@ -44,12 +57,6 @@ function __Dynamics!(env::MulticopterEnv)
     end
 end
 
-"""
-Example code
-# Variables
-f ∈ R: total thrust
-M ∈ R^3: moment
-"""
 # function Dynamics!(env::MulticopterEnv)
 #     return function (dX, X, p, t; u)
 #         u_saturated = saturate(env, u)
