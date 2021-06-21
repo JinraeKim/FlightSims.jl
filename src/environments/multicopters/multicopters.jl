@@ -33,7 +33,7 @@ function __Dynamics!(env::MulticopterEnv)
     skew(x) = [    0 -x[3]  x[2];
                 x[3]     0 -x[1];
                -x[2]  x[1]    0]
-    return function (dX, X, p, t; f, M)
+    @Loggable function dynamics!(dX, X, p, t; f, M)
         @unpack p, v, R, ω = X
         Ω = skew(ω)
         dX.p = v
