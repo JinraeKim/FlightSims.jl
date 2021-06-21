@@ -20,29 +20,29 @@ function sim(state0, dyn, p=nothing;
     end
     tspan = (t0, tf)
     prob = ODEProblem(dyn, state0, tspan, p)
-    saved_values = nothing
+    saved_values = SavedValues(Float64, Dict)
+    cb_save = nothing
     if log_off == false
         # logging function
-        log_func = nothing
         if isinplace(prob)
             __log__indicator = __LOG_INDICATOR__()  # just an indicator for logging
             if hasmethod(dyn, Tuple{Any, Any, Any, Any, __LOG_INDICATOR__})
+                @show "hi"
                 log_func = function (x, t, integrator::DiffEqBase.DEIntegrator; kwargs...)
                     x = copy(x)  # `x` merely denotes a "view"
                     dyn(zero.(x), x, integrator.p, t, __log__indicator; kwargs...)
                 end
-            else
-                log_func = function (x, t, integrator::DiffEqBase.DEIntegrator; kwargs...) end  # save nothing
+                cb_save = SavingCallback(log_func, saved_values;
+                                         saveat=saveat, tdir=Int(sign(tspan[2]-tspan[1])))
             end
         else
             error("Not tested")
         end
-        saved_values = SavedValues(Float64, Dict)
-        cb_save = SavingCallback(log_func, saved_values;
-                                 saveat=saveat, tdir=Int(sign(tspan[2]-tspan[1])))
         callback = CallbackSet(callback, cb_save)  # save values "after all other callbacks"
     end
-    sol = solve(prob, solver; callback=callback, kwargs...)
+    sol = solve(prob, solver;
+                callback=callback,
+                kwargs...)
     if log_off == true
         return prob, sol
     else
@@ -69,18 +69,19 @@ maybe_apply(f, x, p, t) = f
 function apply_inputs(func; kwargs...)
     simfunc(dx, x, p, t) = func(dx, x, p, t;
                                 map(f -> maybe_apply(f, x, p, t), (; kwargs...))...)
-    # TODO: out-of-place method does not work; see `test/lqr.jl`
-    simfunc(x, p, t) = func(x, p, t;
-                            map(f -> maybe_apply(f, x, p, t), (; kwargs...))...)
     # for log functions
     if hasmethod(func, Tuple{Any, Any, Any, Any, __LOG_INDICATOR__})
+        @show "ih"
         simfunc(dx, x, p, t, __log__indicator::__LOG_INDICATOR__) = func(dx, x, p, t, __log__indicator;
                                                                          map(f -> maybe_apply(f, x, p, t), (; kwargs...))...)
     end
-    if hasmethod(func, Tuple{Any, Any, Any, __LOG_INDICATOR__})
-        simfunc(x, p, t, __log__indicator::__LOG_INDICATOR__) = func(x, p, t, __log__indicator;
-                                                                     map(f -> maybe_apply(f, x, p, t), (; kwargs...))...)
-    end
+    # # TODO: out-of-place method does not work; see `test/lqr.jl`
+    # simfunc(x, p, t) = func(x, p, t;
+    #                         map(f -> maybe_apply(f, x, p, t), (; kwargs...))...)
+    # if hasmethod(func, Tuple{Any, Any, Any, __LOG_INDICATOR__})
+    #     simfunc(x, p, t, __log__indicator::__LOG_INDICATOR__) = func(x, p, t, __log__indicator;
+    #                                                                  map(f -> maybe_apply(f, x, p, t), (; kwargs...))...)
+    # end
     return simfunc
 end
 
