@@ -65,13 +65,18 @@ maybe_apply(f, x, p, t) = f
 function apply_inputs(func; kwargs...)
     simfunc(dx, x, p, t) = func(dx, x, p, t;
                                 map(f -> maybe_apply(f, x, p, t), (; kwargs...))...)
-    simfunc(dx, x, p, t, __log__indicator::__LOG_INDICATOR__) = func(dx, x, p, t, __log__indicator;
-                                map(f -> maybe_apply(f, x, p, t), (; kwargs...))...)
     # TODO: out-of-place method does not work; see `test/lqr.jl`
     simfunc(x, p, t) = func(x, p, t;
                             map(f -> maybe_apply(f, x, p, t), (; kwargs...))...)
-    simfunc(x, p, t, __log__indicator::__LOG_INDICATOR__) = func(x, p, t, __log__indicator;
-                                map(f -> maybe_apply(f, x, p, t), (; kwargs...))...)
+    # for log functions
+    if hasmethod(func, Tuple{Any, Any, Any, Any, __LOG_INDICATOR__})
+        simfunc(dx, x, p, t, __log__indicator::__LOG_INDICATOR__) = func(dx, x, p, t, __log__indicator;
+                                                                         map(f -> maybe_apply(f, x, p, t), (; kwargs...))...)
+    end
+    if hasmethod(func, Tuple{Any, Any, Any, __LOG_INDICATOR__})
+        simfunc(x, p, t, __log__indicator::__LOG_INDICATOR__) = func(x, p, t, __log__indicator;
+                                                                     map(f -> maybe_apply(f, x, p, t), (; kwargs...))...)
+    end
     return simfunc
 end
 
