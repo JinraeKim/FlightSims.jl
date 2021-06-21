@@ -26,9 +26,13 @@ function sim(state0, dyn, p=nothing;
         log_func = nothing
         if isinplace(prob)
             __log__indicator = __LOG_INDICATOR__()  # just an indicator for logging
-            log_func = function (x, t, integrator::DiffEqBase.DEIntegrator; kwargs...)
-                x = copy(x)  # `x` merely denotes a "view"
-                dyn(zero.(x), x, integrator.p, t, __log__indicator; kwargs...)
+            if hasmethod(dyn, Tuple{Any, Any, Any, Any, __LOG_INDICATOR__})
+                log_func = function (x, t, integrator::DiffEqBase.DEIntegrator; kwargs...)
+                    x = copy(x)  # `x` merely denotes a "view"
+                    dyn(zero.(x), x, integrator.p, t, __log__indicator; kwargs...)
+                end
+            else
+                log_func = function (x, t, integrator::DiffEqBase.DEIntegrator; kwargs...) end  # save nothing
             end
         else
             error("Not tested")
