@@ -44,9 +44,12 @@ function sim(state0, dyn, p=nothing;
     else
         df = DataFrame(time=saved_values.t)
         all_keys = (saved_values.saveval |> Map(keys) |> union)[1]
+        # recursive NamedTuple conversion from Dict; https://discourse.julialang.org/t/how-to-make-a-named-tuple-from-a-dictionary/10899/34?u=ihany
+        recursive_namedtuple(x::Any) = x
+        recursive_namedtuple(d::Dict) = NamedTupleTools.namedtuple(Dict(k => recursive_namedtuple(v) for (k, v) in d))
         for key in all_keys
             _getindex(x) = haskey(x, key) ? getindex(x, key) : missing
-            df[!, key] = saved_values.saveval |> Map(_getindex) |> collect
+            df[!, key] = saved_values.saveval |> Map(_getindex) |> Map(recursive_namedtuple) |> collect
         end
         return prob, df
     end

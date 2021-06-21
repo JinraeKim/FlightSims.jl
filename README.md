@@ -2,6 +2,7 @@
 [FlightSims.jl](https://github.com/JinraeKim/FlightSims.jl) is a general-purpose numerical simulator supporting nested environments and convenient macro-based data logging.
 ## Plans and Changes
 ### v0.7
+- [x] `df::DataFrame`, one of the outputs of `sim`, contains (nested) `NamedTuple`.
 - [x] Separate logging tools as another package [SimulationLogger.jl](https://github.com/JinraeKim/SimulationLogger.jl).
 ### v0.6
 - [x] Convenient logger will be added in `v0.6`; see [the related project](https://github.com/JinraeKim/FlightSims.jl/projects/4) and [#77](https://github.com/JinraeKim/FlightSims.jl/pull/77).

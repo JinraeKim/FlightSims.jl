@@ -5,6 +5,7 @@ using DifferentialEquations
 using SimulationLogger
 using ComponentArrays, UnPack
 using JLD2, FileIO, DataFrames
+using NamedTupleTools
 using LinearAlgebra, Transducers, Rotations, Random, ForwardDiff
 using MatrixEquations
 using Combinatorics: multiexponents

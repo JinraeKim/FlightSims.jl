@@ -3,6 +3,7 @@ const FS = FlightSims
 using DifferentialEquations
 using LinearAlgebra
 using Plots
+using Test
 
 
 function test()
@@ -24,25 +25,24 @@ function test()
     # simulation
     tf = 10.0
     Δt = 0.01
-    affect!(integrator) = integrator.p = copy(integrator.u)  # auxiliary callback
-    cb = PeriodicCallback(affect!, Δt; initial_affect=true)
+    affect!(integrator) = integrator.p = copy(integrator.u)  # auxiliary callback funciton
+    cb = PeriodicCallback(affect!, Δt; initial_affect=true)  # auxiliary callback
     @Loggable function dynamics!(dx, x, p, t; u)
         @onlylog p  # activate this line only when logging data
-        @log state = x
-        @log input = u
-        # nested logging
-        @nested_log :linear state_square = x .^ 2  # to put additional data into the same symbol (:linear)
-        @nested_log :linear Dynamics!(env)(dx, x, p, t; u=u)
+        @log x
+        @log u
+        @nested_log Dynamics!(env)(dx, x, p, t; u=u)  # exported `state` and `input` from `Dynamics!(env)`
     end
     prob, df = sim(
                    x0,  # initial condition
-                   # apply_inputs(Dynamics!(env); u=u_lqr),  # dynamics with input of LQR
                    apply_inputs(dynamics!; u=u_lqr),  # dynamics with input of LQR
                    p0;
                    tf=tf,  # final time
                    callback=cb,
                    savestep=Δt,
                   )
+    @test df.x == df.state
+    @test df.u == df.input
     p_x = plot(df.time, hcat(df.state...)';
                title="state variable", label=["x1" "x2"], color=[:black :black], lw=1.5,
               )  # Plots
