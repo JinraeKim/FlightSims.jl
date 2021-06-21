@@ -1,6 +1,7 @@
 module FlightSims
 
 # using Debugger  # tmp
+using Reexport
 using DifferentialEquations
 using SimulationLogger
 using ComponentArrays, UnPack
@@ -18,7 +19,8 @@ using Flux.Data: DataLoader
 ### APIs
 export AbstractEnv, State, Params, Dynamics, Dynamics!, apply_inputs, DatumFormat, save_inputs
 export sim, Process, load
-export @log, @onlylog, @Loggable, @nested_log, __LOG_INDICATOR__
+@reexport using SimulationLogger
+# export @log, @onlylog, @Loggable, @nested_log, __LOG_INDICATOR__
 ### envs
 ## basics
 export TwoDimensionalNonlinearPolynomialEnv, LinearSystemEnv, ReferenceModelEnv

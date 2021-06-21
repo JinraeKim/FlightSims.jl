@@ -20,19 +20,19 @@ function sim(state0, dyn, p=nothing;
     end
     tspan = (t0, tf)
     prob = ODEProblem(dyn, state0, tspan, p)
-    # logging function
-    log_func = nothing
-    if isinplace(prob)
-        __log__indicator = __LOG_INDICATOR__()  # just an indicator for logging
-        log_func = function (x, t, integrator::DiffEqBase.DEIntegrator; kwargs...)
-            x = copy(x)  # `x` merely denotes a "view"
-            dyn(zero.(x), x, integrator.p, t, __log__indicator; kwargs...)
-        end
-    else
-        error("Not tested")
-    end
     saved_values = nothing
     if log_off == false
+        # logging function
+        log_func = nothing
+        if isinplace(prob)
+            __log__indicator = __LOG_INDICATOR__()  # just an indicator for logging
+            log_func = function (x, t, integrator::DiffEqBase.DEIntegrator; kwargs...)
+                x = copy(x)  # `x` merely denotes a "view"
+                dyn(zero.(x), x, integrator.p, t, __log__indicator; kwargs...)
+            end
+        else
+            error("Not tested")
+        end
         saved_values = SavedValues(Float64, Dict)
         cb_save = SavingCallback(log_func, saved_values;
                                  saveat=saveat, tdir=Int(sign(tspan[2]-tspan[1])))
