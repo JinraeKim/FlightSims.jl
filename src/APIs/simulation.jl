@@ -1,5 +1,9 @@
 """
 # Notes
+- Currently, only iip (isinplace) method is supported.
+# Keyword arguments
+# Tips
+- progress (kwarg): if true, it shows the progress bar (in Juno IDE or supports by [TerminalLoggers.jl](https://github.com/c42f/TerminalLoggers.jl)).
 """
 function sim(state0, dyn, p=nothing;
         t0=0.0, tf=1.0, solver=nothing,  # DifferentialEquations.jl will find a default solver
