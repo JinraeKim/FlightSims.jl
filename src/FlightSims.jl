@@ -41,7 +41,7 @@ export CTValueIterationADP, BehaviouralCloning, CTLinearIRL
 # utils
 export AbstractApproximator, LinearApproximator
 export PolynomialBasis, euler
-export PowerLoop, Command
+export PowerLoop, Command, HelixCommandGenerator
 
 
 include("APIs/APIs.jl")
