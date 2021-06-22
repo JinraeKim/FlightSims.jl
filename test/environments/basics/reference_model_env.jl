@@ -8,8 +8,7 @@ function test()
     env = ReferenceModelEnv(4)
     x0 = zeros(3)
     X0_ref = State(env)(x0)
-    prob, sol = sim(X0_ref, apply_inputs(Dynamics!(env); x_cmd=[1, 2, 3]); tf=10.0)
-    df = Process(env)(prob, sol)
+    prob, df = sim(X0_ref, apply_inputs(Dynamics!(env); x_cmd=[1, 2, 3]); tf=10.0)
     xs = df.state |> Map(X -> X.x_0) |> collect
     plot(df.time, hcat(xs...)')
 end
@@ -21,10 +20,8 @@ function test_auto_diff()
     env = ReferenceModelEnv(4)
     x0 = zeros(3)
     X0_ref = State(env)(x0)
-    prob_ad, sol_ad = sim(X0_ref, Dynamics!(env_ad); tf=tf)
-    prob, sol = sim(X0_ref, apply_inputs(Dynamics!(env); x_cmd=(x, p, t) -> _x_cmd_func(t)); tf=tf)
-    df_ad = Process(env)(prob_ad, sol_ad)
-    df = Process(env)(prob, sol)
+    prob_ad, df_ad = sim(X0_ref, Dynamics!(env_ad); tf=tf)
+    prob, df = sim(X0_ref, apply_inputs(Dynamics!(env); x_cmd=(x, p, t) -> _x_cmd_func(t)); tf=tf)
     p = plot(; legend=:outertopleft)
     xs = df.state |> Map(X -> X.x_0) |> collect
     xs_ad = df_ad.state |> Map(X -> X.x_0) |> collect

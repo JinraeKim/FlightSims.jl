@@ -1,10 +1,12 @@
 module FlightSims
 
 # using Debugger  # tmp
+using Reexport
 using DifferentialEquations
 using SimulationLogger
 using ComponentArrays, UnPack
 using JLD2, FileIO, DataFrames
+using NamedTupleTools
 using LinearAlgebra, Transducers, Rotations, Random, ForwardDiff
 using MatrixEquations
 using Combinatorics: multiexponents
@@ -17,7 +19,8 @@ using Flux.Data: DataLoader
 ### APIs
 export AbstractEnv, State, Params, Dynamics, Dynamics!, apply_inputs, DatumFormat, save_inputs
 export sim, Process, load
-export @log, @onlylog, @Loggable, @nested_log, __LOG_INDICATOR__
+@reexport using SimulationLogger
+# export @log, @onlylog, @Loggable, @nested_log, __LOG_INDICATOR__
 ### envs
 ## basics
 export TwoDimensionalNonlinearPolynomialEnv, LinearSystemEnv, ReferenceModelEnv
@@ -38,7 +41,7 @@ export CTValueIterationADP, BehaviouralCloning, CTLinearIRL
 # utils
 export AbstractApproximator, LinearApproximator
 export PolynomialBasis, euler
-export PowerLoop, Command
+export PowerLoop, Command, HelixCommandGenerator
 
 
 include("APIs/APIs.jl")

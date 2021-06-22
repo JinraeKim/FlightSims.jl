@@ -54,11 +54,12 @@ function Dynamics!(env::ReferenceModelEnv)
         end
     end
     funcs(t) = [_func(t) for _func in _funcs]
-    return function (dX, X, p, t; x_cmd=nothing)
-        xs = [getproperty(X, Symbol(:x_, 0))]
+    @Loggable function dynamics!(dX, X, p, t; x_cmd=nothing)
+        @onlylog state = X
+        xs = [getproperty(X, Symbol(:x_, 0))]  # x_0, x_1, ...
         for i in 0:d-1
             _x_next = getproperty(X, Symbol(:x_, i+1))
-            setproperty!(dX, Symbol(:x_, i), _x_next)  # e.g., dX.x0 = x1
+            setproperty!(dX, Symbol(:x_, i), _x_next)  # e.g., dX.x_0 = x_1
             push!(xs, _x_next)
         end
         dx_d = nothing
@@ -66,12 +67,16 @@ function Dynamics!(env::ReferenceModelEnv)
             if x_cmd != nothing
                 error("Do not provide a manual command for mode auto_diff=$(auto_diff)")
             end
-            dx_d = -sum(Ks .* xs) + sum([Ks..., I] .* funcs(t))
+            # dx_d = -sum(Ks .* xs) + sum([Ks..., I] .* funcs(t))
+            desired_cmds = funcs(t)
+            dx_d = -sum(Ks .* xs) + sum([Ks..., I] .* desired_cmds)
+            @log x_cmd = desired_cmds[1]
         else
             if x_cmd == nothing
                 error("Provide a manual command for mode auto_diff=$(auto_diff)")
             end
             dx_d = -sum(Ks .* xs) + Ks[1]*x_cmd
+            @log x_cmd
         end
         setproperty!(dX, Symbol(:x_, d), dx_d)
     end
