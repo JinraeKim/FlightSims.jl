@@ -25,12 +25,12 @@ function sim(state0, dyn, p=nothing;
     if log_off == false
         # logging function
         if isinplace(prob)
-            __log__indicator = __LOG_INDICATOR__()  # just an indicator for logging
+            __log_indicator__ = __LOG_INDICATOR__()  # just an indicator for logging
             if hasmethod(dyn, Tuple{Any, Any, Any, Any, __LOG_INDICATOR__})
-                @show "hi"
+            # if applicable(dyn, zero.(state0), state0, p, 0.0, __log_indicator__)
                 log_func = function (x, t, integrator::DiffEqBase.DEIntegrator; kwargs...)
                     x = copy(x)  # `x` merely denotes a "view"
-                    dyn(zero.(x), x, integrator.p, t, __log__indicator; kwargs...)
+                    dyn(zero.(x), x, integrator.p, t, __log_indicator__; kwargs...)
                 end
                 cb_save = SavingCallback(log_func, saved_values;
                                          saveat=saveat, tdir=Int(sign(tspan[2]-tspan[1])))
@@ -40,6 +40,8 @@ function sim(state0, dyn, p=nothing;
         end
         callback = CallbackSet(callback, cb_save)  # save values "after all other callbacks"
     end
+    @show methods(log_func)
+    @show methods(dyn)
     sol = solve(prob, solver;
                 callback=callback,
                 kwargs...)
@@ -67,22 +69,13 @@ Borrowed from [an MRAC example](https://jonniedie.github.io/ComponentArrays.jl/s
 maybe_apply(f::Function, x, p, t) = f(x, p, t)
 maybe_apply(f, x, p, t) = f
 function apply_inputs(func; kwargs...)
-    simfunc(dx, x, p, t) = func(dx, x, p, t;
-                                map(f -> maybe_apply(f, x, p, t), (; kwargs...))...)
-    # for log functions
-    if hasmethod(func, Tuple{Any, Any, Any, Any, __LOG_INDICATOR__})
-        @show "ih"
-        simfunc(dx, x, p, t, __log__indicator::__LOG_INDICATOR__) = func(dx, x, p, t, __log__indicator;
-                                                                         map(f -> maybe_apply(f, x, p, t), (; kwargs...))...)
+    @show methods(func)
+    @Loggable function simfunc(dx, x, p, t)
+        @nested_log func(dx, x, p, t; map(f -> maybe_apply(f, x, p, t), (; kwargs...))...)
     end
-    # # TODO: out-of-place method does not work; see `test/lqr.jl`
-    # simfunc(x, p, t) = func(x, p, t;
-    #                         map(f -> maybe_apply(f, x, p, t), (; kwargs...))...)
-    # if hasmethod(func, Tuple{Any, Any, Any, __LOG_INDICATOR__})
-    #     simfunc(x, p, t, __log__indicator::__LOG_INDICATOR__) = func(x, p, t, __log__indicator;
-    #                                                                  map(f -> maybe_apply(f, x, p, t), (; kwargs...))...)
-    # end
-    return simfunc
+    @show simfunc
+    @show methods(simfunc)
+    simfunc
 end
 
 function save_inputs(func; kwargs...)
