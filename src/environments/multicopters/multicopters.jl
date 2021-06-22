@@ -47,8 +47,7 @@ function __Dynamics!(env::MulticopterEnv)
     @Loggable function dynamics!(dX, X, p, t; f, M)
         @unpack p, v, R, ω = X
         @onlylog state = X
-        @onlylog p, v, R, ω
-        @onlylog f, M
+        @nested_log :input f, M
         Ω = skew(ω)
         dX.p = v
         dX.v = -(1/m)*f*R'*e3 + g*e3
