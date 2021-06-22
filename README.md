@@ -4,6 +4,7 @@
 ### v0.7
 - [x] `df::DataFrame`, one of the outputs of `sim`, contains (nested) `NamedTuple`.
 - [x] Separate logging tools as another package [SimulationLogger.jl](https://github.com/JinraeKim/SimulationLogger.jl).
+    - [x] Previous logging tools, e.g., `Process` and `DatumFormat` have been deprecated.
 ### v0.6
 - [x] Convenient logger will be added in `v0.6`; see [the related project](https://github.com/JinraeKim/FlightSims.jl/projects/4) and [#77](https://github.com/JinraeKim/FlightSims.jl/pull/77).
 - [x] Default output of `sim` has been changed from `(prob::DEProblem, sol::DESolution)` to `(prob::DEProblem, df::DataFrame)`.
@@ -21,6 +22,7 @@ fault tolerant control (FTC) with various models and algorithms of faults, fault
 - It is highly based on [DifferentialEquations.jl](https://github.com/SciML/DifferentialEquations.jl) but mainly focusing on ODE (ordinary differential equations).
 - The construction of nested environments are based on [ComponentArrays.jl](https://github.com/jonniedie/ComponentArrays.jl).
 - The structure of the resulting data from simulation result is based on [DataFrames.jl](https://github.com/JuliaData/DataFrames.jl).
+- Logging tool is based on [SimulationLogger.jl](https://github.com/JinraeKim/SimulationLogger.jl).
 
 If you want more functionality, please feel free to report an issue!
 
@@ -73,12 +75,12 @@ Note that these interfaces are also provided for some **integrated environments*
 - `sim`
     - return `prob::DEProblem` and `df::DataFrame`.
     - For now, only [**in-place** method (iip)](https://diffeq.sciml.ai/stable/basics/problem/#In-place-vs-Out-of-Place-Function-Definition-Forms) is supported.
+- `apply_inputs(func; kwargs...)`
+    - By using this, user can easily apply external inputs into environments. It is borrowed from [an MRAC example of ComponentArrays.jl](https://jonniedie.github.io/ComponentArrays.jl/stable/examples/adaptive_control/) and extended to be compatible with [SimulationLogger.jl](https://github.com/JinraeKim/SimulationLogger.jl).
 - Macros for logging data: `@Loggable`, `@log`, `@onlylog`, `@nested_log`
     - For more details, see [SimulationLogger.jl](https://github.com/JinraeKim/SimulationLogger.jl).
 
 *Deprecated APIs*
-- ([#16](https://github.com/JinraeKim/FlightSims.jl/issues/16)) `apply_inputs(func; kwargs...)`
-    - By using this, user can easily apply external inputs into environments. It is borrowed from [an MRAC example of ComponentArrays.jl](https://jonniedie.github.io/ComponentArrays.jl/stable/examples/adaptive_control/).
 - `DatumFormat(env::AbstractEnv)`: return a function `(x, t, integrator::DiffEqBase.DEIntegrator) -> nt::NamedTuple` for saving data.
     - It is recommended users to use `DatumFormat(env::AbstractEnv)` for saving **basic information** of `env`.
     - Default setting: time and state histories will be saved as `df.time` and `df.state`.
