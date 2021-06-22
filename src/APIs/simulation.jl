@@ -26,10 +26,9 @@ function sim(state0, dyn, p=nothing;
     cb_save = nothing
     if log_off == false
         # logging function
-        # if isinplace(prob)
+        if isinplace(prob)
             __log_indicator__ = __LOG_INDICATOR__()  # just an indicator for logging
             if hasmethod(dyn, Tuple{Any, Any, Any, Any, __LOG_INDICATOR__})
-                @show methods(dyn)
                 log_func = function (x, t, integrator::DiffEqBase.DEIntegrator; kwargs...)
                     x = copy(x)  # `x` merely denotes a "view"
                     dyn(zero.(x), x, integrator.p, t, __log_indicator__; kwargs...)
@@ -37,9 +36,9 @@ function sim(state0, dyn, p=nothing;
                 cb_save = SavingCallback(log_func, saved_values;
                                          saveat=saveat, tdir=Int(sign(tspan[2]-tspan[1])))
             end
-        # else
-        #     error("Not tested")
-        # end
+        else
+            error("Not tested")
+        end
         callback = CallbackSet(callback, cb_save)  # save values "after all other callbacks"
     end
     sol = solve(prob, solver;
@@ -64,14 +63,13 @@ end
 
 """
 # Notes
-Borrowed from [an MRAC example](https://jonniedie.github.io/ComponentArrays.jl/stable/examples/adaptive_control/).
+- The basic concept is borrowed from [an MRAC example](https://jonniedie.github.io/ComponentArrays.jl/stable/examples/adaptive_control/).
+- It is modified to be compatible with [SimulationLogger.jl](https://github.com/JinraeKim/SimulationLogger.jl).
+    - There were some technical difficulties: see [#16](https://github.com/JinraeKim/FlightSims.jl/issues/16).
 """
 maybe_apply(f::Function, x, p, t) = f(x, p, t)
 maybe_apply(f, x, p, t) = f
 function apply_inputs(func; kwargs...)
-    # @Loggable function simfunc(dx, x, p, t)
-    #     @nested_log func(dx, x, p, t; map(f -> maybe_apply(f, x, p, t), (; kwargs...))...)
-    # end
     function simfunc(dx, x, p, t)
         func(dx, x, p, t; map(f -> maybe_apply(f, x, p, t), (; kwargs...))...)
     end

@@ -1,6 +1,6 @@
 module FlightSims
 
-using Debugger  # tmp
+# using Debugger  # tmp
 using Reexport
 using DifferentialEquations
 using SimulationLogger

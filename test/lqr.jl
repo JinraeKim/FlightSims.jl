@@ -28,7 +28,6 @@ function test()
     affect!(integrator) = integrator.p = copy(integrator.u)  # auxiliary callback funciton
     cb = PeriodicCallback(affect!, Δt; initial_affect=true)  # auxiliary callback
     @Loggable function dynamics!(dx, x, p, t; u)
-    # function dynamics!(dx, x, p, t; u)
         @onlylog p  # activate this line only when logging data
         @log x, u
         @nested_log Dynamics!(env)(dx, x, p, t; u=u)  # exported `state` and `input` from `Dynamics!(env)`
