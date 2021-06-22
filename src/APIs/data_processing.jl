@@ -1,32 +1,32 @@
-"""
-Datum format function compatible with `sim` and `SavingCallback` in `DifferetialEquations.jl`.
-# Notes
-As written in the [description](https://diffeq.sciml.ai/stable/features/callback_library/#saving_callback),
-this should allocate the output (not as a view to `x`).
-"""
-function DatumFormat(env::AbstractEnv)
-    return function (x, t, integrator::DiffEqBase.DEIntegrator; kwargs...)
-        (; state=copy(x), kwargs...)
-    end
-end
+# """
+# Datum format function compatible with `sim` and `SavingCallback` in `DifferetialEquations.jl`.
+# # Notes
+# As written in the [description](https://diffeq.sciml.ai/stable/features/callback_library/#saving_callback),
+# this should allocate the output (not as a view to `x`).
+# """
+# function DatumFormat(env::AbstractEnv)
+#     return function (x, t, integrator::DiffEqBase.DEIntegrator; kwargs...)
+#         (; state=copy(x), kwargs...)
+#     end
+# end
 
-"""
-Post processing function (default).
-# Notes
-- It would be deprecated.
-"""
-function Process()
-    return function (prob::DiffEqBase.DEProblem, sol::DESolution; Δt=0.01)
-        t0, tf = prob.tspan
-        ts = t0:Δt:tf
-        xs = ts |> Map(t -> sol(t)) |> collect
-        DataFrame(time=ts, state=xs)
-    end
-end
+# """
+# Post processing function (default).
+# # Notes
+# - It would be deprecated.
+# """
+# function Process()
+#     return function (prob::DiffEqBase.DEProblem, sol::DESolution; Δt=0.01)
+#         t0, tf = prob.tspan
+#         ts = t0:Δt:tf
+#         xs = ts |> Map(t -> sol(t)) |> collect
+#         DataFrame(time=ts, state=xs)
+#     end
+# end
 
-function Process(env::AbstractEnv)
-    Process()
-end
+# function Process(env::AbstractEnv)
+#     Process()
+# end
 
 # save and load
 """

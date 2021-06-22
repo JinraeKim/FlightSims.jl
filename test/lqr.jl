@@ -29,12 +29,13 @@ function test()
     cb = PeriodicCallback(affect!, Δt; initial_affect=true)  # auxiliary callback
     @Loggable function dynamics!(dx, x, p, t; u)
         @onlylog p  # activate this line only when logging data
+        u = u_lqr(x, p, t)
         @log x, u
         @nested_log Dynamics!(env)(dx, x, p, t; u=u)  # exported `state` and `input` from `Dynamics!(env)`
     end
     prob, df = sim(
                    x0,  # initial condition
-                   apply_inputs(dynamics!; u=u_lqr),  # dynamics with input of LQR
+                   dynamics!,  # dynamics with input of LQR
                    p0;
                    tf=tf,  # final time
                    callback=cb,

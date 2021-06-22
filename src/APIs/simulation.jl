@@ -83,8 +83,8 @@ function apply_inputs(func; kwargs...)
     simfunc
 end
 
-function save_inputs(func; kwargs...)
-    datum_format(x, t, integrator) = func(x, t, integrator;
-                                          map(f -> maybe_apply(f, x, integrator.p, t), (; kwargs...))...)
-    datum_format
-end
+# function save_inputs(func; kwargs...)
+#     datum_format(x, t, integrator) = func(x, t, integrator;
+#                                           map(f -> maybe_apply(f, x, integrator.p, t), (; kwargs...))...)
+#     datum_format
+# end
