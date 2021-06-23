@@ -1,7 +1,7 @@
 name = "FlightSims"
 uuid = "a4c2f6ca-3fbe-4430-8ede-32935de4c069"
 authors = ["JinraeKim <kjl950403@gmail.com> and contributors"]
-version = "0.7.0"
+version = "0.7.1"
 
 [deps]
 Combinatorics = "861a8166-3701-5b0c-9a16-15d98fcdc6aa"
@@ -42,7 +42,7 @@ NamedTupleTools = "0.13"
 NumericalIntegration = "0.3"
 Reexport = "1.1"
 Rotations = "1.0"
-SimulationLogger = "0.1"
+SimulationLogger = "0.2"
 SplitApplyCombine = "1.1"
 Transducers = "0.4"
 UnPack = "1.0"
