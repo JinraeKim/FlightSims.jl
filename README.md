@@ -1,6 +1,8 @@
 # FlightSims
 [FlightSims.jl](https://github.com/JinraeKim/FlightSims.jl) is a general-purpose numerical simulator supporting nested environments and convenient macro-based data logging.
 ## Plans and Changes
+### v0.8
+- [ ] find a good way of saving and loading simulation data
 ### v0.7
 - [x] `df::DataFrame`, one of the outputs of `sim`, contains (nested) `NamedTuple`.
 - [x] Separate logging tools as another package [SimulationLogger.jl](https://github.com/JinraeKim/SimulationLogger.jl).
@@ -88,8 +90,6 @@ Note that these interfaces are also provided for some **integrated environments*
     - It is recommended users to use `save_inputs(func; kwargs...)` for saving **additional information**.
 - `Process(env::AbstractEnv)`: return a function that processes `prob` and `sol` to get simulation data.
     - It is recommended users to use `Process(env::AbstractEnv)` when the simulation is **deterministic** (including parameter updates).
-
-*Not actively maintained*
 - `save`
     - Save `env`, `prob`, `sol`, and optionally `process`,
     - Not actively maintained. Please report issues about new features of saving data.
