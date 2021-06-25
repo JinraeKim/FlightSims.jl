@@ -4,6 +4,7 @@ using DifferentialEquations
 using LinearAlgebra
 using Plots
 using Test
+using Transducers
 
 
 function test()
@@ -40,16 +41,22 @@ function test()
                    callback=cb,
                    savestep=Δt,
                   )
-    @test df.x == df.state
-    @test df.u == df.input
-    p_x = plot(df.time, hcat(df.state...)';
+    ts = df.time
+    xs = df.sol |> Map(datum -> datum.x) |> collect
+    us = df.sol |> Map(datum -> datum.u) |> collect
+    ps = df.sol |> Map(datum -> datum.p) |> collect
+    states = df.sol |> Map(datum -> datum.state) |> collect
+    inputs = df.sol |> Map(datum -> datum.input) |> collect
+    @test xs == states
+    @test us == inputs
+    p_x = plot(ts, hcat(states...)';
                title="state variable", label=["x1" "x2"], color=[:black :black], lw=1.5,
               )  # Plots
-    plot!(p_x, df.time, hcat(df.p...)';
+    plot!(p_x, ts, hcat(ps...)';
           ls=:dash, label="param", color=[:red :orange], lw=1.5
          )
     savefig("figures/x_lqr.png")
-    plot(df.time, hcat(df.input...)'; title="control input", label="u")  # Plots
+    plot(ts, hcat(inputs...)'; title="control input", label="u")  # Plots
     savefig("figures/u_lqr.png")
     df
 end
