@@ -1,4 +1,4 @@
-abstract type AbstractLQR end
+abstract type AbstractLQR <: AbstractController end
 
 """
 Infinite-horizon continuous-time linear quadratic regulator (LQR).

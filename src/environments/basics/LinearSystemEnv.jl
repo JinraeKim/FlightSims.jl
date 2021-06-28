@@ -21,8 +21,13 @@ function Dynamics!(env::LinearSystemEnv)
     @Loggable function dynamics!(dx, x, p, t; u)
         @log state = x
         @log input = u
-        _u = length(u) == 1 ? u[1] : u
-        dx .= A*x + B*_u
+        # _u = length(u) == 1 ? u[1] : u
+        # @show B*_u
+        # @show A
+        # @show x
+        # @show A*x
+        # dx .= A*x + B*_u
+        dx .= A*x + B*u
         nothing
     end
 end
