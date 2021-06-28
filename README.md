@@ -44,6 +44,8 @@ Take a look at `src/environments`.
         - (Hexacopter) `LeeHexacopterEnv`
     - **controllers**
         - (Linear quadratic regulator) `LQR`
+        - (Proportional-Integral-Derivative controller) `PID`
+            - Note that the derivative term is obtained via low-pass-filter (LPF).
     - **integrated_environments**
         - See `src/environments/integrated_environments`.
 
