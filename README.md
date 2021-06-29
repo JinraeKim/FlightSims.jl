@@ -123,9 +123,8 @@ using Transducers
 function test()
     # linear system
     A = [0 1;
-         0 0]
-    B = [0;
-         1]
+         0 0]  # 2 x 2
+    B = [0 1]'  # 2 x 1
     n, m = 2, 1
     env = LinearSystemEnv(A, B)  # exported from FlightSims
     x0 = State(env)([1.0, 2.0])
