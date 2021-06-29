@@ -43,6 +43,8 @@ Take a look at `src/environments`.
     - **multicopters**
         - (Quadcopter) `IslamQuadcopterEnv`, `GoodarziQuadcopterEnv`
         - (Hexacopter) `LeeHexacopterEnv`
+    - **allocator** (control allocation)
+        - (Moore-Penrose pseudo inverse control allocation) `PseudoInverseAllocator`
     - **controllers**
         - (Linear quadratic regulator) `LQR`
         - (Proportional-Integral-Derivative controller) `PID`
