@@ -53,16 +53,16 @@ function __Dynamics!(env::MulticopterEnv)
         dX.v = -(1/m)*f*R'*e3 + g*e3
         dX.R = -Ω*R
         dX.ω = J_inv * (-Ω*J*ω + M)
-        nothing
     end
 end
 
+# the following closure is a basic template when using multicopter envs in other packages
 # function Dynamics!(env::MulticopterEnv)
-#     return function (dX, X, p, t; u)
-#         u_saturated = saturate(env, u)
-#         ν = input_to_force_moment(env, u_saturated)
+#     @Loggable function dynamics!(dX, X, p, t; u)
+#         u_saturated = FlightSims.saturate(env, u)
+#         ν = FlightSims.input_to_force_moment(env, u_saturated)
 #         f, M = ν[1], ν[2:4]
-#         __Dynamics!(env)(dX, X, p, t; f=f, M=M)
+#         @nested_log FlightSims.__Dynamics!(env)(dX, X, p, t; f=f, M=M)
 #     end
 # end
 
