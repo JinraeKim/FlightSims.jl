@@ -16,7 +16,7 @@ function Dynamics!(envs::MultipleEnvs)
         for (key, kwargs) in kwargs_pairs
             @nested_log key Dynamics!(envs_dict[key])(getproperty(dx, key),
                                                       getproperty(x, key),
-                                                      p == nothing ? nothing : getproperty(p, key),
+                                                      hasproperty(p, key) ? getproperty(p, key) : p,
                                                       t;
                                                       kwargs...)
         end
