@@ -22,7 +22,7 @@ export sim, Process, load
 @reexport using SimulationLogger
 ### envs
 ## basics
-export TwoDimensionalNonlinearPolynomialEnv, LinearSystemEnv, ReferenceModelEnv
+export TwoDimensionalNonlinearPolynomialEnv, LinearSystemEnv, ReferenceModelEnv, MultipleEnvs
 ## controllers
 export LQR, PID
 # export BacksteppingPositionControllerEnv

@@ -3,7 +3,7 @@ Proportional-integral-derivative (PID) controller.
 Note that the derivative is obtained via low-pass-filter (LPF).
 For more details, see singular perturbation theory.
 """
-struct PID
+struct PID <: AbstractEnv
     K_P
     K_I
     K_D
