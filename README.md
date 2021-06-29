@@ -75,12 +75,13 @@ compatible with [DifferentialEquations.jl](https://github.com/SciML/Differential
 Note that these interfaces are also provided for some **integrated environments**, e.g., `State(system, controller)`.
 
 ### Simulation, logging, and data saving & loading
-**Core APIs**
+**Main APIs**
 - `sim`
     - return `prob::DEProblem` and `df::DataFrame`.
     - For now, only [**in-place** method (iip)](https://diffeq.sciml.ai/stable/basics/problem/#In-place-vs-Out-of-Place-Function-Definition-Forms) is supported.
 - `apply_inputs(func; kwargs...)`
     - By using this, user can easily apply external inputs into environments. It is borrowed from [an MRAC example of ComponentArrays.jl](https://jonniedie.github.io/ComponentArrays.jl/stable/examples/adaptive_control/) and extended to be compatible with [SimulationLogger.jl](https://github.com/JinraeKim/SimulationLogger.jl).
+    - (Limitations) for now, dynamical equations wrapped by `apply_inputs` will automatically generate logging function (even without `@Loggable`). In this case, all data will be an array of empty `NamedTuple`.
 - Macros for logging data: `@Loggable`, `@log`, `@onlylog`, `@nested_log`
     - For more details, see [SimulationLogger.jl](https://github.com/JinraeKim/SimulationLogger.jl).
 
