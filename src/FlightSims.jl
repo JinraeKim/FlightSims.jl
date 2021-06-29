@@ -20,7 +20,6 @@ using Flux.Data: DataLoader
 export AbstractEnv, State, Params, Dynamics, Dynamics!, apply_inputs, DatumFormat, save_inputs
 export sim, Process, load
 @reexport using SimulationLogger
-# export @log, @onlylog, @Loggable, @nested_log, __LOG_INDICATOR__
 ### envs
 ## basics
 export TwoDimensionalNonlinearPolynomialEnv, LinearSystemEnv, ReferenceModelEnv

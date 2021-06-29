@@ -1,4 +1,16 @@
 """
+Extended to deal with empty Dict.
+"""
+function _namedtuple(x::Dict)
+    if x == Dict()
+        return NamedTuple()  # empty NamedTuple
+    else
+        return NamedTupleTools.namedtuple(x)
+    end
+end
+
+
+"""
 # Notes
 - Currently, only iip (isinplace) method is supported.
 # Keyword arguments
@@ -53,7 +65,9 @@ function sim(state0, dyn, p=nothing;
     else
         # recursive NamedTuple conversion from Dict; https://discourse.julialang.org/t/how-to-make-a-named-tuple-from-a-dictionary/10899/34?u=ihany
         recursive_namedtuple(x::Any) = x
-        recursive_namedtuple(d::Dict) = NamedTupleTools.namedtuple(Dict(k => recursive_namedtuple(v) for (k, v) in d))
+        recursive_namedtuple(d::Dict) = _namedtuple(
+                                                    Dict(k => recursive_namedtuple(v) for (k, v) in d)
+                                                   )
         df = DataFrame(
                        time = saved_values.t,
                        sol = saved_values.saveval |> Map(recursive_namedtuple) |> collect,
@@ -67,7 +81,10 @@ end
 # Notes
 - The basic concept is borrowed from [an MRAC example](https://jonniedie.github.io/ComponentArrays.jl/stable/examples/adaptive_control/).
 - It is modified to be compatible with [SimulationLogger.jl](https://github.com/JinraeKim/SimulationLogger.jl).
-    - There were some technical difficulties: see [#16](https://github.com/JinraeKim/FlightSims.jl/issues/16).
+# Limitations
+- Conditional method definition is troublesome; see [#16](https://github.com/JinraeKim/FlightSims.jl/issues/16).
+Instead of it, I decided to merely define a new method with argument `__log_indicator__::__LOG_INDICATOR__`,
+which will provide "empty Dict" in the case of no logging.
 """
 maybe_apply(f::Function, x, p, t) = f(x, p, t)
 maybe_apply(f, x, p, t) = f
@@ -79,7 +96,7 @@ function apply_inputs(func; kwargs...)
         if hasmethod(func, Tuple{Any, Any, Any, Any, __LOG_INDICATOR__})
             return func(dx, x, p, t, __log_indicator__; map(f -> maybe_apply(f, x, p, t), (; kwargs...))...)
         else
-            return Dict()
+            return Dict()  # see the above method `NamedTupleTools.namedtuple`
         end
     end
     simfunc
