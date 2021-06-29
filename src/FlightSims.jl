@@ -25,15 +25,13 @@ export sim, Process, load
 export TwoDimensionalNonlinearPolynomialEnv, LinearSystemEnv, ReferenceModelEnv, MultipleEnvs
 ## controllers
 export LQR, PID
-# export BacksteppingPositionControllerEnv
 ## multicopters
 export MulticopterEnv
 export QuadcopterEnv, IslamQuadcopterEnv, GoodarziQuadcopterEnv
 export HexacopterEnv, LeeHexacopterEnv
-# # faults
-# export FaultSet, LoE
-# # control allocator
-# export PseudoInverseControlAllocator
+# control allocator
+export AbstractAllocator, StaticAllocator
+export PseudoInverseAllocator
 ### algorithms
 # export command
 export CTValueIterationADP, BehaviouralCloning, CTLinearIRL
