@@ -29,6 +29,7 @@ Note: ê is estimated via LPF
 function Dynamics!(controller::PID)
     @unpack τ = controller
     @Loggable function dynamics!(dx, x, p, t; e)
+        @assert typeof(e) != Number
         @unpack ∫e, ê = x
         @onlylog e, ∫e, ê
         dx.∫e .= e
