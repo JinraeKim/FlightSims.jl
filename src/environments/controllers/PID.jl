@@ -34,7 +34,7 @@ function Dynamics!(controller::PID)
         @assert !(typeof(e) <: Number)  # make sure that `e` is a 1-d array
         @unpack ∫e, ê = x
         @onlylog e, ∫e, ê
-        if norm(e) < windup_limit
+        if norm(∫e) < windup_limit
             dx.∫e .= e
         else
             dx.∫e .= zero.(e)
