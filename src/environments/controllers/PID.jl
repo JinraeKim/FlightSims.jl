@@ -8,8 +8,10 @@ struct PID <: AbstractEnv
     K_I
     K_D
     τ
-    function PID(K_P, K_I, K_D; τ=1e-2)
-        new(K_P, K_I, K_D, τ)
+    windup_limit
+    function PID(K_P, K_I, K_D; τ=1e-1, windup_limit=1e0)
+        @assert windup_limit > 0.0
+        new(K_P, K_I, K_D, τ, windup_limit)
     end
 end
 
@@ -27,12 +29,16 @@ end
 Note: ê is estimated via LPF
 """
 function Dynamics!(controller::PID)
-    @unpack τ = controller
+    @unpack τ, windup_limit = controller
     @Loggable function dynamics!(dx, x, p, t; e)
         @assert !(typeof(e) <: Number)  # make sure that `e` is a 1-d array
         @unpack ∫e, ê = x
         @onlylog e, ∫e, ê
-        dx.∫e .= e
+        if norm(∫e) < windup_limit
+            dx.∫e .= e
+        else
+            dx.∫e .= zero.(e)
+        end
         dx.ê .= deriv_ê(controller, e, ê)
     end
 end

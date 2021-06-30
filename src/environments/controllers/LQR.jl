@@ -34,9 +34,7 @@ Minimise J = ∫ (x' Q x + u' R u) from 0 to ∞
 """
 function OptimalController(lqr::LQR)
     K = optimal_gain(lqr)
-    return function (x, p, t)
-        -K*x
-    end
+    (x) -> -K*x
 end
 
 function solutions(lqr::LQR)

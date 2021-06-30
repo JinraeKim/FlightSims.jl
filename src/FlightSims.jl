@@ -17,8 +17,8 @@ using Flux
 using Flux.Data: DataLoader
 
 ### APIs
-export AbstractEnv, State, Params, Dynamics, Dynamics!, apply_inputs, DatumFormat, save_inputs
-export sim, Process, load
+export AbstractEnv, State, Params, Dynamics, Dynamics!
+export sim, apply_inputs, Command
 @reexport using SimulationLogger
 ### envs
 ## basics
@@ -38,7 +38,7 @@ export CTValueIterationADP, BehaviouralCloning, CTLinearIRL
 # utils
 export AbstractApproximator, LinearApproximator
 export PolynomialBasis, euler
-export PowerLoop, Command, HelixCommandGenerator
+export PowerLoop, HelixCommandGenerator
 
 
 include("APIs/APIs.jl")
