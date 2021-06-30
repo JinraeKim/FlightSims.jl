@@ -15,6 +15,6 @@ end
 # Notes
 ν = B*u where u: control input
 """
-function (allocator::PseudoInverseAllocator)(ν, Λ=Diagonal(ones(size(ν))))
+function (allocator::PseudoInverseAllocator)(ν, Λ=Diagonal(ones(size(allocator.B_pinv)[1])))
     (pinv(Λ) * allocator.B_pinv) * ν  # pinv(B*Λ) = pinv(Λ) * pinv(B)
 end
