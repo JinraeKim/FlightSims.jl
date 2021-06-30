@@ -9,7 +9,7 @@ struct PID <: AbstractEnv
     K_D
     τ
     windup_limit
-    function PID(K_P, K_I, K_D; τ=1e-2, windup_limit=1e1)
+    function PID(K_P, K_I, K_D; τ=1e-2, windup_limit=1e0)
         @assert windup_limit > 0.0
         new(K_P, K_I, K_D, τ, windup_limit)
     end
@@ -34,7 +34,7 @@ function Dynamics!(controller::PID)
         @assert !(typeof(e) <: Number)  # make sure that `e` is a 1-d array
         @unpack ∫e, ê = x
         @onlylog e, ∫e, ê
-        if windup_limit > norm(e)
+        if norm(e) < windup_limit
             dx.∫e .= e
         else
             dx.∫e .= zero.(e)
