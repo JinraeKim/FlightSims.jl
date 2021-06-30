@@ -9,7 +9,7 @@ struct PID <: AbstractEnv
     K_D
     τ
     windup_limit
-    function PID(K_P, K_I, K_D; τ=1e-2, windup_limit=1e1)
+    function PID(K_P, K_I, K_D; τ=1e-1, windup_limit=1e0)
         @assert windup_limit > 0.0
         new(K_P, K_I, K_D, τ, windup_limit)
     end
