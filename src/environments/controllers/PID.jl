@@ -36,6 +36,8 @@ function Dynamics!(controller::PID)
         @onlylog e, ∫e, ê
         if norm(∫e) < windup_limit
             dx.∫e .= e
+        elseif norm(∫e) > windup_limit && all(sign.(e) .* sign.(∫e) .< zero.(e))
+            dx.∫e .= e
         else
             dx.∫e .= zero.(e)
         end
