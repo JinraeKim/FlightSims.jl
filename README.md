@@ -3,6 +3,7 @@
 ## Plans and Changes
 ### v0.8
 - [ ] find a good way of saving and loading simulation data
+- [x] Utilities related to `rotation` are deprecated. See [ReferenceFrameRotations.jl](https://github.com/JuliaSpace/ReferenceFrameRotations.jl) for reference frame rotation and [Rotations.jl](https://github.com/JuliaGeometry/Rotations.jl) for rotation of vectors.
 ### v0.7
 - [x] `df::DataFrame`, one of the outputs of `sim`, contains (nested) `NamedTuple`.
 - [x] Separate logging tools as another package [SimulationLogger.jl](https://github.com/JinraeKim/SimulationLogger.jl).
