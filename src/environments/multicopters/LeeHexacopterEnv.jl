@@ -25,12 +25,16 @@ Base.@kwdef struct LeeHexacopterEnv <: HexacopterEnv
     u_max = (m*g) * ones(dim_input)
 end
 
-function saturate(env::LeeHexacopterEnv, u)
-    @unpack u_min, u_max = env
+function saturate(multicopter::LeeHexacopterEnv, u)
+    @unpack u_min, u_max = multicopter
     u_saturated = clamp.(u, u_min, u_max)
 end
 
-function input_to_force_moment(env::LeeHexacopterEnv, u)
-    @unpack B = env
+function input_to_force_moment(multicopter::LeeHexacopterEnv, u)
+    @unpack B = multicopter
     ν = B * u
+end
+
+function airframe_reference(multicopter::LeeHexacopterEnv)
+    :hexa_x
 end

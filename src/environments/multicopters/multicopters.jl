@@ -4,8 +4,8 @@ abstract type MulticopterEnv <: AbstractEnv end
 """
 Common state structure of MulticopterEnv
 """
-function State(env::MulticopterEnv)
-    return function (p=zeros(3), v=zeros(3), R=one(RotMatrix{3}), ω=zeros(3))
+function State(multicopter::MulticopterEnv)
+    return function (p=zeros(3), v=zeros(3), R=DCM(I), ω=zeros(3))
         ComponentArray(p=p, v=v, R=R, ω=ω)
     end
 end
@@ -13,7 +13,7 @@ end
 """
 Common input saturation (default: not applied)
 """
-function saturate(env::MulticopterEnv, u)
+function saturate(multicopter::MulticopterEnv, u)
     # u
     error("Actuator saturation not applied: `saturate`")
 end
@@ -21,10 +21,11 @@ end
 """
 Common input to force and moment transformation (default: not applied)
 """
-function input_to_force_moment(env::MulticopterEnv, u)
+function input_to_force_moment(multicopter::MulticopterEnv, u)
     # ν = u
     error("Transformation of input to force and moment not defined: `input_to_force_moment`")
 end
+
 
 """
 # Variables
@@ -37,8 +38,8 @@ R ∈ so(3): rotation matrix of body frame w.r.t. inertial frame (I to B)
 f ∈ R: total thrust
 M ∈ R^3: moment
 """
-function __Dynamics!(env::MulticopterEnv)
-    @unpack m, g, J = env
+function __Dynamics!(multicopter::MulticopterEnv)
+    @unpack m, g, J = multicopter
     J_inv = inv(J)
     e3 = [0, 0, 1]
     skew(x) = [    0 -x[3]  x[2];
@@ -57,12 +58,12 @@ function __Dynamics!(env::MulticopterEnv)
 end
 
 # the following closure is a basic template when using multicopter envs in other packages
-# function Dynamics!(env::MulticopterEnv)
+# function Dynamics!(multicopter::MulticopterEnv)
 #     @Loggable function dynamics!(dX, X, p, t; u)
-#         u_saturated = FlightSims.saturate(env, u)
-#         ν = FlightSims.input_to_force_moment(env, u_saturated)
+#         u_saturated = FlightSims.saturate(multicopter, u)
+#         ν = FlightSims.input_to_force_moment(multicopter, u_saturated)
 #         f, M = ν[1], ν[2:4]
-#         @nested_log FlightSims.__Dynamics!(env)(dX, X, p, t; f=f, M=M)
+#         @nested_log FlightSims.__Dynamics!(multicopter)(dX, X, p, t; f=f, M=M)
 #     end
 # end
 
