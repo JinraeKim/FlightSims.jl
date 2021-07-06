@@ -3,11 +3,12 @@
 ## Plans and Changes
 ### v0.8
 - [ ] find a good way of saving and loading simulation data
-- [x] Utilities related to `rotation` are deprecated. See [ReferenceFrameRotations.jl](https://github.com/JuliaSpace/ReferenceFrameRotations.jl) for reference frame rotation and [Rotations.jl](https://github.com/JuliaGeometry/Rotations.jl) for rotation of vectors.
 ### v0.7
 - [x] `df::DataFrame`, one of the outputs of `sim`, contains (nested) `NamedTuple`.
 - [x] Separate logging tools as another package [SimulationLogger.jl](https://github.com/JinraeKim/SimulationLogger.jl).
     - [x] Previous logging tools, e.g., `Process` and `DatumFormat` have been deprecated.
+- [x] Utilities related to `rotation` are deprecated. See [ReferenceFrameRotations.jl](https://github.com/JuliaSpace/ReferenceFrameRotations.jl) for reference frame rotation and [Rotations.jl](https://github.com/JuliaGeometry/Rotations.jl) for rotation of vectors.
+- [x] Add a renderer (see `test/render.jl`). Currently, only `LeeHexacopterEnv` is supported.
 ### v0.6
 - [x] Convenient logger will be added in `v0.6`; see [the related project](https://github.com/JinraeKim/FlightSims.jl/projects/4) and [#77](https://github.com/JinraeKim/FlightSims.jl/pull/77).
 - [x] Default output of `sim` has been changed from `(prob::DEProblem, sol::DESolution)` to `(prob::DEProblem, df::DataFrame)`.
@@ -206,6 +207,10 @@ julia> test()
 ### Nonlinear control
 - For an example of **backstepping position tracking controller for quadcopters**,
 visit [FaultTolerantControl.jl](https://github.com/JinraeKim/FaultTolerantControl.jl).
+
+### Multicopter rendering
+- See `test/render.jl`.
+![Alt Text](./figures/anim.gif)
 
 ### Scientific machine learning
 - [ ] Add examples for newbies!
