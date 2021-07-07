@@ -19,7 +19,7 @@ function test()
              )
         frame(anim)
     end
-    Δt = 0.10
+    Δt = 0.1
     cb = PeriodicCallback(affect!, Δt)
     function Dynamics!(multicopter::MulticopterEnv)
         FS.__Dynamics!(multicopter)
