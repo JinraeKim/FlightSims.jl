@@ -9,9 +9,6 @@
     - [x] Previous logging tools, e.g., `Process` and `DatumFormat` have been deprecated.
 - [x] Utilities related to `rotation` are deprecated. See [ReferenceFrameRotations.jl](https://github.com/JuliaSpace/ReferenceFrameRotations.jl) for reference frame rotation and [Rotations.jl](https://github.com/JuliaGeometry/Rotations.jl) for rotation of vectors.
 - [x] Add a renderer (see `test/render.jl`). Currently, only `LeeHexacopterEnv` is supported.
-### v0.6
-- [x] Convenient logger will be added in `v0.6`; see [the related project](https://github.com/JinraeKim/FlightSims.jl/projects/4) and [#77](https://github.com/JinraeKim/FlightSims.jl/pull/77).
-- [x] Default output of `sim` has been changed from `(prob::DEProblem, sol::DESolution)` to `(prob::DEProblem, df::DataFrame)`.
 ## Notes
 ### Why is it FlightSims.jl?
 This package is for any kind of numerical simulation with dynamical systems
