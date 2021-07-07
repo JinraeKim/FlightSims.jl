@@ -1,12 +1,14 @@
 """
-    render!(multicopter::LeeHexacopterEnv, fig, state)
+    render!(multicopter::MulticopterEnv, fig, state)
 
+# Variables
 fig: figure object, i.e., fig = plot()
 state: see `State(env::MulticopterEnv)`.
 # Notes
-Default configuration: ENU-coordinate system
+Default configuration: ENU-coordinate system.
+For airframe references, see https://docs.px4.io/master/en/airframes/airframe_reference.html.
 """
-function plot!(fig::Plots.Plot, multicopter::LeeHexacopterEnv, state;
+function plot!(fig::Plots.Plot, multicopter::MulticopterEnv, state;
         xlabel="E (m)", ylabel="N (m)", zlabel="U (m)",
         xlim=(-1, 1), ylim=(-1, 1), zlim=(-1, 1),
         kwargs...)
@@ -31,7 +33,7 @@ function plot!(fig::Plots.Plot, multicopter::LeeHexacopterEnv, state;
     fig
 end
 
-function plot(multicopter::LeeHexacopterEnv, state; kwargs...)
+function plot(multicopter::MulticopterEnv, state; kwargs...)
     fig = plot()
     plot!(fig, multicopter, state; kwargs...)
     fig
@@ -113,6 +115,7 @@ function plot_rotor!(fig::Plots.Plot, p, r, body_u, color)
     p_enu = ned2enu(p)
     plot!(fig,
           circle_shape(p_enu, r, body_u_enu);
+          st=:line,
           c=color, opacity=0.25, lw=1.5, label=nothing,
          )
 end
