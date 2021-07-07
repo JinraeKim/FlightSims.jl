@@ -2,7 +2,7 @@ module FlightSims
 
 # using Debugger  # tmp
 using Reexport
-using Requires  # to enhance startup time
+using Plots
 using DifferentialEquations
 using SimulationLogger
 using ComponentArrays, UnPack
@@ -47,11 +47,7 @@ include("APIs/APIs.jl")
 include("utils/utils.jl")
 include("environments/environments.jl")
 include("algorithms/algorithms.jl")
-
-
-function __init__()
-    @require Plots = "91a5bcdd-55d7-5caf-9e0b-520d859cae80" include("render.jl")
-end
+include("render.jl")
 
 
 end

@@ -1,6 +1,7 @@
 using FlightSims
 const FS = FlightSims
 using Plots
+ENV["GKSwstype"] = "nul"
 using LinearAlgebra
 using Transducers
 using DifferentialEquations
@@ -20,14 +21,18 @@ function test()
         frame(anim)
     end
     Δt = 0.1
+    tf = 10.0
     cb = PeriodicCallback(affect!, Δt)
     function Dynamics!(multicopter::MulticopterEnv)
         FS.__Dynamics!(multicopter)
     end
     prob, df = sim(x0,
-                   apply_inputs(Dynamics!(multicopter); f=m*g + 1.0, M=zeros(3));
-                   tf=10.0,
+                   apply_inputs(Dynamics!(multicopter);
+                                f=(state, p, t) -> m*g + (0.5*tf-t),
+                                M=zeros(3),
+                               );
+                   tf=tf,
                    callback=cb)
-    gif(anim, "figures/anim.gif", fps=30)
+    gif(anim, "figures/anim.gif", fps=60)
     nothing
 end
