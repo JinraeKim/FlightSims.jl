@@ -3,28 +3,19 @@
 ## Plans and Changes
 ### v0.8
 - [ ] find a good way of saving and loading simulation data
-### v0.7
-- [x] `df::DataFrame`, one of the outputs of `sim`, contains (nested) `NamedTuple`.
-- [x] Separate logging tools as another package [SimulationLogger.jl](https://github.com/JinraeKim/SimulationLogger.jl).
-    - [x] Previous logging tools, e.g., `Process` and `DatumFormat` have been deprecated.
-- [x] Utilities related to `rotation` are deprecated. See [ReferenceFrameRotations.jl](https://github.com/JuliaSpace/ReferenceFrameRotations.jl) for reference frame rotation and [Rotations.jl](https://github.com/JuliaGeometry/Rotations.jl) for rotation of vectors.
-- [x] Add a renderer (see `test/render.jl`). Currently, only `LeeHexacopterEnv` is supported.
-## Notes
-### Why is it FlightSims.jl?
-This package is for any kind of numerical simulation with dynamical systems
-although it was supposed to be dedicated for flight simulations.
-### Packages related to FlightSims.jl
+
+## Related packages
+### Highly related
 - [SimulationLogger.jl](https://github.com/JinraeKim/SimulationLogger.jl): A convenient logging tools compatible with [DifferentialEquations.jl](https://github.com/SciML/DifferentialEquations.jl).
 - [FaultTolerantControl.jl](https://github.com/JinraeKim/FaultTolerantControl.jl):
 fault tolerant control (FTC) with various models and algorithms of faults, fault detection and isolation (FDI), and reconfiguration (R) control.
-
-## Features
-### Compatibility
+### Others
 - It is highly based on [DifferentialEquations.jl](https://github.com/SciML/DifferentialEquations.jl) but mainly focusing on ODE (ordinary differential equations).
 - The construction of nested environments are based on [ComponentArrays.jl](https://github.com/jonniedie/ComponentArrays.jl).
 - The structure of the resulting data from simulation result is based on [DataFrames.jl](https://github.com/JuliaData/DataFrames.jl).
 - Logging tool is based on [SimulationLogger.jl](https://github.com/JinraeKim/SimulationLogger.jl).
 
+## Features
 If you want more functionality, please feel free to report an issue!
 
 ### Nested Environments and Zoo
@@ -62,17 +53,45 @@ Take a look at `src/environments`.
         - (Command generator) `HelixCommandGenerator`, `PowerLoop`
     - **Ridig body rotation**
         - (Rotations) `euler`
+    - **Simulation rendering**
+        - (Multicopter rendering) See `src/environments/multicopters/render.jl`.
 
 ## APIs
 Main APIs are provided in `src/APIs`.
-Note that among APIs, most **[closures](https://docs.julialang.org/en/v1/devdocs/functions/#Closures) (a function whose output is a function)** will have the uppercase first letter ([#55](https://github.com/JinraeKim/FlightSims.jl/issues/55)).
 
 ### Make an environment
 - `AbstractEnv`: an abstract type for user-defined and predefined environments.
 In general, environments is a sub-type of `AbstractEnv`.
+    ```julia
+    struct LinearSystemEnv <: AbstractEnv
+        A
+        B
+    end
+    ```
 - `State(env::AbstractEnv)`: return a function that produces structured states.
+    ```julia
+    function State(env::LinearSystemEnv)
+        @unpack B = env
+        n = size(B)[1]
+        return function (x)
+            @assert length(x) == n
+            x
+        end
+    end
+    ```
 - `Dynamics!(env::AbstractEnv)`, `Dynamics(env::AbstractEnv)`: return a function that maps in-place (**recommended**) and out-of-place dynamics (resp.),
 compatible with [DifferentialEquations.jl](https://github.com/SciML/DifferentialEquations.jl). User can extend these methods or simply define other methods.
+    ```julia
+    function Dynamics!(env::LinearSystemEnv)
+        @unpack A, B = env
+        @Loggable function dynamics!(dx, x, p, t; u)
+            @log state = x
+            @log input = u
+            dx .= A*x + B*u
+        end
+    end
+    ```
+- (Optional) `Params(env::AbstractEnv)`: returns parameters of given environment `env`.
 
 Note that these interfaces are also provided for some **integrated environments**, e.g., `State(system, controller)`.
 
@@ -86,23 +105,30 @@ Note that these interfaces are also provided for some **integrated environments*
     - (Limitations) for now, dynamical equations wrapped by `apply_inputs` will automatically generate logging function (even without `@Loggable`). In this case, all data will be an array of empty `NamedTuple`.
 - Macros for logging data: `@Loggable`, `@log`, `@onlylog`, `@nested_log`
     - For more details, see [SimulationLogger.jl](https://github.com/JinraeKim/SimulationLogger.jl).
+- Example code
+    ```julia
+    A = [0 1;
+         0 0]  # 2 x 2
+    B = [0 1]'  # 2 x 1
+    n, m = 2, 1
+    env = LinearSystemEnv(A, B)  # exported from FlightSims
+    x0 = State(env)([1.0, 2.0])
+    # optimal control
+    Q = Matrix(I, n, n)
+    R = Matrix(I, m, m)
+    lqr = LQR(A, B, Q, R)  # exported from FlightSims
+    u_lqr = FS.OptimalController(lqr)  # (x, p, t) -> -K*x; minimise J = ∫ (x' Q x + u' R u) from 0 to ∞
 
-*Deprecated APIs*
-- `DatumFormat(env::AbstractEnv)`: return a function `(x, t, integrator::DiffEqBase.DEIntegrator) -> nt::NamedTuple` for saving data.
-    - It is recommended users to use `DatumFormat(env::AbstractEnv)` for saving **basic information** of `env`.
-    - Default setting: time and state histories will be saved as `df.time` and `df.state`.
-- `save_inputs(func; kwargs...)`: this mimics `apply_inputs(func; kwargs...)`.
-    - It is recommended users to use `save_inputs(func; kwargs...)` for saving **additional information**.
-- `Process(env::AbstractEnv)`: return a function that processes `prob` and `sol` to get simulation data.
-    - It is recommended users to use `Process(env::AbstractEnv)` when the simulation is **deterministic** (including parameter updates).
-- `save`
-    - Save `env`, `prob`, `sol`, and optionally `process`,
-    - Not actively maintained. Please report issues about new features of saving data.
-in a `.jld2` file.
-- `load`
-    - Load `env`, `prob`, `sol`, and optionally `process`,
-from a `.jld2` file.
-    - Not actively maintained. Please report issues about new features of loading data.
+    # simulation
+    tf = 10.0
+    Δt = 0.01
+    prob, df = sim(
+                   x0,  # initial condition
+                   apply_inputs(dynamics!; u=(x, p, t) -> u_lqr(x));
+                   tf=tf,  # final time
+                   savestep=Δt,
+                  )
+    ```
 
 ## Examples
 ### Optimal control and reinforcement learning
