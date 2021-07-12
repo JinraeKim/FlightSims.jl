@@ -41,6 +41,7 @@ export AbstractApproximator, LinearApproximator
 export PolynomialBasis, euler
 export PowerLoop, HelixCommandGenerator
 export ned2enu
+export partitionTrainTest
 
 
 include("APIs/APIs.jl")
