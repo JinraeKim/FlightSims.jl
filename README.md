@@ -233,6 +233,7 @@ visit [FaultTolerantControl.jl](https://github.com/JinraeKim/FaultTolerantContro
 
 ### Multicopter rendering
 - See `test/render.jl`.
+
 ![Alt Text](./figures/anim.gif)
 
 ### Scientific machine learning
