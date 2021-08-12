@@ -51,8 +51,6 @@ Take a look at `src/environments`.
         - (Split data) `partitionTrainTest`
     - **Reference trajectory generator**
         - (Command generator) `HelixCommandGenerator`, `PowerLoop`
-    - **Ridig body rotation**
-        - (Rotations) `euler`
     - **Simulation rendering**
         - (Multicopter rendering) See `src/environments/multicopters/render.jl`.
 

@@ -5,3 +5,7 @@ function ned2enu(p)
         return error("Invalid position")
     end
 end
+
+function enu2ned(p)
+    ned2enu(p)  # actually the same
+end

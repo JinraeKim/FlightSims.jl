@@ -40,7 +40,7 @@ export CTValueIterationADP, BehaviouralCloning, CTLinearIRL
 export AbstractApproximator, LinearApproximator
 export PolynomialBasis, euler
 export PowerLoop, HelixCommandGenerator
-export ned2enu
+export ned2enu, enu2ned
 
 
 include("APIs/APIs.jl")

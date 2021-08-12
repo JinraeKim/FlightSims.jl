@@ -5,7 +5,7 @@ abstract type MulticopterEnv <: AbstractEnv end
 Common state structure of MulticopterEnv
 """
 function State(multicopter::MulticopterEnv)
-    return function (p=zeros(3), v=zeros(3), R=DCM(I), ω=zeros(3))
+    return function (p=zeros(3), v=zeros(3), R=ReferenceFrameRotations.DCM(I), ω=zeros(3))
         ComponentArray(p=p, v=v, R=R, ω=ω)
     end
 end

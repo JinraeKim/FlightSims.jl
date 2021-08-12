@@ -29,10 +29,10 @@ function plot!(fig::Plots.Plot, multicopter::MulticopterEnv, state;
           xlabel=xlabel, ylabel=ylabel, zlabel=zlabel,
           xlim=xlim, ylim=ylim, zlim=zlim,
           kwargs...)
-    plot_fuselage!(fig, p, l, body_n, body_e)
-    plot_rotors!(fig, p, l, l/2.5, body_u, airframe_ref)
-    plot_propeller!(fig, p, l, l/15, body_u, airframe_ref)
-    plot_frames!(fig, p, l, airframe_ref)
+    plot_fuselage!(fig, p, R, l, body_n, body_e)
+    plot_rotors!(fig, p, R, l, l/2.5, body_u, airframe_ref)
+    plot_propeller!(fig, p, R, l, l/15, body_u, airframe_ref)
+    plot_frames!(fig, p, R, l, airframe_ref)
     fig
 end
 
@@ -47,7 +47,7 @@ c: centre
 r: radius
 h: direction of normal vector
 """
-function circle_shape(c, r, h)
+function circle_shape(c, r, h; phase=0.0)
     normal_vec1 = nothing
     while true
         rand_vec = rand(3)
@@ -60,7 +60,7 @@ function circle_shape(c, r, h)
     normal_vec2 = cross(h, normal_vec1)
     normal_vec2 = normal_vec2 / norm(normal_vec2)
     θs = LinRange(0, 2*π-1e-2, 200)
-    circle = θs |> Map(θ -> c + r*cos(θ)*normal_vec1 + r*sin(θ)*normal_vec2) |> collect
+    circle = θs |> Map(θ -> c + r*cos(θ+phase)*normal_vec1 + r*sin(θ+phase)*normal_vec2) |> collect
     circle_1 = circle |> Map(p -> p[1]) |> collect
     circle_2 = circle |> Map(p -> p[2]) |> collect
     circle_3 = circle |> Map(p -> p[3]) |> collect
@@ -83,7 +83,7 @@ function triangle_shape(c, h1, h2, l1, l2)
     h3 = 2*(dot(h1, h2)*l2*h1 - l2*h2) + l2*h2
     h3 = h3 / norm(h3)
     l3 = l2
-    ts = LinRange(0, 1, 100)
+    ts = LinRange(0, 1, 200)
     triangle_A = ts |> Map(t -> (c + l1*h1)*t + (c + l2*h2)*(1-t)) |> collect
     triangle_B = ts |> Map(t -> (c + l2*h2)*t + (c + l3*h3)*(1-t)) |> collect
     triangle_C = ts |> Map(t -> (c + l3*h3)*t + (c + l1*h1)*(1-t)) |> collect
@@ -94,15 +94,15 @@ function triangle_shape(c, h1, h2, l1, l2)
     triangle_1, triangle_2, triangle_3
 end
 
-function plot_fuselage!(fig::Plots.Plot, p, l, body_n, body_e)
+function plot_fuselage!(fig::Plots.Plot, p, R, l, body_n, body_e)
     p_enu = ned2enu(p)
     body_n_enu = ned2enu(body_n)
     body_e_enu = ned2enu(body_e)
     length_ratio = 0.3
-    point_1 = p + length_ratio*l*[1, 0, 0]
-    point_2 = p + length_ratio*l*[0, 1, 0]
-    point_3 = p + length_ratio*l*[-1, 0, 0]
-    point_4 = p + length_ratio*l*[0, -1, 0]
+    point_1 = p + length_ratio*l*R'*[1, 0, 0]
+    point_2 = p + length_ratio*l*R'*[0, 1, 0]
+    point_3 = p + length_ratio*l*R'*[-1, 0, 0]
+    point_4 = p + length_ratio*l*R'*[0, -1, 0]
     boundary_12_enu = ned2enu.(LinRange(point_1, point_2, 100))
     boundary_23_enu = ned2enu.(LinRange(point_2, point_3, 100))
     boundary_34_enu = ned2enu.(LinRange(point_3, point_4, 100))
@@ -143,14 +143,14 @@ function plot_fuselage!(fig::Plots.Plot, p, l, body_n, body_e)
          )
 end
 
-function rotor_positions(p0, l, airframe_ref)
+function rotor_positions(p0, R, l, airframe_ref)
     if airframe_ref == :hexa_x
-        pf_1 = p0 + l*[0, 1, 0]
-        pf_2 = p0 + l*[0, -1, 0]
-        pf_3 = p0 + l*[cos(deg2rad(-30)), sin(deg2rad(-30)), 0]
-        pf_4 = p0 + l*[cos(deg2rad(150)), sin(deg2rad(150)), 0]
-        pf_5 = p0 + l*[cos(deg2rad(30)), sin(deg2rad(30)), 0]
-        pf_6 = p0 + l*[cos(deg2rad(210)), sin(deg2rad(210)), 0]
+        pf_1 = p0 + l*R'*[0, 1, 0]
+        pf_2 = p0 + l*R'*[0, -1, 0]
+        pf_3 = p0 + l*R'*[cos(deg2rad(-30)), sin(deg2rad(-30)), 0]
+        pf_4 = p0 + l*R'*[cos(deg2rad(150)), sin(deg2rad(150)), 0]
+        pf_5 = p0 + l*R'*[cos(deg2rad(30)), sin(deg2rad(30)), 0]
+        pf_6 = p0 + l*R'*[cos(deg2rad(210)), sin(deg2rad(210)), 0]
         return [pf_1, pf_2, pf_3, pf_4, pf_5, pf_6]
     else
         error("Invalid airframe reference")
@@ -167,9 +167,9 @@ function plot_rotor!(fig::Plots.Plot, p, r, body_u, color, opacity)
          )
 end
 
-function plot_circles!(fig::Plots.Plot, p0, l, r, body_u, airframe_ref, color_cw, color_ccw, opacity)
+function plot_circles!(fig::Plots.Plot, p0, R, l, r, body_u, airframe_ref, color_cw, color_ccw, opacity)
     if airframe_ref == :hexa_x
-        pf_1, pf_2, pf_3, pf_4, pf_5, pf_6 = rotor_positions(p0, l, airframe_ref)
+        pf_1, pf_2, pf_3, pf_4, pf_5, pf_6 = rotor_positions(p0, R, l, airframe_ref)
         plot_rotor!(fig, pf_1, r, body_u, color_cw, opacity)
         plot_rotor!(fig, pf_2, r, body_u, color_ccw, opacity)
         plot_rotor!(fig, pf_3, r, body_u, color_cw, opacity)
@@ -181,12 +181,12 @@ function plot_circles!(fig::Plots.Plot, p0, l, r, body_u, airframe_ref, color_cw
     end
 end
 
-function plot_rotors!(fig::Plots.Plot, p0, l, r, body_u, airframe_ref)
-    plot_circles!(fig, p0, l, r, body_u, airframe_ref, :green, :blue, 0.35)
+function plot_rotors!(fig::Plots.Plot, p0, R, l, r, body_u, airframe_ref)
+    plot_circles!(fig, p0, R, l, r, body_u, airframe_ref, :green, :blue, 0.35)
 end
 
-function plot_propeller!(fig::Plots.Plot, p0, l, r, body_u, airframe_ref)
-    plot_circles!(fig, p0, l, r, body_u, airframe_ref, :white, :white, 0.50)
+function plot_propeller!(fig::Plots.Plot, p0, R, l, r, body_u, airframe_ref)
+    plot_circles!(fig, p0, R, l, r, body_u, airframe_ref, :white, :white, 0.50)
 end
 
 function plot_frame!(fig::Plots.Plot, p0, pf)
@@ -203,9 +203,9 @@ function plot_frame!(fig::Plots.Plot, p0, pf)
          )
 end
 
-function plot_frames!(fig::Plots.Plot, p0, l, airframe_ref)
+function plot_frames!(fig::Plots.Plot, p0, R, l, airframe_ref)
     if airframe_ref == :hexa_x
-        pf_1, pf_2, pf_3, pf_4, pf_5, pf_6 = rotor_positions(p0, l, airframe_ref)
+        pf_1, pf_2, pf_3, pf_4, pf_5, pf_6 = rotor_positions(p0, R, l, airframe_ref)
         ratio_12 = 0.3
         ratio_3456 = 0.22
         p0_1 = (1-ratio_12)*p0 + ratio_12*pf_1
