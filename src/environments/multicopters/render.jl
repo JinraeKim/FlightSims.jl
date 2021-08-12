@@ -186,7 +186,7 @@ function plot_rotors!(fig::Plots.Plot, p0, l, r, body_u, airframe_ref)
 end
 
 function plot_propeller!(fig::Plots.Plot, p0, l, r, body_u, airframe_ref)
-    plot_circles!(fig, p0, l, r, body_u, airframe_ref, :white, :white, 1.00)
+    plot_circles!(fig, p0, l, r, body_u, airframe_ref, :white, :white, 0.50)
 end
 
 function plot_frame!(fig::Plots.Plot, p0, pf)
