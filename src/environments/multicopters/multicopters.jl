@@ -29,19 +29,26 @@ end
 
 """
 # Variables
+
 ## State
-p ∈ R^3: (inertial) position
-v ∈ R^3: (inertial) velocity
-R ∈ so(3): rotation matrix of body frame w.r.t. inertial frame (I to B)
-ω ∈ R^3: angular rate of body frame w.r.t. inertial frame (I to B)
+p ∈ ℝ^3: (inertial) position
+v ∈ ℝ^3: (inertial) velocity
+R ∈ so(3): direction cosine matrix (DCM) that maps a vector read in Body (B)-coord.
+to the same vector read in Inertial (I)-coord.
+For example, v_I = R*v_B.
+Or, it can be interpreted as "rotation" of B-frame w.r.t. I-frame.
+For example, x̂_I = R*[1, 0, 0] where x̂_I is the x-axis of B-frame read in I-coord.
+ω ∈ ℝ^3: angular rate of body frame w.r.t. inertial frame (I to B)
+
 ## (Virtual) input
-f ∈ R: total thrust
-M ∈ R^3: moment
+f ∈ ℝ: total thrust
+M ∈ ℝ^3: moment
 """
 function __Dynamics!(multicopter::MulticopterEnv)
     @unpack m, g, J = multicopter
     J_inv = inv(J)
     e3 = [0, 0, 1]
+    # skew(x): ℝ³ → ℝ⁹ such that x×y = skew(x)*y
     skew(x) = [    0 -x[3]  x[2];
                 x[3]     0 -x[1];
                -x[2]  x[1]    0]
@@ -51,13 +58,14 @@ function __Dynamics!(multicopter::MulticopterEnv)
         @nested_log :input f, M
         Ω = skew(ω)
         dX.p = v
-        dX.v = -(1/m)*f*R'*e3 + g*e3
-        dX.R = -Ω*R
+        dX.v = -(1/m)*f*R*e3 + g*e3
+        dX.R = R*Ω
         dX.ω = J_inv * (-Ω*J*ω + M)
     end
 end
 
-# the following closure is a basic template when using multicopter envs in other packages
+# the following [closure](https://docs.julialang.org/en/v1/devdocs/functions/#Closures)
+# is a basic template when using multicopter envs in other packages
 # function Dynamics!(multicopter::MulticopterEnv)
 #     @Loggable function dynamics!(dX, X, p, t; u)
 #         u_saturated = FlightSims.saturate(multicopter, u)
