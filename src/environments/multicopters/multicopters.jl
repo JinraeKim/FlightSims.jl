@@ -29,20 +29,27 @@ end
 
 """
 # Variables
-
 ## State
 p ∈ ℝ^3: (inertial) position
 v ∈ ℝ^3: (inertial) velocity
-R ∈ so(3): direction cosine matrix (DCM) that maps a vector read in Body (B)-coord.
-to the same vector read in Inertial (I)-coord.
-For example, v_I = R*v_B.
-Or, it can be interpreted as "rotation" of B-frame w.r.t. I-frame.
-For example, x̂_I = R*[1, 0, 0] where x̂_I is the x-axis of B-frame read in I-coord.
+R ∈ so(3): direction cosine matrix (DCM) that maps a vector read in Inertial (I)-coord.
+to the same vector read in Body (B)-coord.
+For example, v_B = R*v_I.
+Or, it can be interpreted as "inverse rotation" from I-frame to B-frame.
+For example, x̂_I = R'*[1, 0, 0] where x̂_I is the x-axis of B-frame read in I-coord.
 ω ∈ ℝ^3: angular rate of body frame w.r.t. inertial frame (I to B)
 
 ## (Virtual) input
 f ∈ ℝ: total thrust
 M ∈ ℝ^3: moment
+
+## BE CAREFUL
+The definition of DCM, R, is the transpose of the DCM introduced in [1].
+It is because many packages including `ReferenceFrameRotations.jl` follows the definition of
+"DCM such that v_B = R*v_I".
+
+# Reference
+[1] T. Lee, M. Leok, and N. H. McClamroch, “Geometric Tracking Control of a Quadrotor UAV on SE(3),” in 49th IEEE Conference on Decision and Control (CDC), Atlanta, GA, Dec. 2010, pp. 5420–5425. doi: 10.1109/CDC.2010.5717652.
 """
 function __Dynamics!(multicopter::MulticopterEnv)
     @unpack m, g, J = multicopter
@@ -58,8 +65,8 @@ function __Dynamics!(multicopter::MulticopterEnv)
         @nested_log :input f, M
         Ω = skew(ω)
         dX.p = v
-        dX.v = -(1/m)*f*R*e3 + g*e3
-        dX.R = R*Ω
+        dX.v = -(1/m)*f*R'*e3 + g*e3
+        dX.R = -Ω*R
         dX.ω = J_inv * (-Ω*J*ω + M)
     end
 end
