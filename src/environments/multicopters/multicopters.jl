@@ -33,7 +33,8 @@ end
 ## State
 p ∈ ℝ^3: (inertial) position
 v ∈ ℝ^3: (inertial) velocity
-R ∈ so(3): rotation matrix that maps a vector read in B-coord. to the same vector read in I-coord.
+R ∈ so(3): direction cosine matrix (DCM) that maps a vector read in Body (B)-coord.
+to the same vector read in Inertial (I)-coord.
 For example, v_I = R*v_B.
 Or, it can be interpreted as "rotation" of B-frame w.r.t. I-frame.
 For example, x̂_I = R*[1, 0, 0] where x̂_I is the x-axis of B-frame read in I-coord.
