@@ -33,8 +33,10 @@ end
 ## State
 p ∈ ℝ^3: (inertial) position
 v ∈ ℝ^3: (inertial) velocity
-R ∈ so(3): rotation of reference frame from I-frame to B-frame (I to B, ref. frame),
-i.e., rotation of a vector from B-frame to I-frame (B to I, vector).
+R ∈ so(3): rotation matrix that maps a vector read in B-coord. to the same vector read in I-coord.
+For example, v_I = R*v_B.
+Or, it can be interpreted as "rotation" of B-frame w.r.t. I-frame.
+For example, x̂_I = R*[1, 0, 0] where x̂_I is the x-axis of B-frame read in I-coord.
 ω ∈ ℝ^3: angular rate of body frame w.r.t. inertial frame (I to B)
 
 ## (Virtual) input
@@ -45,7 +47,7 @@ function __Dynamics!(multicopter::MulticopterEnv)
     @unpack m, g, J = multicopter
     J_inv = inv(J)
     e3 = [0, 0, 1]
-    # skew(x): ℝ³ → ℝ⁹ such that x×y = skew(x) y
+    # skew(x): ℝ³ → ℝ⁹ such that x×y = skew(x)*y
     skew(x) = [    0 -x[3]  x[2];
                 x[3]     0 -x[1];
                -x[2]  x[1]    0]
