@@ -51,8 +51,6 @@ Take a look at `src/environments`.
         - (Split data) `partitionTrainTest`
     - **Reference trajectory generator**
         - (Command generator) `HelixCommandGenerator`, `PowerLoop`
-    - **Ridig body rotation**
-        - (Rotations) `euler`
     - **Simulation rendering**
         - (Multicopter rendering) See `src/environments/multicopters/render.jl`.
 
@@ -235,6 +233,13 @@ visit [FaultTolerantControl.jl](https://github.com/JinraeKim/FaultTolerantContro
 - See `test/render.jl`.
 
 ![Alt Text](./figures/anim.gif)
+<details>
+<summary>Visualisation of hexacopter including reference frame and topview</summary>
+
+![ex_screenshot](./figures/hexacopter_description.png)
+![ex_screenshot](./figures/topview.png)
+
+</details>
 
 ### Scientific machine learning
 - [ ] Add examples for newbies!
