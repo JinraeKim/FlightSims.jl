@@ -60,7 +60,7 @@ function model_description()
     length_param = 0.5
     x0.p += [length_param, length_param, -length_param]  # NED
     ϕ, θ, ψ = 0, deg2rad(30), 0
-    x0.R .= ReferenceFrameRotations.angle_to_dcm(ψ, θ, ϕ, :ZYX)  # ∵ ReferenceFrameRotations is transpose of RotationMatrix.
+    x0.R = ReferenceFrameRotations.angle_to_dcm(ψ, θ, ϕ, :ZYX)
     @unpack p, R = x0
     p_enu = ned2enu(p)
     # plot
