@@ -45,12 +45,13 @@ function topview()
     x0 = State(multicopter)()
     fig = plot(multicopter, x0;
                ticks=nothing, border=:none,
-               background_color=:transparent,
+               # background_color=:transparent,
                xlabel="", ylabel="", zlabel="",
                camera=(0, 90),
                dpi=300,
               )
-    savefig(fig, "figures/topview.png")
+    # savefig(fig, "figures/topview.png")  # supports background_color=:transparent
+    savefig(fig, "figures/topview.pdf")
 end
 
 function model_description()
@@ -155,6 +156,6 @@ end
 
 function test()
     # gen_gif()
-    # topview()
+    topview()
     model_description()  # TODO
 end

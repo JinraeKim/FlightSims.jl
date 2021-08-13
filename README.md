@@ -233,6 +233,8 @@ visit [FaultTolerantControl.jl](https://github.com/JinraeKim/FaultTolerantContro
 - See `test/render.jl`.
 
 ![Alt Text](./figures/anim.gif)
+![ex_screenshot](./figures/hexacopter_description.pdf)
+![ex_screenshot](./figures/topview.pdf)
 
 ### Scientific machine learning
 - [ ] Add examples for newbies!
