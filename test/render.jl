@@ -51,7 +51,7 @@ function topview()
                dpi=300,
               )
     # savefig(fig, "figures/topview.png")  # supports background_color=:transparent
-    savefig(fig, "figures/topview.pdf")
+    savefig(fig, "figures/topview.png")
 end
 
 function model_description()
@@ -150,7 +150,7 @@ function model_description()
           camera=(45, 45),
           # dpi=300,
          )
-    savefig(fig, "figures/hexacopter_description.pdf")
+    savefig(fig, "figures/hexacopter_description.png")
     display(fig)
 end
 
