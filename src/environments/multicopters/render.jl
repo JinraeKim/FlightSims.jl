@@ -99,7 +99,7 @@ function plot_fuselage!(fig::Plots.Plot, p, R, l, body_n, body_e)
     body_n_enu = ned2enu(body_n)
     body_e_enu = ned2enu(body_e)
     length_ratio = 0.3
-    point_1 = p + length_ratio*l*R'*[1, 0, 0]
+    point_1 = p + length_ratio*l*R'*[1, 0, 0]  # R': B to I
     point_2 = p + length_ratio*l*R'*[0, 1, 0]
     point_3 = p + length_ratio*l*R'*[-1, 0, 0]
     point_4 = p + length_ratio*l*R'*[0, -1, 0]
@@ -145,7 +145,7 @@ end
 
 function rotor_positions(p0, R, l, airframe_ref)
     if airframe_ref == :hexa_x
-        pf_1 = p0 + l*R'*[0, 1, 0]
+        pf_1 = p0 + l*R'*[0, 1, 0]  # R': B to I
         pf_2 = p0 + l*R'*[0, -1, 0]
         pf_3 = p0 + l*R'*[cos(deg2rad(-30)), sin(deg2rad(-30)), 0]
         pf_4 = p0 + l*R'*[cos(deg2rad(150)), sin(deg2rad(150)), 0]
