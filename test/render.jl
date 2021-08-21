@@ -300,13 +300,13 @@ function scheme_description()
                   )
     plot!(p_fault,
           ts, faults_delayed;
-          label="delayed λ",
+          label="delayed Λ",
           lw=1.5,
           color=:blue,
          )
     plot!(p_fault,
           ts, faults;
-          label="λ",
+          label="Λ",
           ylim=(0, 1.1),
           lw=1.5,
           color=:magenta,
