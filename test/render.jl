@@ -209,8 +209,8 @@ function scheme_description()
     Δt = 0.01
     ts = t0:Δt:tf
     t_fault = 10.0
-    t_saturation = 2.0
-    t_delay = t_saturation - 1.0
+    t_saturation = 2.5
+    t_delay = t_saturation - 1.5
     input_min = 0.0
     input_max = 10.0
     input_normal = 5.0
@@ -238,7 +238,10 @@ function scheme_description()
     t_switch = t_fault + t_saturation
     # methods = ts |> Map(t -> t <= t_switch) |> collect
     p_input = plot(;
-                   ylim=(input_min, input_max)
+                   ylim=(input_min, input_max+1.0),
+                   axis=nothing,
+                   ylabel="Rotor input",
+                   legend=:bottomleft,
                   )
     ts_1 = t0:Δt:t_fault
     ts_2 = t_fault:Δt:t_fault+t_delay
@@ -247,6 +250,7 @@ function scheme_description()
     plot!(p_input,
           ts_1, 0.5*(input_max+input_min)*ones(size(ts_1)),
           ribbon=0.5*(input_max-input_min)*ones(size(ts_1)),
+          color=:transparent,
           fillalpha=0.1,
           fillcolor=:white,
           label=nothing,
@@ -254,6 +258,7 @@ function scheme_description()
     plot!(p_input,
           ts_2, 0.5*(input_max+input_min)*ones(size(ts_2)),
           ribbon=0.5*(input_max-input_min)*ones(size(ts_2)),
+          color=:transparent,
           fillalpha=0.1,
           fillcolor=:red,
           label=nothing,
@@ -261,6 +266,7 @@ function scheme_description()
     plot!(p_input,
           ts_3, 0.5*(input_max+input_min)*ones(size(ts_3)),
           ribbon=0.5*(input_max-input_min)*ones(size(ts_3)),
+          color=:transparent,
           fillalpha=0.1,
           fillcolor=:orange,
           label=nothing,
@@ -268,29 +274,83 @@ function scheme_description()
     plot!(p_input,
           ts_4, 0.5*(input_max+input_min)*ones(size(ts_4)),
           ribbon=0.5*(input_max-input_min)*ones(size(ts_4)),
+          color=:transparent,
           fillalpha=0.1,
           fillcolor=:blue,
           label=nothing,
          )
     plot!(p_input,
-          ts, input_max*ones(size(ts));
-          color=:purple,
-          ls=:dash,
-          label="actuator limit"
-          )
+          ts, inputs;
+          color=:black,
+          label="input",
+          lw=1.5,
+         )
     plot!(p_input,
-          ts, inputs;)
-    p_fault = plot(ts, faults;
-                   label="λ",
-                   ylim=(0, 1),
+          ts, input_max*ones(size(ts));
+          color=:red,
+          ls=:dash,
+          label="actuator limit",
+          lw=1.5,
+          )
+    p_fault = plot(;
+                   axis=nothing,
+                   xlabel="time",
+                   ylabel="Control effectiveness",
+                   legend=:bottomleft,
                   )
     plot!(p_fault,
           ts, faults_delayed;
           label="delayed λ",
+          lw=1.5,
+          color=:blue,
+         )
+    plot!(p_fault,
+          ts, faults;
+          label="λ",
+          ylim=(0, 1.1),
+          lw=1.5,
+          color=:magenta,
+          linestyle=:dash,
+         )
+    plot!(p_fault,
+          ts_1, 0.5*ones(size(ts_1)),
+          ribbon=0.5*ones(size(ts_1)),
+          color=:transparent,
+          fillalpha=0.1,
+          fillcolor=:white,
+          label=nothing,
+         )
+    plot!(p_fault,
+          ts_2, 0.5*ones(size(ts_2)),
+          ribbon=0.5*ones(size(ts_2)),
+          color=:transparent,
+          fillalpha=0.1,
+          fillcolor=:red,
+          label=nothing,
+         )
+    plot!(p_fault,
+          ts_3, 0.5*ones(size(ts_3)),
+          ribbon=0.5*ones(size(ts_3)),
+          color=:transparent,
+          fillalpha=0.1,
+          fillcolor=:orange,
+          label=nothing,
+         )
+    plot!(p_fault,
+          ts_4, 0.5*ones(size(ts_4)),
+          ribbon=0.5*ones(size(ts_4)),
+          color=:transparent,
+          fillalpha=0.1,
+          fillcolor=:blue,
+          label=nothing,
          )
     # p_method = plot(ts, methods;)
     # fig = plot(p_input, p_fault, p_method; layout=l)
-    fig = plot(p_input, p_fault; layout=l)
+    fig = plot(p_input, p_fault;
+               layout=l,
+               size=(600, 400),
+               margin=5*Plots.mm,
+              )
     savefig(fig, "figures/scheme_description.pdf")
     display(fig)
 end
