@@ -18,7 +18,7 @@ Base.@kwdef struct LeeHexacopterEnv <: HexacopterEnv
     B = [ 1   1             1              1             1              1;
          -l   l         0.5*l         -0.5*l        -0.5*l          0.5*l;
           0   0 0.5*sqrt(3)*l -0.5*sqrt(3)*l 0.5*sqrt(3)*l -0.5*sqrt(3)*l;
-         kM -kM            kM            -kM           -kM             kM]
+        -kM  kM           -kM             kM            kM            -kM]
     # actuator limit
     dim_input = 6
     u_min = zeros(dim_input)
