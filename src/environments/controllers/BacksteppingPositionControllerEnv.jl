@@ -72,11 +72,24 @@ function Dynamics!(controller::BacksteppingPositionControllerEnv)
     end
 end
 
+
 """
 Several functions are exported from `utils.jl`, e.g., T_u_inv(T).
 """
 function Command(controller::BacksteppingPositionControllerEnv)
     @unpack Ap, Bp, P, Kp, Kt, Kω = controller
+    T_u_inv(T) = [   0 1/T  0;
+                  -1/T   0  0;
+                     0   0 -1]
+    T_u_inv_dot(T, Ṫ) = [    0 -Ṫ/T^2 0;
+                         Ṫ/T^2      0 0;
+                             0      0 0]
+    T_ω(T) = [0 -T  0;
+              T  0  0;
+              0  0  0]
+    skew(x) = [    0  -x[3]   x[2];
+                x[3]      0  -x[1];
+               -x[2]   x[1]     0]
     return function(p, v, R, ω,
                     xd, vd, ad, ȧd, äd, Td,
                     m::Real, J, g::Real,)
