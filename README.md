@@ -40,6 +40,8 @@ Take a look at `src/environments`.
         - (Proportional-Integral-Derivative controller) `PID`
             - Note that the derivative term is obtained via second-order filter.
     - **integrated_environments**
+        - (Backstepping Position Controller + Static Allocator + Multicopter) `BacksteppingPositionController_StaticAllocator_MulticopterEnv`
+            - For example, `BacksteppingPositionControllerEnv` (backstepping position controller) + `PseudoInverseAllocator` (pseudo-inverse allocator, a static allocator) + `LeeHexacopterEnv` (hexacopter, a multicopter)
         - See `src/environments/integrated_environments`.
 
 ### Utilities

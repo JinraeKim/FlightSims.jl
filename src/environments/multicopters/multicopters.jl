@@ -79,10 +79,10 @@ models, e.g., faulted multicopters.
 function _Dynamics!(multicopter::MulticopterEnv)
     @Loggable function dynamics!(dx, x, p, t; u)
         @nested_onlylog :input u_cmd = u
-        @nested_log :input u_saturated = FS.saturate(multicopter, u)
-        @nested_log :input ν = FS.input_to_force_moment(multicopter, u_saturated)
+        @nested_log :input u_saturated = FlightSims.saturate(multicopter, u)
+        @nested_log :input ν = FlightSims.input_to_force_moment(multicopter, u_saturated)
         f, M = ν[1], ν[2:4]
-        @nested_log FS.__Dynamics!(multicopter)(dx, x, (), t; f=f, M=M)
+        @nested_log FlightSims.__Dynamics!(multicopter)(dx, x, (), t; f=f, M=M)
     end
 end
 
