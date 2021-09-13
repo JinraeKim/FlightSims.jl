@@ -6,6 +6,12 @@
 Proc. Am. Control Conf., vol. 2016-July, pp. 6760–6766, 2016.
 - Reference model (e.g., xd, vd, ad, ad_dot, ad_ddot)
 [2] S. J. Su, Y. Y. Zhu, H. R. Wang, and C. Yun, “A Method to Construct a Reference Model for Model Reference Adaptive Control,” Adv. Mech. Eng., vol. 11, no. 11, pp. 1–9, 2019.
+
+# NOTICE
+- (Tracking control) Add the argument `pos_cmd_func` (a function of time such that (t) -> position(t) ∈ ℝ^3) of constructor,
+please do not add the argument `pos_cmd` in the inner function of `Dynamics!(env::BacksteppingPositionControllerEnv)`.
+- (Set-point control) Do not add the argument `pos_cmd_func` (a function of time such that (t) -> position(t) ∈ ℝ^3) of constructor,
+please add the argument `pos_cmd` in the inner function of `Dynamics!(env::BacksteppingPositionControllerEnv)`.
 """
 struct BacksteppingPositionControllerEnv <: AbstractEnv
     Ref_model
@@ -66,11 +72,24 @@ function Dynamics!(controller::BacksteppingPositionControllerEnv)
     end
 end
 
+
 """
 Several functions are exported from `utils.jl`, e.g., T_u_inv(T).
 """
 function Command(controller::BacksteppingPositionControllerEnv)
     @unpack Ap, Bp, P, Kp, Kt, Kω = controller
+    T_u_inv(T) = [   0 1/T  0;
+                  -1/T   0  0;
+                     0   0 -1]
+    T_u_inv_dot(T, Ṫ) = [    0 -Ṫ/T^2 0;
+                         Ṫ/T^2      0 0;
+                             0      0 0]
+    T_ω(T) = [0 -T  0;
+              T  0  0;
+              0  0  0]
+    skew(x) = [    0  -x[3]   x[2];
+                x[3]      0  -x[1];
+               -x[2]   x[1]     0]
     return function(p, v, R, ω,
                     xd, vd, ad, ȧd, äd, Td,
                     m::Real, J, g::Real,)

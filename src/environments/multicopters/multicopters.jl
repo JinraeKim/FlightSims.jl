@@ -71,16 +71,20 @@ function __Dynamics!(multicopter::MulticopterEnv)
     end
 end
 
-# the following [closure](https://docs.julialang.org/en/v1/devdocs/functions/#Closures)
-# is a basic template when using multicopter envs in other packages
-# function Dynamics!(multicopter::MulticopterEnv)
-#     @Loggable function dynamics!(dX, X, p, t; u)
-#         u_saturated = FlightSims.saturate(multicopter, u)
-#         ν = FlightSims.input_to_force_moment(multicopter, u_saturated)
-#         f, M = ν[1], ν[2:4]
-#         @nested_log FlightSims.__Dynamics!(multicopter)(dX, X, p, t; f=f, M=M)
-#     end
-# end
+"""
+A basic example of dynamics for multicopter considering rotor inputs `u`.
+You can use the following closure or extend the abvoe __Dynamics! for more general
+models, e.g., faulted multicopters.
+"""
+function _Dynamics!(multicopter::MulticopterEnv)
+    @Loggable function dynamics!(dx, x, p, t; u)
+        @nested_onlylog :input u_cmd = u
+        @nested_log :input u_saturated = FlightSims.saturate(multicopter, u)
+        @nested_log :input ν = FlightSims.input_to_force_moment(multicopter, u_saturated)
+        f, M = ν[1], ν[2:4]
+        @nested_log FlightSims.__Dynamics!(multicopter)(dx, x, (), t; f=f, M=M)
+    end
+end
 
 
 # multicopters
