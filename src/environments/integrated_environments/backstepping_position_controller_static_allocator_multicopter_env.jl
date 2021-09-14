@@ -27,7 +27,7 @@ end
 function Dynamics!(env::BacksteppingPositionController_StaticAllocator_MulticopterEnv)
     @unpack controller, allocator, multicopter = env
     @unpack m, J, g = multicopter
-    @Loggable function dynamics!(dx, x, p, t; pos_cmd=nothing)
+    @Loggable function dynamics!(dx, x, params, t; pos_cmd=nothing)
         @unpack p, v, R, ω = x.multicopter
         @unpack ref_model, Td = x.controller
         xd, vd, ad, ȧd, äd = ref_model.x_0, ref_model.x_1, ref_model.x_2, ref_model.x_3, ref_model.x_4
