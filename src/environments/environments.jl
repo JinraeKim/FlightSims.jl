@@ -5,6 +5,9 @@ include("basics/basics.jl")
 ## Multicopters
 include("multicopters/multicopters.jl")
 
+## Missiles
+include("missiles/missiles.jl")
+
 ## Control Allocators
 include("allocators/allocators.jl")
 
