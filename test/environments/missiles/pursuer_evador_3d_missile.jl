@@ -1,55 +1,13 @@
 using FlightSims
 const FS = FlightSims
 
-using LinearAlgebra  # for I, e.g., Matrix(I, n, n)
+using LinearAlgebra
 using ComponentArrays
 using UnPack
 using Transducers
 using Plots
 using DifferentialEquations  # for callbacks
 
-
-# struct MissileGuidanceEnv <: AbstractEnv  # AbstractEnv exported from FS
-#     model_params
-# end
-
-# """
-# FlightSims recommends you to use closures for State and Dynamics!. For more details, see https://docs.julialang.org/en/v1/devdocs/functions/.
-# """
-# function State(env::MissileGuidanceEnv)
-#     return function (p_M = zeros(3), v_M = zeros(3), p_T = zeros(3), v_T = zeros(3))
-#         ComponentArray(p_M = p_M, v_M = v_M, p_T = p_T, v_T = v_T)
-#     end
-# end
-
-# function Dynamics!(env::MissileGuidanceEnv)
-#     # @unpack model_params = env  # @unpack is very useful!
-#     @Loggable function dynamics!(dx, x, params, t; u)  # `Loggable` makes it loggable via SimulationLogger.jl (imported in FS)
-#         @unpack p_M, v_M, p_T, v_T = x
-#         @log p_M  # to log p_M
-#         @log v_M  # to log v_M
-#         @log p_T
-
-#         dx.p_M = v_M
-#         dx.v_M = u
-#         dx.p_T = v_T
-#         dx.v_T = zeros(3)
-
-#         @onlylog r = norm(p_T-p_M)
-#         # @onlylog ṙ = dot(p_T-p_M, v_T-v_M) / r
-#     end
-# end
-
-# function PPNG(N)
-#     return function GuidanceLaw(x, params, t)
-#         @unpack p_M, v_M, p_T, v_T = x
-#         # N = 3
-    
-#         Ω = cross(p_T-p_M, v_T-v_M) / dot(p_T-p_M, p_T-p_M)
-#         a_M = N * cross(Ω, v_M)
-#         return a_M
-#     end
-# end
 
 function main(N::Number)
     # Initial condition
@@ -60,14 +18,12 @@ function main(N::Number)
     v_T_0 = 100*[cos(0)*sin(-pi/2); cos(0)cos(-pi/2); 0]
 
     # Design parameters
-    # N   = 3
-    
+        
     # Simulation parameters
     Δt  = 0.01
 
     # callbacks
     function condition_stop(u, t, integrator)
-        # @unpack p_M, p_T, v_M, v_T = u
         p_M = u.pursuer.p
         v_M = u.pursuer.v
         p_T = u.evador.p
@@ -81,14 +37,12 @@ function main(N::Number)
     cb = CallbackSet(cb_stop)  # useful for multiple callbacks
         
     # Execute Simulation
-    # env = MissileGuidanceEnv(0)
     pursuer = PointMass3DMissile()
     evador = PointMass3DMissile()
     env = PursuerEvador3DMissile(pursuer, evador)
     # prob: DE problem, df: DataFrame
     x0_pursuer = State(pursuer)(p_M_0, v_M_0)
     x0_evador = State(evador)(p_T_0, v_T_0)
-    # x0 = State(env)(p_M_0, v_M_0, p_T_0, v_T_0)
     x0 = State(env)(x0_pursuer, x0_evador)
     ppng = PPNG(N)
     function GuidanceLaw(ppng::PPNG)
