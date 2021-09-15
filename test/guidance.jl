@@ -9,20 +9,20 @@ using Plots
 using DifferentialEquations  # for callbacks
 
 
-struct GuidanceEnv <: AbstractEnv  # AbstractEnv exported from FS
+struct MissileGuidanceEnv <: AbstractEnv  # AbstractEnv exported from FS
     model_params
 end
 
 """
 FlightSims recommends you to use closures for State and Dynamics!. For more details, see https://docs.julialang.org/en/v1/devdocs/functions/.
 """
-function State(env::GuidanceEnv)
+function State(env::MissileGuidanceEnv)
     return function (p_M = zeros(3), v_M = zeros(3), p_T = zeros(3), v_T = zeros(3))
         ComponentArray(p_M = p_M, v_M = v_M, p_T = p_T, v_T = v_T)
     end
 end
 
-function Dynamics!(env::GuidanceEnv)
+function Dynamics!(env::MissileGuidanceEnv)
     # @unpack model_params = env  # @unpack is very useful!
     @Loggable function dynamics!(dx, x, params, t; u)  # `Loggable` makes it loggable via SimulationLogger.jl (imported in FS)
         @unpack p_M, v_M, p_T, v_T = x
@@ -40,18 +40,18 @@ function Dynamics!(env::GuidanceEnv)
     end
 end
 
-function GuidanceLaw(N)
-    return function PPNG(x, params, t)
+function PPNG(N)
+    return function GuidanceLaw(x, params, t)
         @unpack p_M, v_M, p_T, v_T = x
-
+        # N = 3
+    
         Ω = cross(p_T-p_M, v_T-v_M) / dot(p_T-p_M, p_T-p_M)
         a_M = N * cross(Ω, v_M)
         return a_M
     end
 end
 
-
-function main()
+function main(N::Number)
     # Initial condition
     p_M_0 = [0; 0; 0]
     V_0, γ_0, χ_0 = 300, 45/180*pi, 90/180*pi
@@ -60,29 +60,29 @@ function main()
     v_T_0 = 100*[cos(0)*sin(-pi/2); cos(0)cos(-pi/2); 0]
 
     # Design parameters
-    N   = 3
+    # N   = 3
     
     # Simulation parameters
-    Δt  = 0.001
+    Δt  = 0.01
 
     # callbacks
     function condition_stop(u, t, integrator)
         @unpack p_M, p_T, v_M, v_T = u
         r = norm(p_T-p_M)
         ṙ = dot(p_T-p_M, v_T-v_M) / r
-        r - 0.1 #|| (r < 10 && ṙ >= 0)
+        r < 0.1 #|| (r < 10 && ṙ >= 0)
     end
     affect!(integrator) = terminate!(integrator)  # See DiffEq.jl documentation
-    cb_stop    = ContinuousCallback(condition_stop, affect!)
+    cb_stop    = DiscreteCallback(condition_stop, affect!)
     cb = CallbackSet(cb_stop)  # useful for multiple callbacks
         
     # Execute Simulation
-    env = GuidanceEnv(0)
+    env = MissileGuidanceEnv(0)
     # prob: DE problem, df: DataFrame
     x0 = State(env)(p_M_0, v_M_0, p_T_0, v_T_0)
     @time prob, df = sim(
                          x0,  # initial condition
-                         apply_inputs(Dynamics!(env); u = GuidanceLaw(N));  # dynamics!; apply_inputs is exported from FS and is so useful for systems with inputs
+                         apply_inputs(Dynamics!(env); u = PPNG(N));  # dynamics!; apply_inputs is exported from FS and is so useful for systems with inputs
                          tf=50.0,
                          savestep=Δt,  # savestep is NOT simulation step
                          solver=Tsit5(),
@@ -99,8 +99,7 @@ function main()
 
     # plot
     Fig_3D = plot(p_Ms[:,1], p_Ms[:,2], p_Ms[:,3], label="Missile")
-    plot!(p_Ts[:,1], p_Ts[:,2], p_Ts[:,3], label="Target", lw=2, ls=:dash, legend=:bottomright)
-    plot!(Fig_3D, xlabel = "x", ylabel = "y", zlabel = "z", camera = (20, 40))
+    plot!(p_Ts[:,1], p_Ts[:,2], p_Ts[:,3], label="Target", lw=2,ls=:dash, legend=:bottomright)
 
     # save
     dir_log = "figures"
@@ -108,6 +107,3 @@ function main()
     savefig(Fig_3D, joinpath(dir_log, "Fig_3D.pdf"))
     display(Fig_3D)
 end
-
-main()
-
