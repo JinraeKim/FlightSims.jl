@@ -37,21 +37,21 @@ Pure Proportional Navigation Guidance Law is implemented.
 # ╔═╡ 50becda1-a0e6-4e4c-98ca-a72992a5fc42
 begin
 	
-struct GuidanceEnv <: AbstractEnv  # AbstractEnv exported from FS
-    N
+struct MissileGuidanceEnv <: AbstractEnv  # AbstractEnv exported from FS
+    model_params
 end
 
 """
 FlightSims recommends you to use closures for State and Dynamics!. For more details, see https://docs.julialang.org/en/v1/devdocs/functions/.
 """
-function State(env::GuidanceEnv)
+function State(env::MissileGuidanceEnv)
     return function (p_M = zeros(3), v_M = zeros(3), p_T = zeros(3), v_T = zeros(3))
         ComponentArray(p_M = p_M, v_M = v_M, p_T = p_T, v_T = v_T)
     end
 end
 
-function Dynamics!(env::GuidanceEnv)
-    # @unpack N = env  # @unpack is very useful!
+function Dynamics!(env::MissileGuidanceEnv)
+    # @unpack model_params = env  # @unpack is very useful!
     @Loggable function dynamics!(dx, x, params, t; u)  # `Loggable` makes it loggable via SimulationLogger.jl (imported in FS)
         @unpack p_M, v_M, p_T, v_T = x
         @log p_M  # to log p_M
@@ -68,13 +68,14 @@ function Dynamics!(env::GuidanceEnv)
     end
 end
 
-function PPNG(x, params, t)
+function PPNG(N)
+return function GuidanceLaw(x, params, t)
     @unpack p_M, v_M, p_T, v_T = x
-    N = 3
 
     Ω = cross(p_T-p_M, v_T-v_M) / dot(p_T-p_M, p_T-p_M)
     a_M = N * cross(Ω, v_M)
     return a_M
+end
 end
 
 
@@ -89,27 +90,28 @@ function main(V_0, χ_0)
 
     # Design parameters
     N   = 3
-    env = GuidanceEnv(N)
+
     # Simulation parameters
-    Δt  = 0.001
+    Δt  = 0.01
 
     # callbacks
     function condition_stop(u, t, integrator)
         @unpack p_M, p_T, v_M, v_T = u
         r = norm(p_T-p_M)
         ṙ = dot(p_T-p_M, v_T-v_M) / r
-        r - 0.1 #|| (r < 10 && ṙ >= 0)
+        r < 0.1 #|| (r < 10 && ṙ >= 0)
     end
     affect!(integrator) = terminate!(integrator)  # See DiffEq.jl documentation
-    cb_stop    = ContinuousCallback(condition_stop, affect!)
+    cb_stop    = DiscreteCallback(condition_stop, affect!)
     cb = CallbackSet(cb_stop)  # useful for multiple callbacks
         
     # Execute Simulation
+    env = MissileGuidanceEnv(0)
     # prob: DE problem, df: DataFrame
     x0 = State(env)(p_M_0, v_M_0, p_T_0, v_T_0)
     @time prob, df = sim(
                          x0,  # initial condition
-                         apply_inputs(Dynamics!(env); u = PPNG);  # dynamics!; apply_inputs is exported from FS and is so useful for systems with inputs
+                         apply_inputs(Dynamics!(env); u = PPNG(N));  # dynamics!; apply_inputs is exported from FS and is so useful for systems with inputs
                          tf=50.0,
                          savestep=Δt,  # savestep is NOT simulation step
                          solver=Tsit5(),
