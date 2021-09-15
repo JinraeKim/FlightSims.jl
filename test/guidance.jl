@@ -10,7 +10,7 @@ using DifferentialEquations  # for callbacks
 
 
 struct GuidanceEnv <: AbstractEnv  # AbstractEnv exported from FS
-    N
+    model_params
 end
 
 """
@@ -23,7 +23,7 @@ function State(env::GuidanceEnv)
 end
 
 function Dynamics!(env::GuidanceEnv)
-    # @unpack N = env  # @unpack is very useful!
+    # @unpack model_params = env  # @unpack is very useful!
     @Loggable function dynamics!(dx, x, params, t; u)  # `Loggable` makes it loggable via SimulationLogger.jl (imported in FS)
         @unpack p_M, v_M, p_T, v_T = x
         @log p_M  # to log p_M
@@ -40,13 +40,14 @@ function Dynamics!(env::GuidanceEnv)
     end
 end
 
-function PPNG(x, params, t)
-    @unpack p_M, v_M, p_T, v_T = x
-    N = 3
+function GuidanceLaw(N)
+    return function PPNG(x, params, t)
+        @unpack p_M, v_M, p_T, v_T = x
 
-    Ω = cross(p_T-p_M, v_T-v_M) / dot(p_T-p_M, p_T-p_M)
-    a_M = N * cross(Ω, v_M)
-    return a_M
+        Ω = cross(p_T-p_M, v_T-v_M) / dot(p_T-p_M, p_T-p_M)
+        a_M = N * cross(Ω, v_M)
+        return a_M
+    end
 end
 
 
@@ -60,7 +61,7 @@ function main()
 
     # Design parameters
     N   = 3
-    env = GuidanceEnv(N)
+    
     # Simulation parameters
     Δt  = 0.001
 
@@ -76,11 +77,12 @@ function main()
     cb = CallbackSet(cb_stop)  # useful for multiple callbacks
         
     # Execute Simulation
+    env = GuidanceEnv(0)
     # prob: DE problem, df: DataFrame
     x0 = State(env)(p_M_0, v_M_0, p_T_0, v_T_0)
     @time prob, df = sim(
                          x0,  # initial condition
-                         apply_inputs(Dynamics!(env); u = PPNG);  # dynamics!; apply_inputs is exported from FS and is so useful for systems with inputs
+                         apply_inputs(Dynamics!(env); u = GuidanceLaw(N));  # dynamics!; apply_inputs is exported from FS and is so useful for systems with inputs
                          tf=50.0,
                          savestep=Δt,  # savestep is NOT simulation step
                          solver=Tsit5(),
@@ -97,8 +99,8 @@ function main()
 
     # plot
     Fig_3D = plot(p_Ms[:,1], p_Ms[:,2], p_Ms[:,3], label="Missile")
-    plot!(p_Ts[:,1], p_Ts[:,2], p_Ts[:,3], label="Target", lw=2,ls=:dash, legend=:bottomright)
-    display(Fig_3D)
+    plot!(p_Ts[:,1], p_Ts[:,2], p_Ts[:,3], label="Target", lw=2, ls=:dash, legend=:bottomright)
+    plot!(Fig_3D, xlabel = "x", ylabel = "y", zlabel = "z", camera = (20, 40))
 
     # save
     dir_log = "figures"
