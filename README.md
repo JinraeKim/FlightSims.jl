@@ -25,58 +25,58 @@ Also, some predefined environments are provided for reusability (i.e., environme
 Take a look at `src/environments`.
 - Examples include
 
-<details>
-<summary>basics</summary>
+    <details>
+    <summary>basics</summary>
 
-- (Linear system) `LinearSystemEnv`
-- (Reference model) `ReferenceModelEnv`
-- (Nonlinear system) `TwoDimensionalNonlinearPolynomialEnv`
-    - [T. Bian and Z.-P. Jiang, “Value Iteration, Adaptive Dynamic Programming, and Optimal Control of Nonlinear Systems,” in 2016 IEEE 55th Conference on Decision and Control (CDC), Las Vegas, NV, USA, Dec. 2016, pp. 3375–3380. doi: 10.1109/CDC.2016.7798777.](https://ieeexplore.ieee.org/document/7798777)
-- (Multiple Envs) `MultipleEnvs` for multi-agent simulation
+    - (Linear system) `LinearSystemEnv`
+    - (Reference model) `ReferenceModelEnv`
+    - (Nonlinear system) `TwoDimensionalNonlinearPolynomialEnv`
+        - [T. Bian and Z.-P. Jiang, “Value Iteration, Adaptive Dynamic Programming, and Optimal Control of Nonlinear Systems,” in 2016 IEEE 55th Conference on Decision and Control (CDC), Las Vegas, NV, USA, Dec. 2016, pp. 3375–3380. doi: 10.1109/CDC.2016.7798777.](https://ieeexplore.ieee.org/document/7798777)
+    - (Multiple Envs) `MultipleEnvs` for multi-agent simulation
 
-</details>
+    </details>
 
-<details>
-<summary>multicopters</summary>
+    <details>
+    <summary>multicopters</summary>
 
-- (Hexacopter) `LeeHexacopterEnv`
-- (Quadcopter) `IslamQuadcopterEnv`, `GoodarziQuadcopterEnv`
+    - (Hexacopter) `LeeHexacopterEnv`
+    - (Quadcopter) `IslamQuadcopterEnv`, `GoodarziQuadcopterEnv`
 
-</details>
+    </details>
 
-<details>
-<summary>multicopters</summary>
+    <details>
+    <summary>multicopters</summary>
 
-- (Hexacopter) `LeeHexacopterEnv` (**currently maintained**)
-- (Quadcopter) `IslamQuadcopterEnv`, `GoodarziQuadcopterEnv`
+    - (Hexacopter) `LeeHexacopterEnv` (**currently maintained**)
+    - (Quadcopter) `IslamQuadcopterEnv`, `GoodarziQuadcopterEnv`
 
-</details>
+    </details>
 
-<details>
-<summary>allocators</summary>
+    <details>
+    <summary>allocators</summary>
 
-- (Moore-Penrose pseudo inverse control allocation) `PseudoInverseAllocator`
+    - (Moore-Penrose pseudo inverse control allocation) `PseudoInverseAllocator`
 
-</details>
+    </details>
 
-<details>
-<summary>controllers</summary>
+    <details>
+    <summary>controllers</summary>
 
-- (Linear quadratic regulator) `LQR`
-- (Proportional-Integral-Derivative controller) `PID`
-    - Note that the derivative term is obtained via second-order filter.
-- (Pure proportional navigation guidance) `PPNG`
+    - (Linear quadratic regulator) `LQR`
+    - (Proportional-Integral-Derivative controller) `PID`
+        - Note that the derivative term is obtained via second-order filter.
+    - (Pure proportional navigation guidance) `PPNG`
 
-</details>
+    </details>
 
-<details>
-<summary>integrated_environments</summary>
+    <details>
+    <summary>integrated_environments</summary>
 
-- (Backstepping Position Controller + Static Allocator + Multicopter) `BacksteppingPositionController_StaticAllocator_MulticopterEnv`
-    - For example, `BacksteppingPositionControllerEnv` (backstepping position controller) + `PseudoInverseAllocator` (pseudo-inverse allocator, a static allocator) + `LeeHexacopterEnv` (hexacopter, a multicopter)
-- See `src/environments/integrated_environments`.
+    - (Backstepping Position Controller + Static Allocator + Multicopter) `BacksteppingPositionController_StaticAllocator_MulticopterEnv`
+        - For example, `BacksteppingPositionControllerEnv` (backstepping position controller) + `PseudoInverseAllocator` (pseudo-inverse allocator, a static allocator) + `LeeHexacopterEnv` (hexacopter, a multicopter)
+    - See `src/environments/integrated_environments`.
 
-</details>
+    </details>
 
 
 ### Utilities
