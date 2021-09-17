@@ -359,7 +359,7 @@ julia> test()
 see `test/environments/integrated_environments/backstepping_position_controller_static_allocator_multicopter_env.jl`.
 
 ### Missile guidance with interactive visualisation
-- See `test/pluto_guidance.jl` (thanks to @nhcho91).
+- See `test/pluto_guidance.jl` (thanks to [@nhcho91](https://github.com/nhcho91)).
 
 ![Alt Text](./figures/missile_guidance.gif)
 
