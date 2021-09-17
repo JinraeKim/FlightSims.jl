@@ -78,6 +78,14 @@ Take a look at `src/environments`.
 
     </details>
 
+    <details>
+    <summary>missiles</summary>
+
+    - (point-mass simple missile in 3D space) `PointMass3DMissile`
+    - (pursuer vs evador in 3D space) `PursuerEvador3DMissile`
+
+    </details>
+
 
 ### Utilities
 - Some utilities are also provided for dynamical system simulation.
