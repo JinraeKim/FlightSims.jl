@@ -30,7 +30,7 @@ UnPack = "3a884ed6-31ef-47d7-9d2a-63182c4928ed"
 [compat]
 Combinatorics = "1.0"
 ComponentArrays = "0.10"
-DataFrames = "1.1"
+DataFrames = "1.2"
 DifferentialEquations = "6.17"
 DynamicPolynomials = "0.3"
 FileIO = "1.8"

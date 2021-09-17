@@ -1,15 +1,15 @@
 # FlightSims
 [FlightSims.jl](https://github.com/JinraeKim/FlightSims.jl) is a general-purpose numerical simulator supporting nested environments and convenient macro-based data logging.
-## Plans and Changes
-### v0.8
-- [ ] find a good way of saving and loading simulation data
+## Road map
+- [x] ~~an easy routine for saving and loading data~~ see [DrWatson.jl](https://github.com/JuliaDynamics/DrWatson.jl) for scientific projects.
+- [ ] ROS2 compatibility (not urgent)
 
 ## Related packages
-### Highly related
+### Highly related packages
 - [SimulationLogger.jl](https://github.com/JinraeKim/SimulationLogger.jl): A convenient logging tools compatible with [DifferentialEquations.jl](https://github.com/SciML/DifferentialEquations.jl).
 - [FaultTolerantControl.jl](https://github.com/JinraeKim/FaultTolerantControl.jl):
 fault tolerant control (FTC) with various models and algorithms of faults, fault detection and isolation (FDI), and reconfiguration (R) control.
-### Others
+### Useful packages
 - It is highly based on [DifferentialEquations.jl](https://github.com/SciML/DifferentialEquations.jl) but mainly focusing on ODE (ordinary differential equations).
 - The construction of nested environments are based on [ComponentArrays.jl](https://github.com/jonniedie/ComponentArrays.jl).
 - The structure of the resulting data from simulation result is based on [DataFrames.jl](https://github.com/JuliaData/DataFrames.jl).
@@ -24,37 +24,72 @@ If you want more functionality, please feel free to report an issue!
 Also, some predefined environments are provided for reusability (i.e., environment zoo).
 Take a look at `src/environments`.
 - Examples include
-    - **basics**
-        - (Linear system) `LinearSystemEnv`
-        - (Reference model) `ReferenceModelEnv`
-        - (Nonlinear system) `TwoDimensionalNonlinearPolynomialEnv`
-            - [T. Bian and Z.-P. Jiang, “Value Iteration, Adaptive Dynamic Programming, and Optimal Control of Nonlinear Systems,” in 2016 IEEE 55th Conference on Decision and Control (CDC), Las Vegas, NV, USA, Dec. 2016, pp. 3375–3380. doi: 10.1109/CDC.2016.7798777.](https://ieeexplore.ieee.org/document/7798777)
-        - (Multiple Envs) `MultipleEnvs` for multi-agent simulation
-    - **multicopters**
-        - (Quadcopter) `IslamQuadcopterEnv`, `GoodarziQuadcopterEnv`
-        - (Hexacopter) `LeeHexacopterEnv`
-    - **allocator** (control allocation)
-        - (Moore-Penrose pseudo inverse control allocation) `PseudoInverseAllocator`
-    - **controllers**
-        - (Linear quadratic regulator) `LQR`
-        - (Proportional-Integral-Derivative controller) `PID`
-            - Note that the derivative term is obtained via second-order filter.
-    - **integrated_environments**
-        - (Backstepping Position Controller + Static Allocator + Multicopter) `BacksteppingPositionController_StaticAllocator_MulticopterEnv`
-            - For example, `BacksteppingPositionControllerEnv` (backstepping position controller) + `PseudoInverseAllocator` (pseudo-inverse allocator, a static allocator) + `LeeHexacopterEnv` (hexacopter, a multicopter)
-        - See `src/environments/integrated_environments`.
+
+<details>
+<summary>basics</summary>
+
+- (Linear system) `LinearSystemEnv`
+- (Reference model) `ReferenceModelEnv`
+- (Nonlinear system) `TwoDimensionalNonlinearPolynomialEnv`
+    - [T. Bian and Z.-P. Jiang, “Value Iteration, Adaptive Dynamic Programming, and Optimal Control of Nonlinear Systems,” in 2016 IEEE 55th Conference on Decision and Control (CDC), Las Vegas, NV, USA, Dec. 2016, pp. 3375–3380. doi: 10.1109/CDC.2016.7798777.](https://ieeexplore.ieee.org/document/7798777)
+- (Multiple Envs) `MultipleEnvs` for multi-agent simulation
+
+</details>
+
+<details>
+<summary>multicopters</summary>
+
+- (Hexacopter) `LeeHexacopterEnv`
+- (Quadcopter) `IslamQuadcopterEnv`, `GoodarziQuadcopterEnv`
+
+</details>
+
+<details>
+<summary>multicopters</summary>
+
+- (Hexacopter) `LeeHexacopterEnv` (**currently maintained**)
+- (Quadcopter) `IslamQuadcopterEnv`, `GoodarziQuadcopterEnv`
+
+</details>
+
+<details>
+<summary>allocators</summary>
+
+- (Moore-Penrose pseudo inverse control allocation) `PseudoInverseAllocator`
+
+</details>
+
+<details>
+<summary>controllers</summary>
+
+- (Linear quadratic regulator) `LQR`
+- (Proportional-Integral-Derivative controller) `PID`
+    - Note that the derivative term is obtained via second-order filter.
+- (Pure proportional navigation guidance) `PPNG`
+
+</details>
+
+<details>
+<summary>integrated_environments</summary>
+
+- (Backstepping Position Controller + Static Allocator + Multicopter) `BacksteppingPositionController_StaticAllocator_MulticopterEnv`
+    - For example, `BacksteppingPositionControllerEnv` (backstepping position controller) + `PseudoInverseAllocator` (pseudo-inverse allocator, a static allocator) + `LeeHexacopterEnv` (hexacopter, a multicopter)
+- See `src/environments/integrated_environments`.
+
+</details>
+
 
 ### Utilities
 - Some utilities are also provided for dynamical system simulation.
 - Examples include
+    - **Simulation rendering**  (currently maintained)
+        - (Multicopter rendering) See `src/environments/multicopters/render.jl`.
     - **Function approximator**
         - (Approximator) `LinearApproximator`, `PolynomialBasis`
     - **Data manipulation for machine learning**
         - (Split data) `partitionTrainTest`
     - **Reference trajectory generator**
         - (Command generator) `HelixCommandGenerator`, `PowerLoop`
-    - **Simulation rendering**
-        - (Multicopter rendering) See `src/environments/multicopters/render.jl`.
 
 ## APIs
 Main APIs are provided in `src/APIs`.
@@ -93,8 +128,6 @@ compatible with [DifferentialEquations.jl](https://github.com/SciML/Differential
     ```
 - (Optional) `Params(env::AbstractEnv)`: returns parameters of given environment `env`.
 
-Note that these interfaces are also provided for some **integrated environments**, e.g., `State(system, controller)`.
-
 ### Simulation, logging, and data saving & loading
 **Main APIs**
 - `sim`
@@ -103,7 +136,7 @@ Note that these interfaces are also provided for some **integrated environments*
 - `apply_inputs(func; kwargs...)`
     - By using this, user can easily apply external inputs into environments. It is borrowed from [an MRAC example of ComponentArrays.jl](https://jonniedie.github.io/ComponentArrays.jl/stable/examples/adaptive_control/) and extended to be compatible with [SimulationLogger.jl](https://github.com/JinraeKim/SimulationLogger.jl).
     - (Limitations) for now, dynamical equations wrapped by `apply_inputs` will automatically generate logging function (even without `@Loggable`). In this case, all data will be an array of empty `NamedTuple`.
-- Macros for logging data: `@Loggable`, `@log`, `@onlylog`, `@nested_log`
+- Macros for logging data: `@Loggable`, `@log`, `@onlylog`, `@nested_log`, `@nested_onlylog`.
     - For more details, see [SimulationLogger.jl](https://github.com/JinraeKim/SimulationLogger.jl).
 - Example code
     ```julia
@@ -321,9 +354,14 @@ julia> test()
 - For an example of **continuous-time integral reinforcement learning for linear system (CT-IRL)**, take a look at `test/continuous_time_linear_irl.jl`.
     - [F. L. Lewis, D. Vrabie, and K. G. Vamvoudakis, “Reinforcement Learning and Feedback Control: Using Natural Decision Methods to Design Optimal Adaptive Controllers,” IEEE Control Syst., vol. 32, no. 6, pp. 76–105, Dec. 2012, doi: 10.1109/MCS.2012.2214134.](https://d1wqtxts1xzle7.cloudfront.net/55631024/06315769.pdf?1516876343=&response-content-disposition=inline%3B+filename%3DUsing_natUral_decision_methods_to_design.pdf&Expires=1623395195&Signature=LP3BHxKg2mtIkqNFrR2C3NOOfxIxK6efgoHlXKFMH~IPjBL-Mi9CydRIhrqXQKOugpEaNAQR76H00mcz11ZoUbtTUUowVVWhYGk3iMK8aR~lUxO9b0A47iiJohLr6YpWhGm5AAgEDcKXa8DKFTAheBjGqTgFjL1Qm23MXlSXjWwR7DRhk5QtfiKjOQephv6c50CLinZxbz-VygOFTxuelbLcphrxuszszCVLZtS0K0sH~3f9RZkIJcNKqe8t18ghkHxfSZTapae0AZSslGaGLjBlbqF9RSCc04eQZorZmHxvrYd4CZ0Zac7Hn3M3--Qe81tL-32ULl~XLYk1Q5Ev4A__&Key-Pair-Id=APKAJLOHF5GGSLRBV4ZA)
 
-### Nonlinear control
+### Multicopter position control
 - For an example of **backstepping position tracking controller for quadcopters**,
-visit [FaultTolerantControl.jl](https://github.com/JinraeKim/FaultTolerantControl.jl).
+see `test/environments/integrated_environments/backstepping_position_controller_static_allocator_multicopter_env.jl`.
+
+### Missile guidance with interactive visualisation
+- See `test/pluto_guidance.jl` (thanks to @nhcho91).
+
+![Alt Text](./figures/missile_guidance.gif)
 
 ### Multicopter rendering
 - See `test/render.jl`.
@@ -337,7 +375,7 @@ visit [FaultTolerantControl.jl](https://github.com/JinraeKim/FaultTolerantContro
 
 </details>
 
-### Scientific machine learning
-- [ ] Add examples for newbies!
-- For an example usage of [Flux.jl](https://github.com/FluxML/Flux.jl), see `main/flux_example.jl`.
-- For an example code of an imitation learning algorithm, behavioural cloning, see `main/behavioural_cloning.jl`.
+<!-- ### Scientific machine learning -->
+<!-- - [ ] Add examples for newbies! -->
+<!-- - For an example usage of [Flux.jl](https://github.com/FluxML/Flux.jl), see `main/flux_example.jl`. -->
+<!-- - For an example code of an imitation learning algorithm, behavioural cloning, see `main/behavioural_cloning.jl`. -->
