@@ -43,5 +43,3 @@ function main()
     plot_figures!(fig, df, pos_cmd_func)
     display(fig)
 end
-
-main()
