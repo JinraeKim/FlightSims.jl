@@ -7,6 +7,7 @@ struct BPNG <: AbstractBPNG
     gamma_f_d
     sigma_M_lim
     A_M_max
+    n
 end
 
 function nzero_sign(x)
@@ -19,7 +20,7 @@ function nzero_sign(x)
 end
 
 function Command(guidance::BPNG)
-    @unpack N, alpha, delta, gamma_f_d, sigma_M_lim, A_M_max = guidance
+    @unpack N, alpha, delta, gamma_f_d, sigma_M_lim, A_M_max, n = guidance
     return function (p_M, v_M, p_T, v_T)
         r       = norm(p_T-p_M)
         lambda  = atan(p_T[2]-p_M[2], p_T[1]-p_M[1])   
@@ -42,7 +43,7 @@ function Command(guidance::BPNG)
             e_gamma_f_fbk = nzero_sign(e_gamma_f)*abs(e_gamma_f)^alpha
         end
 
-        K_r     = N - 1 + delta;
+        K_r     = (N - 1 + delta) * (1 + r / 10E3)^n ;
         K_eta   = 1 + 9 * (1 - (abs(eta / eta_lim))^10);
         u_aug = - K_r * K_eta / r * e_gamma_f_fbk
         A_M = N * V_M * lambda_dot - u_aug * V_M^2 * cos(sigma_M)

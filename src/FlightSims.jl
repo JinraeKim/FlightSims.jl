@@ -45,6 +45,7 @@ export AbstractApproximator, LinearApproximator
 export PolynomialBasis, euler
 export PowerLoop, HelixCommandGenerator
 export ned2enu, enu2ned
+export fig_print
 
 
 include("APIs/APIs.jl")
