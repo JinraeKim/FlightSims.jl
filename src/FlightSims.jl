@@ -26,12 +26,13 @@ export sim, apply_inputs, Command
 export TwoDimensionalNonlinearPolynomialEnv, LinearSystemEnv, ReferenceModelEnv, MultipleEnvs
 ## controllers
 export LQR, PID, BacksteppingPositionControllerEnv
-export PPNG
+export PPNG, BPNG
 ## multicopters
 export MulticopterEnv
 export QuadcopterEnv, IslamQuadcopterEnv, GoodarziQuadcopterEnv
 export HexacopterEnv, LeeHexacopterEnv
 ## missiles
+export PointMass2DMissile, PursuerEvador2DMissile
 export PointMass3DMissile, PursuerEvador3DMissile
 # control allocator
 export AbstractAllocator, StaticAllocator
