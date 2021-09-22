@@ -10,24 +10,17 @@ For airframe references, see https://docs.px4.io/master/en/airframes/airframe_re
 """
 function plot!(fig::Plots.Plot, multicopter::MulticopterEnv, state;
         xlabel="E (m)", ylabel="N (m)", zlabel="U (m)",
-        xlim=(-1, 1), ylim=(-1, 1), zlim=(-1, 1),
         kwargs...)
     @unpack l = multicopter
     airframe_ref = airframe_reference(multicopter)
     @unpack p, v, R, ω = state
     p_enu = ned2enu(p)
-    if (p_enu[1] < xlim[1] || p_enu[1] > xlim[2] ||
-        p_enu[2] < ylim[1] || p_enu[2] > ylim[2] ||
-        p_enu[3] < zlim[1] || p_enu[3] > zlim[2])
-        @warn "Your multicopter is out of the scope"
-    end
     body_n = R'*[1, 0, 0]  # B to I
     body_e = R'*[0, 1, 0]  # B to I
     body_u = R'*[0, 0, -1]  # B to I
     # plotting
     plot!(fig;
           xlabel=xlabel, ylabel=ylabel, zlabel=zlabel,
-          xlim=xlim, ylim=ylim, zlim=zlim,
           kwargs...)
     plot_fuselage!(fig, p, R, l, body_n, body_e)
     plot_rotors!(fig, p, R, l, l/2.5, body_u, airframe_ref)
