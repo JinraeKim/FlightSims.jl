@@ -1,26 +1,20 @@
 module FlightSims
 
-# using Debugger  # tmp
 using Reexport
+@reexport using FSimBase
+using OrdinaryDiffEq: Tsit5  # default solver
 using Plots
-using DifferentialEquations
-using SimulationLogger
+
 using ComponentArrays, UnPack
-using JLD2, FileIO, DataFrames
-using NamedTupleTools
-using LinearAlgebra, Transducers, Random, ForwardDiff, ReferenceFrameRotations
-using MatrixEquations
-using Combinatorics: multiexponents
-using NLopt
-using NumericalIntegration: integrate
-using DynamicPolynomials: @polyvar, PolyVar, AbstractPolynomialLike
-using Flux
-using Flux.Data: DataLoader
+using LinearAlgebra, MatrixEquations, ReferenceFrameRotations, ForwardDiff  # dependencies of hexacopter position control
+# using Random
+# using Combinatorics: multiexponents
+# using NLopt
+# using NumericalIntegration: integrate
+# using DynamicPolynomials: @polyvar, PolyVar, AbstractPolynomialLike
 
 ### APIs
-export AbstractEnv, State, Params, Dynamics, Dynamics!
-export sim, apply_inputs, Command
-@reexport using SimulationLogger
+export sim
 ### envs
 ## basics
 export TwoDimensionalNonlinearPolynomialEnv, LinearSystemEnv, ReferenceModelEnv, MultipleEnvs
@@ -37,11 +31,11 @@ export PointMass3DMissile, PursuerEvador3DMissile
 export AbstractAllocator, StaticAllocator
 export PseudoInverseAllocator
 ### algorithms
-# export command
-export CTValueIterationADP, BehaviouralCloning, CTLinearIRL
-# utils
-export AbstractApproximator, LinearApproximator
-export PolynomialBasis, euler
+# # export command
+# export CTValueIterationADP, BehaviouralCloning, CTLinearIRL
+# # utils
+# export AbstractApproximator, LinearApproximator
+# export PolynomialBasis
 export PowerLoop, HelixCommandGenerator
 export ned2enu, enu2ned
 
@@ -49,7 +43,7 @@ export ned2enu, enu2ned
 include("APIs/APIs.jl")
 include("utils/utils.jl")
 include("environments/environments.jl")
-include("algorithms/algorithms.jl")
+# include("algorithms/algorithms.jl")
 include("render.jl")
 
 

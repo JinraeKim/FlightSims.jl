@@ -7,7 +7,7 @@ using Test
 using Transducers
 
 
-function test()
+function main()
     # linear system
     A = [0 1;
          0 0]  # 2 x 2
