@@ -1,19 +1,85 @@
 # FlightSims
 [FlightSims.jl](https://github.com/JinraeKim/FlightSims.jl) is a general-purpose numerical simulator supporting nested environments and convenient macro-based data logging.
+
+### NOTICE: Breaking changes
+- Since v0.9.0, the core functionality of FlightSims.jl has been detached as [FSimBase.jl](https://github.com/JinraeKim/FSimBase.jl), which also works alone!
+- Existing sub directories, e.g., `algorithms`, `utils/approximators` have been deprecated. They will be detached as new packages if necessary.
+
 ## Road map
-- [x] ~~an easy routine for saving and loading data~~ see [DrWatson.jl](https://github.com/JuliaDynamics/DrWatson.jl) for scientific projects.
 - [ ] ROS2 compatibility (not urgent)
 
-## Related packages
-### Highly related packages
-- [SimulationLogger.jl](https://github.com/JinraeKim/SimulationLogger.jl): A convenient logging tools compatible with [DifferentialEquations.jl](https://github.com/SciML/DifferentialEquations.jl).
-- [FaultTolerantControl.jl](https://github.com/JinraeKim/FaultTolerantControl.jl):
-fault tolerant control (FTC) with various models and algorithms of faults, fault detection and isolation (FDI), and reconfiguration (R) control.
-### Useful packages
-- It is highly based on [DifferentialEquations.jl](https://github.com/SciML/DifferentialEquations.jl) but mainly focusing on ODE (ordinary differential equations).
-- The construction of nested environments are based on [ComponentArrays.jl](https://github.com/jonniedie/ComponentArrays.jl).
-- The structure of the resulting data from simulation result is based on [DataFrames.jl](https://github.com/JuliaData/DataFrames.jl).
-- Logging tool is based on [SimulationLogger.jl](https://github.com/JinraeKim/SimulationLogger.jl).
+
+## APIs
+Main APIs are provided in `src/APIs`.
+
+### Make an environment
+- `AbstractEnv`: an abstract type for user-defined and predefined environments.
+In general, environments is a sub-type of `AbstractEnv`.
+    ```julia
+    struct LinearSystemEnv <: AbstractEnv
+        A
+        B
+    end
+    ```
+- `State(env::AbstractEnv)`: return a function that produces structured states.
+    ```julia
+    function State(env::LinearSystemEnv)
+        @unpack B = env
+        n = size(B)[1]
+        return function (x)
+            @assert length(x) == n
+            x
+        end
+    end
+    ```
+- `Dynamics!(env::AbstractEnv)`, `Dynamics(env::AbstractEnv)`: return a function that maps in-place (**recommended**) and out-of-place dynamics (resp.),
+compatible with [DifferentialEquations.jl](https://github.com/SciML/DifferentialEquations.jl). User can extend these methods or simply define other methods.
+    ```julia
+    function Dynamics!(env::LinearSystemEnv)
+        @unpack A, B = env
+        @Loggable function dynamics!(dx, x, p, t; u)
+            @log state = x
+            @log input = u
+            dx .= A*x + B*u
+        end
+    end
+    ```
+- (Optional) `Params(env::AbstractEnv)`: returns parameters of given environment `env`.
+
+### Simulation, logging, and data saving & loading
+**Main APIs**
+- `sim`
+    - return `prob::DEProblem` and `df::DataFrame`.
+    - For now, only [**in-place** method (iip)](https://diffeq.sciml.ai/stable/basics/problem/#In-place-vs-Out-of-Place-Function-Definition-Forms) is supported.
+- `apply_inputs(func; kwargs...)`
+    - By using this, user can easily apply external inputs into environments. It is borrowed from [an MRAC example of ComponentArrays.jl](https://jonniedie.github.io/ComponentArrays.jl/stable/examples/adaptive_control/) and extended to be compatible with [SimulationLogger.jl](https://github.com/JinraeKim/SimulationLogger.jl).
+    - (Limitations) for now, dynamical equations wrapped by `apply_inputs` will automatically generate logging function (even without `@Loggable`). In this case, all data will be an array of empty `NamedTuple`.
+- Macros for logging data: `@Loggable`, `@log`, `@onlylog`, `@nested_log`, `@nested_onlylog`.
+    - For more details, see [SimulationLogger.jl](https://github.com/JinraeKim/SimulationLogger.jl).
+- Example code
+    ```julia
+    A = [0 1;
+         0 0]  # 2 x 2
+    B = [0 1]'  # 2 x 1
+    n, m = 2, 1
+    env = LinearSystemEnv(A, B)  # exported from FlightSims
+    x0 = State(env)([1.0, 2.0])
+    # optimal control
+    Q = Matrix(I, n, n)
+    R = Matrix(I, m, m)
+    lqr = LQR(A, B, Q, R)  # exported from FlightSims
+    u_lqr = FS.OptimalController(lqr)  # (x, p, t) -> -K*x; minimise J = ∫ (x' Q x + u' R u) from 0 to ∞
+
+    # simulation
+    tf = 10.0
+    Δt = 0.01
+    prob, df = sim(
+                   x0,  # initial condition
+                   apply_inputs(dynamics!; u=(x, p, t) -> u_lqr(x));
+                   tf=tf,  # final time
+                   savestep=Δt,
+                  )
+    ```
 
 ## Features
 If you want more functionality, please feel free to report an issue!
@@ -92,179 +158,17 @@ Take a look at `src/environments`.
 - Examples include
     - **Simulation rendering**  (currently maintained)
         - (Multicopter rendering) See `src/environments/multicopters/render.jl`.
-    - **Function approximator**
-        - (Approximator) `LinearApproximator`, `PolynomialBasis`
+    <!-- - **Function approximator** -->
+    <!--     - (Approximator) `LinearApproximator`, `PolynomialBasis` -->
     - **Data manipulation for machine learning**
         - (Split data) `partitionTrainTest`
     - **Reference trajectory generator**
         - (Command generator) `HelixCommandGenerator`, `PowerLoop`
 
-## APIs
-Main APIs are provided in `src/APIs`.
-
-### Make an environment
-- `AbstractEnv`: an abstract type for user-defined and predefined environments.
-In general, environments is a sub-type of `AbstractEnv`.
-    ```julia
-    struct LinearSystemEnv <: AbstractEnv
-        A
-        B
-    end
-    ```
-- `State(env::AbstractEnv)`: return a function that produces structured states.
-    ```julia
-    function State(env::LinearSystemEnv)
-        @unpack B = env
-        n = size(B)[1]
-        return function (x)
-            @assert length(x) == n
-            x
-        end
-    end
-    ```
-- `Dynamics!(env::AbstractEnv)`, `Dynamics(env::AbstractEnv)`: return a function that maps in-place (**recommended**) and out-of-place dynamics (resp.),
-compatible with [DifferentialEquations.jl](https://github.com/SciML/DifferentialEquations.jl). User can extend these methods or simply define other methods.
-    ```julia
-    function Dynamics!(env::LinearSystemEnv)
-        @unpack A, B = env
-        @Loggable function dynamics!(dx, x, p, t; u)
-            @log state = x
-            @log input = u
-            dx .= A*x + B*u
-        end
-    end
-    ```
-- (Optional) `Params(env::AbstractEnv)`: returns parameters of given environment `env`.
-
-### Simulation, logging, and data saving & loading
-**Main APIs**
-- `sim`
-    - return `prob::DEProblem` and `df::DataFrame`.
-    - For now, only [**in-place** method (iip)](https://diffeq.sciml.ai/stable/basics/problem/#In-place-vs-Out-of-Place-Function-Definition-Forms) is supported.
-- `apply_inputs(func; kwargs...)`
-    - By using this, user can easily apply external inputs into environments. It is borrowed from [an MRAC example of ComponentArrays.jl](https://jonniedie.github.io/ComponentArrays.jl/stable/examples/adaptive_control/) and extended to be compatible with [SimulationLogger.jl](https://github.com/JinraeKim/SimulationLogger.jl).
-    - (Limitations) for now, dynamical equations wrapped by `apply_inputs` will automatically generate logging function (even without `@Loggable`). In this case, all data will be an array of empty `NamedTuple`.
-- Macros for logging data: `@Loggable`, `@log`, `@onlylog`, `@nested_log`, `@nested_onlylog`.
-    - For more details, see [SimulationLogger.jl](https://github.com/JinraeKim/SimulationLogger.jl).
-- Example code
-    ```julia
-    A = [0 1;
-         0 0]  # 2 x 2
-    B = [0 1]'  # 2 x 1
-    n, m = 2, 1
-    env = LinearSystemEnv(A, B)  # exported from FlightSims
-    x0 = State(env)([1.0, 2.0])
-    # optimal control
-    Q = Matrix(I, n, n)
-    R = Matrix(I, m, m)
-    lqr = LQR(A, B, Q, R)  # exported from FlightSims
-    u_lqr = FS.OptimalController(lqr)  # (x, p, t) -> -K*x; minimise J = ∫ (x' Q x + u' R u) from 0 to ∞
-
-    # simulation
-    tf = 10.0
-    Δt = 0.01
-    prob, df = sim(
-                   x0,  # initial condition
-                   apply_inputs(dynamics!; u=(x, p, t) -> u_lqr(x));
-                   tf=tf,  # final time
-                   savestep=Δt,
-                  )
-    ```
-
 ## Examples
-### Basic: toy example
-- For an introductory example of FlightSims.jl,
-see the following example code (`test/toy_example.jl`).
-
-```julia
-using FlightSims
-const FS = FlightSims
-
-using LinearAlgebra  # for I, e.g., Matrix(I, n, n)
-using ComponentArrays
-using UnPack
-using Transducers
-using Plots
-using DifferentialEquations  # for callbacks
-
-
-struct MyEnv <: AbstractEnv  # AbstractEnv exported from FS
-    a
-    b
-end
-
-"""
-FlightSims recommends you to use closures for State and Dynamics!. For more details, see https://docs.julialang.org/en/v1/devdocs/functions/.
-"""
-function State(env::MyEnv)
-    return function (x1::Number, x2::Number)
-        ComponentArray(x1=x1, x2=x2)
-    end
-end
-
-function Dynamics!(env::MyEnv)
-    @unpack a, b = env  # @unpack is very useful!
-    @Loggable function dynamics!(dx, x, p, t; u)  # `Loggable` makes it loggable via SimulationLogger.jl (imported in FS)
-        @unpack x1, x2 = x
-        @log x1  # to log x1
-        @log x2  # to log x2
-        dx.x1 = a*x2
-        dx.x2 = b*u
-    end
-end
-
-function my_controller(x, p, t)
-    @unpack x1, x2 = x
-    -(x1+x2)
-end
-
-
-function main()
-    n = 2
-    m = 1
-    a, b = 1, 1
-    A = -Matrix(I, n, n)
-    B = Matrix(I, m, m)
-    env = MyEnv(a, b)
-    tf = 10.0
-    Δt = 0.01
-    # callbacks
-    function condition(u, t, integrator)  # DiffEq.jl convention
-        @unpack x1, x2 = u
-        x1 - 0  # i.e., it stops when x1 = 0
-    end
-    affect!(integrator) = terminate!(integrator)  # See DiffEq.jl documentation
-    cb_diverge = ContinuousCallback(condition, affect!)
-    cb = CallbackSet(cb_diverge,)  # useful for multiple callbacks
-    x10, x20 = 10.0, 0.0
-    x0 = State(env)(x10, x20)
-    # prob: DE problem, df: DataFrame
-    @time prob, df = sim(
-                         x0,  # initial condition
-                         apply_inputs(Dynamics!(env); u=my_controller);  # dynamics!; apply_inputs is exported from FS and is so useful for systems with inputs
-                         tf=10.0,
-                         savestep=Δt,  # savestep is NOT simulation step
-                         callback=cb,
-                        )  # sim is exported from FS
-    ts = df.time
-    x1s = df.sol |> Map(datum -> datum.x1) |> collect
-    x2s = df.sol |> Map(datum -> datum.x2) |> collect
-    # plot
-    p_x1 = plot(ts, x1s;
-                label="x1",
-               )
-    p_x2 = plot(ts, x2s;
-                label="x2",
-               )
-    p_x = plot(p_x1, p_x2, layout=(2, 1))
-    # save
-    dir_log = "figures"
-    mkpath(dir_log)
-    savefig(p_x, joinpath(dir_log, "toy_example.png"))
-    display(p_x)
-end
-```
-![ex_screenshot](./figures/toy_example.png)
+### Basic: minimal examples
+- For minimal examples of FlightSims.jl,
+see [FSimBase.jl](https://github.com/JinraeKim/FSimBase.jl).
 
 ### Optimal control and reinforcement learning
 - For an example of **infinite-horizon continuous-time linear quadratic regulator (LQR)**,
@@ -383,7 +287,16 @@ see `test/environments/integrated_environments/backstepping_position_controller_
 
 </details>
 
-<!-- ### Scientific machine learning -->
-<!-- - [ ] Add examples for newbies! -->
-<!-- - For an example usage of [Flux.jl](https://github.com/FluxML/Flux.jl), see `main/flux_example.jl`. -->
-<!-- - For an example code of an imitation learning algorithm, behavioural cloning, see `main/behavioural_cloning.jl`. -->
+
+## Related packages
+### Dependencies
+- [FSimBase.jl](https://github.com/JinraeKim/FSimBase.jl) is
+the lightweight base package for numerical simulation supporting nested dynamical systems and macro-based data logger. For more functionality, see FlightSims.jl.
+### Packages using FlightSims.jl
+- [FaultTolerantControl.jl](https://github.com/JinraeKim/FaultTolerantControl.jl):
+fault tolerant control (FTC) with various models and algorithms of faults, fault detection and isolation (FDI), and reconfiguration (R) control.
+### Useful packages
+- It is highly based on [DifferentialEquations.jl](https://github.com/SciML/DifferentialEquations.jl) but mainly focusing on ODE (ordinary differential equations).
+- The construction of nested environments are based on [ComponentArrays.jl](https://github.com/jonniedie/ComponentArrays.jl).
+- The structure of the resulting data from simulation result is based on [DataFrames.jl](https://github.com/JuliaData/DataFrames.jl).
+- Logging tool is based on [SimulationLogger.jl](https://github.com/JinraeKim/SimulationLogger.jl).
