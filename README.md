@@ -295,6 +295,9 @@ the lightweight base package for numerical simulation supporting nested dynamica
 ### Packages using FlightSims.jl
 - [FaultTolerantControl.jl](https://github.com/JinraeKim/FaultTolerantControl.jl):
 fault tolerant control (FTC) with various models and algorithms of faults, fault detection and isolation (FDI), and reconfiguration (R) control.
+- [FlightGNC.jl](https://github.com/nhcho91/FlightGNC.jl) ([@nhcho91](https://github.com/nhcho91)):
+FlightGNC.jl is a Julia package containing GNC algorithms for autonomous systems. The functionalities for numerical simulation are inherited from FlightSims.jl.
+
 ### Useful packages
 - It is highly based on [DifferentialEquations.jl](https://github.com/SciML/DifferentialEquations.jl) but mainly focusing on ODE (ordinary differential equations).
 - The construction of nested environments are based on [ComponentArrays.jl](https://github.com/jonniedie/ComponentArrays.jl).
