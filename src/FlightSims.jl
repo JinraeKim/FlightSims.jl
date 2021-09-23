@@ -7,6 +7,7 @@ using Plots
 
 using ComponentArrays, UnPack
 using LinearAlgebra, MatrixEquations, ReferenceFrameRotations, ForwardDiff  # dependencies of hexacopter position control
+using Transducers
 # using Random
 # using Combinatorics: multiexponents
 # using NLopt
