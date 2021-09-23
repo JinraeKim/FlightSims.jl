@@ -3,7 +3,7 @@
 
 ### NOTICE: Breaking changes
 - Since v0.9.0, the core functionality of FlightSims.jl has been detached as [FSimBase.jl](https://github.com/JinraeKim/FSimBase.jl), which also works alone!
-- Existing sub directories, e.g., `algorithms`, `utils/approximators` have been deprecated. They will be detached as new packages if necessary.
+- Some sub-directories, e.g., `src/algorithms`, `src/utils/approximators` have been deprecated. They will be detached as new packages if necessary.
 
 ## Road map
 - [ ] ROS2 compatibility (not urgent)
