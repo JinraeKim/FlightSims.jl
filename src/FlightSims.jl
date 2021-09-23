@@ -3,7 +3,7 @@ module FlightSims
 using Reexport
 @reexport using FSimBase
 using OrdinaryDiffEq: Tsit5  # default solver
-using Plots
+# using Plots
 
 using ComponentArrays, UnPack
 using LinearAlgebra, MatrixEquations, ReferenceFrameRotations, ForwardDiff  # dependencies of hexacopter position control
@@ -45,7 +45,7 @@ include("APIs/APIs.jl")
 include("utils/utils.jl")
 include("environments/environments.jl")
 # include("algorithms/algorithms.jl")
-include("render.jl")
+# include("render.jl")
 
 
 end
