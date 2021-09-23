@@ -227,3 +227,15 @@ FlightGNC.jl is a Julia package containing GNC algorithms for autonomous systems
 - The construction of nested environments are based on [ComponentArrays.jl](https://github.com/jonniedie/ComponentArrays.jl).
 - The structure of the resulting data from simulation result is based on [DataFrames.jl](https://github.com/JuliaData/DataFrames.jl).
 - Logging tool is based on [SimulationLogger.jl](https://github.com/JinraeKim/SimulationLogger.jl).
+
+## Trouble shootings
+### `sim` produces an empty Dataframe
+- Please check whether you put `@Loggable` in front of the dynamics function in a proper way, e.g.,
+```julia
+function Dynamics!(env::MyEnv)
+    @Loggable function dynamics!(dx, x, p, t; u)
+    # return @Loggable dynamics!(dx, x, p, t; u)  # This would not work
+        # blahblah...
+    end
+end
+```
