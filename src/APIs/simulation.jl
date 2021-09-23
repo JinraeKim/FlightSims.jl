@@ -7,8 +7,8 @@ function sim(state0, dyn, p=nothing;
         solver=Tsit5(),
         kwargs...
     )
-    FSimBase._sim(state0, dyn, p;
-                  solver=solver,
-                  kwargs...,
-                 )
+    FSimBase.sim(state0, dyn, p;
+                 solver=solver,
+                 kwargs...,
+                )
 end
