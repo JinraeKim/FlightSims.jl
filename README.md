@@ -3,6 +3,7 @@
 
 ### NOTICE: Breaking changes
 - Since v0.9.0, the core functionality of FlightSims.jl has been detached as [FSimBase.jl](https://github.com/JinraeKim/FSimBase.jl), which also works alone!
+- Since v0.9.0, the plotting tools for predefined environments has been detached as [FSimPlots.jl](https://github.com/JinraeKim/FSimPlots.jl).
 - Some sub-directories, e.g., `src/algorithms`, `src/utils/approximators` have been deprecated. They will be detached as new packages if necessary.
 
 ## Road map
@@ -200,16 +201,9 @@ see `test/environments/integrated_environments/backstepping_position_controller_
 ![Alt Text](./figures/missile_guidance.gif)
 
 ### Multicopter rendering
-- See `test/render.jl`.
+- For more details, see [FSimPlots.jl](https://github.com/JinraeKim/FSimPlots.jl).
 
 ![Alt Text](./figures/anim.gif)
-<details>
-<summary>Visualisation of hexacopter including reference frame and topview</summary>
-
-![ex_screenshot](./figures/hexacopter_description.png)
-![ex_screenshot](./figures/topview.png)
-
-</details>
 
 
 ## Related packages
