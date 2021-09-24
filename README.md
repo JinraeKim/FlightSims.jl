@@ -7,6 +7,7 @@
 - Some sub-directories, e.g., `src/algorithms`, `src/utils/approximators` have been deprecated. They will be detached as new packages if necessary.
 
 ## Road map
+- [ ] Make sub-packages such as [FSimBase.jl](https://github.com/JinraeKim/FSimBase.jl)
 - [ ] ROS2 compatibility (not urgent)
 
 
