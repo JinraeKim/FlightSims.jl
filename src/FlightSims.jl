@@ -2,7 +2,6 @@ module FlightSims
 
 using Reexport
 @reexport using FSimBase
-@reexport using FSimPlots
 using OrdinaryDiffEq: Tsit5  # default solver
 
 using ComponentArrays, UnPack
