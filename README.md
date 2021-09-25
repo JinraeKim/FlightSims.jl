@@ -18,75 +18,19 @@ If you want more functionality, please feel free to report an issue!
 ### Nested Environments and Zoo
 - Environments usually stand for **dynamical systems** but also include **other utilities**, for example, controllers.
 - One can generate user-defined nested environments using provided APIs.
-Also, some predefined environments are provided for reusability (i.e., environment zoo).
-Take a look at `src/environments`.
-- Examples include
-
-    <details>
-    <summary>basics</summary>
-
-    - (Linear system) `LinearSystemEnv`
-    - (Reference model) `ReferenceModelEnv`
-    - (Nonlinear system) `TwoDimensionalNonlinearPolynomialEnv`
-        - [T. Bian and Z.-P. Jiang, “Value Iteration, Adaptive Dynamic Programming, and Optimal Control of Nonlinear Systems,” in 2016 IEEE 55th Conference on Decision and Control (CDC), Las Vegas, NV, USA, Dec. 2016, pp. 3375–3380. doi: 10.1109/CDC.2016.7798777.](https://ieeexplore.ieee.org/document/7798777)
-    - (Multiple Envs) `MultipleEnvs` for multi-agent simulation
-
-    </details>
-
-    <details>
-    <summary>multicopters</summary>
-
-    - (Hexacopter) `LeeHexacopterEnv` (**currently maintained**)
-    - (Quadcopter) `IslamQuadcopterEnv`, `GoodarziQuadcopterEnv`
-
-    </details>
-
-    <details>
-    <summary>allocators</summary>
-
-    - (Moore-Penrose pseudo inverse control allocation) `PseudoInverseAllocator`
-
-    </details>
-
-    <details>
-    <summary>controllers</summary>
-
-    - (Linear quadratic regulator) `LQR`
-    - (Proportional-Integral-Derivative controller) `PID`
-        - Note that the derivative term is obtained via second-order filter.
-    - (Pure proportional navigation guidance) `PPNG`
-
-    </details>
-
-    <details>
-    <summary>integrated_environments</summary>
-
-    - (Backstepping Position Controller + Static Allocator + Multicopter) `BacksteppingPositionController_StaticAllocator_MulticopterEnv`
-        - For example, `BacksteppingPositionControllerEnv` (backstepping position controller) + `PseudoInverseAllocator` (pseudo-inverse allocator, a static allocator) + `LeeHexacopterEnv` (hexacopter, a multicopter)
-    - See `src/environments/integrated_environments`.
-
-    </details>
-
-    <details>
-    <summary>missiles</summary>
-
-    - (point-mass simple missile in 3D space) `PointMass3DMissile`
-    - (pursuer vs evador in 3D space) `PursuerEvador3DMissile`
-
-    </details>
-
+Also, some predefined environments are provided for reusability.
+Take a look at [FSimZoo.jl](https://github.com/JinraeKim/FSimZoo.jl).
 
 ### Utilities
 - Some utilities are also provided for dynamical system simulation.
 - Examples include
-    - **Simulation rendering**  (currently maintained)
-        - (Multicopter rendering) See `src/environments/multicopters/render.jl`.
+    - **Simulation rendering**
+        - See [FSimPlots.jl](https://github.com/JinraeKim/FSimPlots.jl).
     <!-- - **Function approximator** -->
     <!--     - (Approximator) `LinearApproximator`, `PolynomialBasis` -->
     - **Data manipulation for machine learning**
         - (Split data) `partitionTrainTest`
-    - **Reference trajectory generator**
-        - (Command generator) `HelixCommandGenerator`, `PowerLoop`
+
 
 ## Examples
 ### Basic: minimal examples
@@ -205,11 +149,13 @@ see `test/environments/integrated_environments/backstepping_position_controller_
 
 
 ## Related packages
-### Dependencies
+### FSim family
 - [FSimBase.jl](https://github.com/JinraeKim/FSimBase.jl) is
 the lightweight base package for numerical simulation supporting nested dynamical systems and macro-based data logger. For more functionality, see FlightSims.jl.
 - [FSimZoo.jl](https://github.com/JinraeKim/FSimZoo.jl)
 contains predefined environments and controllers for FlightSims.jl.
+- [FSimPlots.jl](https://github.com/JinraeKim/FSimPlots.jl) is
+the plotting package for predefined environments exported from FlightSims.jl
 
 ### Packages using FlightSims.jl
 - [FaultTolerantControl.jl](https://github.com/JinraeKim/FaultTolerantControl.jl):
