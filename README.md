@@ -2,7 +2,6 @@
 [FlightSims.jl](https://github.com/JinraeKim/FlightSims.jl) is a general-purpose numerical simulator supporting nested environments and convenient macro-based data logging.
 
 ## Road map
-- [ ] Make sub-packages such as [FSimBase.jl](https://github.com/JinraeKim/FSimBase.jl)
 - [ ] ROS2 compatibility (not urgent)
 
 ## NEWS
@@ -121,7 +120,7 @@ function test()
     Q = Matrix(I, n, n)
     R = Matrix(I, m, m)
     lqr = LQR(A, B, Q, R)  # exported from FlightSims
-    u_lqr = FS.OptimalController(lqr)  # (x, p, t) -> -K*x; minimise J = ∫ (x' Q x + u' R u) from 0 to ∞
+    u_lqr = Command(lqr)  # (x, p, t) -> -K*x; minimise J = ∫ (x' Q x + u' R u) from 0 to ∞
 
     # simulation
     tf = 10.0
@@ -209,11 +208,12 @@ see `test/environments/integrated_environments/backstepping_position_controller_
 ### Dependencies
 - [FSimBase.jl](https://github.com/JinraeKim/FSimBase.jl) is
 the lightweight base package for numerical simulation supporting nested dynamical systems and macro-based data logger. For more functionality, see FlightSims.jl.
+- [FSimZoo.jl](https://github.com/JinraeKim/FSimZoo.jl)
+contains predefined environments and controllers for FlightSims.jl.
+
 ### Packages using FlightSims.jl
 - [FaultTolerantControl.jl](https://github.com/JinraeKim/FaultTolerantControl.jl):
 fault tolerant control (FTC) with various models and algorithms of faults, fault detection and isolation (FDI), and reconfiguration (R) control.
-- [FlightGNC.jl](https://github.com/nhcho91/FlightGNC.jl) ([@nhcho91](https://github.com/nhcho91)):
-FlightGNC.jl is a Julia package containing GNC algorithms for autonomous systems. The functionalities for numerical simulation are inherited from FlightSims.jl.
 - [FSimPlots.jl](https://github.com/JinraeKim/FSimPlots.jl) is
 the plotting package for predefined environments exported from FlightSims.jl.
 
@@ -222,6 +222,10 @@ the plotting package for predefined environments exported from FlightSims.jl.
 - The construction of nested environments are based on [ComponentArrays.jl](https://github.com/jonniedie/ComponentArrays.jl).
 - The structure of the resulting data from simulation result is based on [DataFrames.jl](https://github.com/JuliaData/DataFrames.jl).
 - Logging tool is based on [SimulationLogger.jl](https://github.com/JinraeKim/SimulationLogger.jl).
+
+### Notes
+- (WIP) [FlightGNC.jl](https://github.com/nhcho91/FlightGNC.jl) ([@nhcho91](https://github.com/nhcho91)):
+FlightGNC.jl is a Julia package containing GNC algorithms for autonomous systems.
 
 ## Trouble shootings
 ### `sim` produces an empty Dataframe
