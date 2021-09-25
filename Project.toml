@@ -16,7 +16,7 @@ ReferenceFrameRotations = "74f56ac7-18b3-5285-802d-d4bd4f104033"
 UnPack = "3a884ed6-31ef-47d7-9d2a-63182c4928ed"
 
 [compat]
-ComponentArrays = "0.10"
+ComponentArrays = "0.10, 0.11"
 FSimBase = "0.1"
 ForwardDiff = "0.10"
 MatrixEquations = "1.5"
