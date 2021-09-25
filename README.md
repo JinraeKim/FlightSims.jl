@@ -1,85 +1,17 @@
 # FlightSims
 [FlightSims.jl](https://github.com/JinraeKim/FlightSims.jl) is a general-purpose numerical simulator supporting nested environments and convenient macro-based data logging.
 
-### NOTICE: Breaking changes
-- Since v0.9.0, the core functionality of FlightSims.jl has been detached as [FSimBase.jl](https://github.com/JinraeKim/FSimBase.jl), which also works alone!
-- Existing sub directories, e.g., `algorithms`, `utils/approximators` have been deprecated. They will be detached as new packages if necessary.
-
 ## Road map
+- [ ] Make sub-packages such as [FSimBase.jl](https://github.com/JinraeKim/FSimBase.jl)
 - [ ] ROS2 compatibility (not urgent)
+
+## NEWS
+- See [NEWS.md](./NEWS.md).
 
 
 ## APIs
-Main APIs are provided in `src/APIs`.
-
-### Make an environment
-- `AbstractEnv`: an abstract type for user-defined and predefined environments.
-In general, environments is a sub-type of `AbstractEnv`.
-    ```julia
-    struct LinearSystemEnv <: AbstractEnv
-        A
-        B
-    end
-    ```
-- `State(env::AbstractEnv)`: return a function that produces structured states.
-    ```julia
-    function State(env::LinearSystemEnv)
-        @unpack B = env
-        n = size(B)[1]
-        return function (x)
-            @assert length(x) == n
-            x
-        end
-    end
-    ```
-- `Dynamics!(env::AbstractEnv)`, `Dynamics(env::AbstractEnv)`: return a function that maps in-place (**recommended**) and out-of-place dynamics (resp.),
-compatible with [DifferentialEquations.jl](https://github.com/SciML/DifferentialEquations.jl). User can extend these methods or simply define other methods.
-    ```julia
-    function Dynamics!(env::LinearSystemEnv)
-        @unpack A, B = env
-        @Loggable function dynamics!(dx, x, p, t; u)
-            @log state = x
-            @log input = u
-            dx .= A*x + B*u
-        end
-    end
-    ```
-- (Optional) `Params(env::AbstractEnv)`: returns parameters of given environment `env`.
-
-### Simulation, logging, and data saving & loading
-**Main APIs**
-- `sim`
-    - return `prob::DEProblem` and `df::DataFrame`.
-    - For now, only [**in-place** method (iip)](https://diffeq.sciml.ai/stable/basics/problem/#In-place-vs-Out-of-Place-Function-Definition-Forms) is supported.
-- `apply_inputs(func; kwargs...)`
-    - By using this, user can easily apply external inputs into environments. It is borrowed from [an MRAC example of ComponentArrays.jl](https://jonniedie.github.io/ComponentArrays.jl/stable/examples/adaptive_control/) and extended to be compatible with [SimulationLogger.jl](https://github.com/JinraeKim/SimulationLogger.jl).
-    - (Limitations) for now, dynamical equations wrapped by `apply_inputs` will automatically generate logging function (even without `@Loggable`). In this case, all data will be an array of empty `NamedTuple`.
-- Macros for logging data: `@Loggable`, `@log`, `@onlylog`, `@nested_log`, `@nested_onlylog`.
-    - For more details, see [SimulationLogger.jl](https://github.com/JinraeKim/SimulationLogger.jl).
-- Example code
-    ```julia
-    A = [0 1;
-         0 0]  # 2 x 2
-    B = [0 1]'  # 2 x 1
-    n, m = 2, 1
-    env = LinearSystemEnv(A, B)  # exported from FlightSims
-    x0 = State(env)([1.0, 2.0])
-    # optimal control
-    Q = Matrix(I, n, n)
-    R = Matrix(I, m, m)
-    lqr = LQR(A, B, Q, R)  # exported from FlightSims
-    u_lqr = FS.OptimalController(lqr)  # (x, p, t) -> -K*x; minimise J = ∫ (x' Q x + u' R u) from 0 to ∞
-
-    # simulation
-    tf = 10.0
-    Δt = 0.01
-    prob, df = sim(
-                   x0,  # initial condition
-                   apply_inputs(dynamics!; u=(x, p, t) -> u_lqr(x));
-                   tf=tf,  # final time
-                   savestep=Δt,
-                  )
-    ```
+Main APIs can be found in [FSimBase.jl](https://github.com/JinraeKim/FSimBase.jl).
+In FlightSims.jl, the default differential equation (DE) solver is [`Tsit5()`](https://diffeq.sciml.ai/stable/#Solver-Algorithms) for ordinary DE (ODE).
 
 ## Features
 If you want more functionality, please feel free to report an issue!
@@ -268,16 +200,9 @@ see `test/environments/integrated_environments/backstepping_position_controller_
 ![Alt Text](./figures/missile_guidance.gif)
 
 ### Multicopter rendering
-- See `test/render.jl`.
+- For more details, see [FSimPlots.jl](https://github.com/JinraeKim/FSimPlots.jl).
 
 ![Alt Text](./figures/anim.gif)
-<details>
-<summary>Visualisation of hexacopter including reference frame and topview</summary>
-
-![ex_screenshot](./figures/hexacopter_description.png)
-![ex_screenshot](./figures/topview.png)
-
-</details>
 
 
 ## Related packages
@@ -289,9 +214,23 @@ the lightweight base package for numerical simulation supporting nested dynamica
 fault tolerant control (FTC) with various models and algorithms of faults, fault detection and isolation (FDI), and reconfiguration (R) control.
 - [FlightGNC.jl](https://github.com/nhcho91/FlightGNC.jl) ([@nhcho91](https://github.com/nhcho91)):
 FlightGNC.jl is a Julia package containing GNC algorithms for autonomous systems. The functionalities for numerical simulation are inherited from FlightSims.jl.
+- [FSimPlots.jl](https://github.com/JinraeKim/FSimPlots.jl) is
+the plotting package for predefined environments exported from FlightSims.jl.
 
 ### Useful packages
 - It is highly based on [DifferentialEquations.jl](https://github.com/SciML/DifferentialEquations.jl) but mainly focusing on ODE (ordinary differential equations).
 - The construction of nested environments are based on [ComponentArrays.jl](https://github.com/jonniedie/ComponentArrays.jl).
 - The structure of the resulting data from simulation result is based on [DataFrames.jl](https://github.com/JuliaData/DataFrames.jl).
 - Logging tool is based on [SimulationLogger.jl](https://github.com/JinraeKim/SimulationLogger.jl).
+
+## Trouble shootings
+### `sim` produces an empty Dataframe
+- Please check whether you put `@Loggable` in front of the dynamics function in a proper way, e.g.,
+```julia
+function Dynamics!(env::MyEnv)
+    @Loggable function dynamics!(dx, x, p, t; u)
+    # return @Loggable dynamics!(dx, x, p, t; u)  # This would not work
+        # blahblah...
+    end
+end
+```
