@@ -1,5 +1,5 @@
-<!-- # Changes in v0.10.0 -->
-<!-- - Predefined environments and controllers are detached as [FSimZoo.jl](https://github.com/JinraeKim/FSimZoo.jl). Some functionalities has been deprecated, e.g., CommandGenerator. -->
+# Changes in v0.10.0
+- Predefined environments and controllers are detached as [FSimZoo.jl](https://github.com/JinraeKim/FSimZoo.jl). Some functionalities has been deprecated, e.g., `CommandGenerator`.
 
 # Changes in v0.9.0
 - Since v0.9.0, the core functionality of FlightSims.jl has been detached as [FSimBase.jl](https://github.com/JinraeKim/FSimBase.jl), which also works alone!
