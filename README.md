@@ -160,18 +160,14 @@ the plotting package for predefined environments exported from FlightSims.jl
 ### Packages using FlightSims.jl
 - [FaultTolerantControl.jl](https://github.com/JinraeKim/FaultTolerantControl.jl):
 fault tolerant control (FTC) with various models and algorithms of faults, fault detection and isolation (FDI), and reconfiguration (R) control.
-- [FSimPlots.jl](https://github.com/JinraeKim/FSimPlots.jl) is
-the plotting package for predefined environments exported from FlightSims.jl.
+- [FlightGNC.jl](https://github.com/nhcho91/FlightGNC.jl) ([@nhcho91](https://github.com/nhcho91)):
+FlightGNC.jl is a Julia package containing GNC algorithms for autonomous systems.
 
 ### Useful packages
 - It is highly based on [DifferentialEquations.jl](https://github.com/SciML/DifferentialEquations.jl) but mainly focusing on ODE (ordinary differential equations).
 - The construction of nested environments are based on [ComponentArrays.jl](https://github.com/jonniedie/ComponentArrays.jl).
 - The structure of the resulting data from simulation result is based on [DataFrames.jl](https://github.com/JuliaData/DataFrames.jl).
 - Logging tool is based on [SimulationLogger.jl](https://github.com/JinraeKim/SimulationLogger.jl).
-
-### Notes
-- (WIP) [FlightGNC.jl](https://github.com/nhcho91/FlightGNC.jl) ([@nhcho91](https://github.com/nhcho91)):
-FlightGNC.jl is a Julia package containing GNC algorithms for autonomous systems.
 
 ## Trouble shootings
 ### `sim` produces an empty Dataframe
