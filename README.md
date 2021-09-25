@@ -1,14 +1,12 @@
 # FlightSims
 [FlightSims.jl](https://github.com/JinraeKim/FlightSims.jl) is a general-purpose numerical simulator supporting nested environments and convenient macro-based data logging.
 
-### NOTICE: Breaking changes
-- Since v0.9.0, the core functionality of FlightSims.jl has been detached as [FSimBase.jl](https://github.com/JinraeKim/FSimBase.jl), which also works alone!
-- Since v0.9.0, the plotting tools for predefined environments has been detached as [FSimPlots.jl](https://github.com/JinraeKim/FSimPlots.jl).
-- Some sub-directories, e.g., `src/algorithms`, `src/utils/approximators` have been deprecated. They will be detached as new packages if necessary.
-
 ## Road map
 - [ ] Make sub-packages such as [FSimBase.jl](https://github.com/JinraeKim/FSimBase.jl)
 - [ ] ROS2 compatibility (not urgent)
+
+## NEWS
+- See [NEWS.md](./NEWS.md).
 
 
 ## APIs
