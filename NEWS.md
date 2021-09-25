@@ -1,3 +1,6 @@
+# Changes in v0.10.0
+- Predefined environments and controllers are detached as [FSimZoo.jl](https://github.com/JinraeKim/FSimZoo.jl).
+
 # Changes in v0.9.0
 - Since v0.9.0, the core functionality of FlightSims.jl has been detached as [FSimBase.jl](https://github.com/JinraeKim/FSimBase.jl), which also works alone!
 - Since v0.9.0, the plotting tools for predefined environments has been detached as [FSimPlots.jl](https://github.com/JinraeKim/FSimPlots.jl).

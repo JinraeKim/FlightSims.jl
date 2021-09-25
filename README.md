@@ -2,7 +2,6 @@
 [FlightSims.jl](https://github.com/JinraeKim/FlightSims.jl) is a general-purpose numerical simulator supporting nested environments and convenient macro-based data logging.
 
 ## Road map
-- [ ] Make sub-packages such as [FSimBase.jl](https://github.com/JinraeKim/FSimBase.jl)
 - [ ] ROS2 compatibility (not urgent)
 
 ## NEWS
