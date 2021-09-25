@@ -1,5 +1,5 @@
-include("costs.jl")
 # include("approximators/approximators.jl")
+# include("CommandGenerator.jl")
+include("costs.jl")
 include("partitionTrainTest.jl")
-include("CommandGenerator.jl")
 include("ned2enu.jl")

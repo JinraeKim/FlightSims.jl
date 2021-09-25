@@ -20,7 +20,7 @@ function main()
     Q = Matrix(I, n, n)
     R = Matrix(I, m, m)
     lqr = LQR(A, B, Q, R)  # exported from FlightSims
-    u_lqr = FS.OptimalController(lqr)  # (x, p, t) -> -K*x; minimise J = ∫ (x' Q x + u' R u) from 0 to ∞
+    u_lqr = Command(lqr)  # (x, p, t) -> -K*x; minimise J = ∫ (x' Q x + u' R u) from 0 to ∞
 
     # simulation
     tf = 10.0
