@@ -6,12 +6,6 @@ using OrdinaryDiffEq: Tsit5  # default solver
 @reexport using FSimZoo
 
 using UnPack
-# using ComponentArrays, UnPack
-# using LinearAlgebra
-# using MatrixEquations
-# # using ReferenceFrameRotations
-# using ForwardDiff  # dependencies of hexacopter position control
-# using Transducers
 
 ### APIs
 export sim
