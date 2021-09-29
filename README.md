@@ -25,11 +25,9 @@ Take a look at [FSimZoo.jl](https://github.com/JinraeKim/FSimZoo.jl).
 - Some utilities are also provided for dynamical system simulation.
 - Examples include
     - **Simulation rendering**
-        - See [FSimPlots.jl](https://github.com/JinraeKim/FSimPlots.jl).
+        - See [FSimPlots.jl](https://github.com/JinraeKim/FSimPlots.jl). Note that FSimPlots.jl is not exported in the default setting to reduce precompilation time.
     <!-- - **Function approximator** -->
     <!--     - (Approximator) `LinearApproximator`, `PolynomialBasis` -->
-    - **Data manipulation for machine learning**
-        - (Split data) `partitionTrainTest`
 
 
 ## Examples
@@ -57,7 +55,7 @@ function test()
          0 0]  # 2 x 2
     B = [0 1]'  # 2 x 1
     n, m = 2, 1
-    env = LinearSystemEnv(A, B)  # exported from FlightSims
+    env = LinearSystem(A, B)  # exported from FlightSims
     x0 = State(env)([1.0, 2.0])
     p0 = zero.(x0)  # auxiliary parameter
     # optimal control
