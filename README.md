@@ -25,11 +25,9 @@ Take a look at [FSimZoo.jl](https://github.com/JinraeKim/FSimZoo.jl).
 - Some utilities are also provided for dynamical system simulation.
 - Examples include
     - **Simulation rendering**
-        - See [FSimPlots.jl](https://github.com/JinraeKim/FSimPlots.jl).
+        - See [FSimPlots.jl](https://github.com/JinraeKim/FSimPlots.jl). Note that FSimPlots.jl is not exported in the default setting to reduce precompilation time.
     <!-- - **Function approximator** -->
     <!--     - (Approximator) `LinearApproximator`, `PolynomialBasis` -->
-    - **Data manipulation for machine learning**
-        - (Split data) `partitionTrainTest`
 
 
 ## Examples
