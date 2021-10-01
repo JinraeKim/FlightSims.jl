@@ -37,7 +37,7 @@ see [FSimBase.jl](https://github.com/JinraeKim/FSimBase.jl).
 
 ### Optimal control and reinforcement learning
 - For an example of **infinite-horizon continuous-time linear quadratic regulator (LQR)**,
-see the following example code (`test/lqr.jl`).
+see the following example code (`test/environments/basics/lqr.jl`).
 
 ```julia
 using FlightSims
