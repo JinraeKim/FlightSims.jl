@@ -1,14 +1,10 @@
 """
-# Notes
-- Currently, only iip (isinplace) method is supported.
-- Default solver: Tsit5() in OrdinaryDiffEq.jl
+Outer construct of `FSimBase.Simulator`.
 """
-function sim(state0, dyn, p=nothing;
+function Simulator(state0, dyn, p=nothing;
         solver=Tsit5(),
-        kwargs...
-    )
-    FSimBase.sim(state0, dyn, p;
-                 solver=solver,
-                 kwargs...,
-                )
+        kwargs...)
+    FSimBase.Simulator(state0, dyn, p;
+                       solver=solver,
+                       kwargs...)
 end

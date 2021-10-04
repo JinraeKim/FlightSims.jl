@@ -9,11 +9,11 @@ function main()
     x10, x20 = 1.0, 2.0
     x0 = State(env)(x10, x20)
     tf = 10.0
-    prob, df = sim(
-                   x0,
-                   apply_inputs(Dynamics!(env); u= (x, p, t) -> FSimZoo.OptimalControl(env)(x));
-                   tf=tf,
-                  )
+    simulator = Simulator(x0,
+                          apply_inputs(Dynamics!(env);
+                          u=(x, p, t) -> FSimZoo.OptimalControl(env)(x));
+                         tf=tf)
+    df = solve(simulator)
     ts = df.time
     states = df.sol |> Map(datum -> datum.state) |> collect
     x1s = states |> Map(state -> state.x1) |> collect

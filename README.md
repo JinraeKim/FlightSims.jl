@@ -6,6 +6,10 @@
 
 ## NEWS
 - See [NEWS.md](./NEWS.md).
+### !! Breaking changes !!
+- Both non-interactive and interactive simulation interfaces are now provided through the unified struct `Simulator`.
+    - For more details, see [FSimBase.jl](https://github.com/JinraeKim/FSimBase.jl).
+    - `sim` is deprecated; renamed as `solve`.
 
 
 ## APIs
@@ -36,7 +40,7 @@ Take a look at [FSimZoo.jl](https://github.com/JinraeKim/FSimZoo.jl).
 see [FSimBase.jl](https://github.com/JinraeKim/FSimBase.jl).
 
 ### Optimal control and reinforcement learning
-- For an example of **infinite-horizon continuous-time linear quadratic regulator (LQR)**,
+- For an example of **infinite-horizon continuous-time linear quadratic regulator (LQR)** with callbacks,
 see the following example code (`test/environments/basics/lqr.jl`).
 
 ```julia
@@ -49,7 +53,7 @@ using Test
 using Transducers
 
 
-function test()
+function main()
     # linear system
     A = [0 1;
          0 0]  # 2 x 2
@@ -75,14 +79,9 @@ function test()
         @log x, u
         @nested_log Dynamics!(env)(dx, x, p, t; u=u)  # exported `state` and `input` from `Dynamics!(env)`
     end
-    prob, df = sim(
-                   x0,  # initial condition
-                   dynamics!,  # dynamics with input of LQR
-                   p0;
-                   tf=tf,  # final time
-                   callback=cb,
-                   savestep=Δt,
-                  )
+    simulator = Simulator(x0, dynamics!, p0;
+                          tf=tf)
+    df = solve(simulator; callback=cb, savestep=Δt)
     ts = df.time
     xs = df.sol |> Map(datum -> datum.x) |> collect
     us = df.sol |> Map(datum -> datum.u) |> collect
@@ -101,6 +100,10 @@ function test()
     plot(ts, hcat(inputs...)'; title="control input", label="u")  # Plots
     savefig("figures/u_lqr.png")
     df
+end
+
+@testset "lqr example" begin
+    main()
 end
 ```
 

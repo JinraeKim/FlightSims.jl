@@ -6,12 +6,9 @@ using Transducers
 
 function get_traj_data(env, Δt, tf)
     x0 = State(env)()
-    prob, df = sim(
-                   x0,
-                   Dynamics!(env);
-                   tf=tf,
-                   savestep=Δt,
-                  )
+    simulator = Simulator(x0, Dynamics!(env);
+                          tf=tf)
+    df = solve(simulator; savestep=Δt)
     df
 end
 

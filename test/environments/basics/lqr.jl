@@ -33,14 +33,9 @@ function main()
         @log x, u
         @nested_log Dynamics!(env)(dx, x, p, t; u=u)  # exported `state` and `input` from `Dynamics!(env)`
     end
-    prob, df = sim(
-                   x0,  # initial condition
-                   dynamics!,  # dynamics with input of LQR
-                   p0;
-                   tf=tf,  # final time
-                   callback=cb,
-                   savestep=Δt,
-                  )
+    simulator = Simulator(x0, dynamics!, p0;
+                          tf=tf)
+    df = solve(simulator; callback=cb, savestep=Δt)
     ts = df.time
     xs = df.sol |> Map(datum -> datum.x) |> collect
     us = df.sol |> Map(datum -> datum.u) |> collect
