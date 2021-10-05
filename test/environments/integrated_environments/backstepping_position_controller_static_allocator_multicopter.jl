@@ -7,8 +7,7 @@ using Test
 
 function get_traj_data(env, Δt, tf)
     x0 = State(env)()
-    simulator = Simulator(x0, Dynamics!(env);
-                          tf=tf)
+    simulator = Simulator(x0, Dynamics!(env); tf=tf)
     df = solve(simulator; savestep=Δt)
     df
 end
