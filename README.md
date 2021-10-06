@@ -102,14 +102,10 @@ function main()
     display(fig)
     df
 end
-
-@testset "lqr example" begin
-    main()
-end
 ```
 
 ```julia
-julia> test()
+julia> main()
 1001×2 DataFrame
   Row │ time     sol
       │ Float64  NamedTup…
