@@ -1,6 +1,5 @@
 using FlightSims
-import FlightSims
-const FS = FlightSims
+import FlightSims: State, Dynamics!
 using DataFrames
 using ComponentArrays
 using UnPack
@@ -14,11 +13,11 @@ struct LinearSystem_ZOH_Input <: AbstractEnv
     linear_env::LinearSystem
 end
 
-function FS.State(env::LinearSystem_ZOH_Input)
-    FS.State(env.linear_env)
+function State(env::LinearSystem_ZOH_Input)
+    State(env.linear_env)
 end
 
-function FS.Dynamics!(env::LinearSystem_ZOH_Input)
+function Dynamics!(env::LinearSystem_ZOH_Input)
     @Loggable function dynamics!(dx, x, input, t)
         @nested_log Dynamics!(env.linear_env)(dx, x, nothing, t; u=input)
     end
