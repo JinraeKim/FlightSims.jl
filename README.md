@@ -253,7 +253,7 @@ FlightGNC.jl is a Julia package containing GNC algorithms for autonomous systems
 - Logging tool is based on [SimulationLogger.jl](https://github.com/JinraeKim/SimulationLogger.jl).
 
 ## Trouble shootings
-### `sim` produces an empty Dataframe
+### `solve` produces an empty Dataframe
 - Please check whether you put `@Loggable` in front of the dynamics function in a proper way, e.g.,
 ```julia
 function Dynamics!(env::MyEnv)
