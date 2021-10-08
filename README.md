@@ -178,3 +178,23 @@ function Dynamics!(env::MyEnv)
     end
 end
 ```
+
+### `@Loggable` does not work; `ERROR: LoadError: LoadError: LoadError: LoadError: LoadError: LoadError: KeyError: key :name not found`
+- Please check whether you assigned a name of function annotated by `@Loggable`, e.g.,
+```julia
+function Dynamics!(env::YourEnv)
+    @Loggerble function dynamics!(dX, X, p, ; u)
+        ...
+    end
+end
+```
+
+instead of
+
+```julia
+function Dynamics!(env::YourEnv)
+    @Loggerble function (dX, X, p, ; u)
+        ...
+    end
+end
+```
