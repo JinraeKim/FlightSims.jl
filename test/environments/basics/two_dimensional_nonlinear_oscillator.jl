@@ -1,5 +1,4 @@
 using FlightSims
-using FSimZoo
 using Test
 using Plots
 using Transducers
