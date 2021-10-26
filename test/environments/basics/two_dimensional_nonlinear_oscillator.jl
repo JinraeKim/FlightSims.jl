@@ -5,21 +5,28 @@ using Transducers
 
 function main()
     env = TwoDimensionalNonlinearOscillator()
-    x10, x20 = 1.0, 2.0
+    x10, x20 = 0.5, 0.5
     x0 = State(env)(x10, x20)
     tf = 10.0
     simulator = Simulator(x0,
                           apply_inputs(Dynamics!(env);
                           u=(x, p, t) -> FSimZoo.OptimalControl(env)(x));
-                         tf=tf)
+                          tf=tf,
+                         )
     df = solve(simulator)
     ts = df.time
     states = df.sol |> Map(datum -> datum.state) |> collect
-    x1s = states |> Map(state -> state.x1) |> collect
-    x2s = states |> Map(state -> state.x2) |> collect
-    fig_x1 = plot(ts, hcat(x1s...)')
-    fig_x2 = plot(ts, hcat(x2s...)')
-    fig = plot(fig_x1, fig_x2; layout=(2, 1))
+    inputs = df.sol |> Map(datum -> datum.input) |> collect
+    xs = states
+    us = inputs
+    fig_x = plot(ts, hcat(xs...)';
+                 label=["x1" "x2"],
+                 color=[:blue :red],
+                )
+    fig_u = plot(ts, hcat(us...)';
+                 label="u",
+                )
+    fig = plot(fig_x, fig_u; layout=(2, 1))
     display(fig)
 end
 

@@ -214,6 +214,50 @@ end
 ```
 ![ex_screenshot](./figures/interactive_sim.png)
 
+### Discrete problem
+- See `test/environments/basics/discrete_problem.jl`.
+```julia
+using DifferentialEquations
+
+
+function main()
+    t0, tf = 0, 10
+    x0 = [1.0, 2, 3]
+    """
+    dx: next x
+    """
+    @Loggable function dynamics!(dx, x, p, t; u)
+        @log x
+        dx .= 0.99*x + u
+        @onlylog u_next = dx
+    end
+    simulator = Simulator(x0, apply_inputs(dynamics!; u=zeros(3));
+                          Problem=:Discrete,
+                          tf=tf,  # default step length = 1 for Discrete problem
+                         )
+    df = solve(simulator)
+end
+```
+
+```julia
+julia> main()
+11×2 DataFrame
+ Row │ time     sol
+     │ Float64  NamedTup…
+─────┼────────────────────────────────────────────
+   1 │     0.0  (u_next = [0.99, 1.98, 2.97], x …
+   2 │     1.0  (u_next = [0.9801, 1.9602, 2.940…
+   3 │     2.0  (u_next = [0.970299, 1.9406, 2.9…
+   4 │     3.0  (u_next = [0.960596, 1.92119, 2.…
+   5 │     4.0  (u_next = [0.95099, 1.90198, 2.8…
+   6 │     5.0  (u_next = [0.94148, 1.88296, 2.8…
+   7 │     6.0  (u_next = [0.932065, 1.86413, 2.…
+   8 │     7.0  (u_next = [0.922745, 1.84549, 2.…
+   9 │     8.0  (u_next = [0.913517, 1.82703, 2.…
+  10 │     9.0  (u_next = [0.904382, 1.80876, 2.…
+  11 │    10.0  (u_next = [0.895338, 1.79068, 2.…
+```
+
 
 ### Multicopter position control
 - For an example of **backstepping position tracking controller for quadcopters**,

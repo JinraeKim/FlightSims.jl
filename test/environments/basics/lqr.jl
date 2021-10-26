@@ -14,11 +14,11 @@ function main()
     B = [0 1]'  # 2 x 1
     n, m = 2, 1
     env = LinearSystem(A, B)  # exported from FlightSims
-    x0 = State(env)([1.0, 2.0])
+    x0 = State(env)([0.5, 0.5])
     p0 = zero.(x0)  # auxiliary parameter
     # optimal control
     Q = Matrix(I, n, n)
-    R = Matrix(I, m, m)
+    R = 10.0*Matrix(I, m, m)
     lqr = LQR(A, B, Q, R)  # exported from FlightSims
     u_lqr = Command(lqr)  # (x, p, t) -> -K*x; minimise J = ∫ (x' Q x + u' R u) from 0 to ∞
 
