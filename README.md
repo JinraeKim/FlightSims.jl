@@ -183,7 +183,7 @@ end
 - Please check whether you assigned a name of function annotated by `@Loggable`, e.g.,
 ```julia
 function Dynamics!(env::YourEnv)
-    @Loggerble function dynamics!(dX, X, p, ; u)
+    @Loggable function dynamics!(dX, X, p, ; u)
         ...
     end
 end
@@ -193,7 +193,7 @@ instead of
 
 ```julia
 function Dynamics!(env::YourEnv)
-    @Loggerble function (dX, X, p, ; u)
+    @Loggable function (dX, X, p, ; u)
         ...
     end
 end
