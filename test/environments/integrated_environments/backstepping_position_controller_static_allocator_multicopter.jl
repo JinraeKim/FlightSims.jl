@@ -3,6 +3,7 @@ const FS = FlightSims
 
 using Plots
 using Transducers
+using Test
 
 function get_traj_data(env, Δt, tf)
     x0 = State(env)()
@@ -37,6 +38,7 @@ function main()
     # plot
     fig = plot(; legend=:topleft)
     plot_figures!(fig, df, pos_cmd_func)
+    savefig("figures/multicopter_position_control.png")
     display(fig)
 end
 

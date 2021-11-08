@@ -50,9 +50,10 @@ function main()
     plot!(p_x, ts, hcat(ps...)';
           ls=:dash, label="param", color=[:red :orange], lw=1.5
          )
-    savefig("figures/x_lqr.png")
-    plot(ts, hcat(inputs...)'; title="control input", label="u")  # Plots
-    savefig("figures/u_lqr.png")
+    p_u = plot(ts, hcat(inputs...)'; title="control input", label="u")  # Plots
+    fig = plot(p_x, p_u; layout=(2, 1))
+    savefig(fig, "figures/lqr.png")
+    display(fig)
     df
 end
 
