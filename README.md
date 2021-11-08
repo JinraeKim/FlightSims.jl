@@ -123,8 +123,8 @@ julia> test()
                                    992 rows omitted
 ```
 
-![ex_screenshot](./figures/x_lqr.png)
-![ex_screenshot](./figures/u_lqr.png)
+![ex_screenshot](./test/figures/x_lqr.png)
+![ex_screenshot](./test/figures/u_lqr.png)
 
 - (Deprecated; will be detached) ~~For an example of **continuous-time value-iteration adaptive dynamic programming (CT-VI-ADP)**, take a look at `test/continuous_time_vi_adp.jl`.~~
     - [T. Bian and Z.-P. Jiang, “Value Iteration, Adaptive Dynamic Programming, and Optimal Control of Nonlinear Systems,” in 2016 IEEE 55th Conference on Decision and Control (CDC), Las Vegas, NV, USA, Dec. 2016, pp. 3375–3380. doi: 10.1109/CDC.2016.7798777.](https://ieeexplore.ieee.org/document/7798777)
@@ -138,12 +138,12 @@ see `test/environments/integrated_environments/backstepping_position_controller_
 ### Missile guidance with interactive visualisation
 - See `test/pluto_guidance.jl` (thanks to [@nhcho91](https://github.com/nhcho91)).
 
-![Alt Text](./figures/missile_guidance.gif)
+![Alt Text](./test/figures/missile_guidance.gif)
 
 ### Multicopter rendering
 - For more details, see [FSimPlots.jl](https://github.com/JinraeKim/FSimPlots.jl).
 
-![Alt Text](./figures/anim.gif)
+![Alt Text](./test/figures/anim.gif)
 
 
 ## Related packages
