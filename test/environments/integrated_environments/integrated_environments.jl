@@ -1,1 +1,1 @@
-include("backstepping_position_controller_static_allocator_multicopter_env.jl")
+include("backstepping_position_controller_static_allocator_multicopter.jl")
