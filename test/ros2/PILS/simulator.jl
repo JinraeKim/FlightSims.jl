@@ -41,3 +41,5 @@ function main(args=nothing)
     state_node.destroy_node()
     rclpy.shutdown()
 end
+
+main()
