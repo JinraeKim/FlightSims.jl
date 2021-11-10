@@ -1,3 +1,7 @@
+# Changes in v1.0.0
+- Add `Simulator` interface for both interactive and non-interactive simulation.
+- Add [FSimROS.jl](https://github.com/JinraeKim/FSimROS.jl).
+
 # Changes in v0.10.0
 - Predefined environments and controllers are detached as [FSimZoo.jl](https://github.com/JinraeKim/FSimZoo.jl). Some functionalities has been deprecated, e.g., `CommandGenerator`.
 - Predefined stuffs' names are changed.

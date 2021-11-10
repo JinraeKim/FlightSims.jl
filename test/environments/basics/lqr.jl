@@ -14,11 +14,11 @@ function main()
     B = [0 1]'  # 2 x 1
     n, m = 2, 1
     env = LinearSystem(A, B)  # exported from FlightSims
-    x0 = State(env)([1.0, 2.0])
+    x0 = State(env)([0.5, 0.5])
     p0 = zero.(x0)  # auxiliary parameter
     # optimal control
     Q = Matrix(I, n, n)
-    R = Matrix(I, m, m)
+    R = 10.0*Matrix(I, m, m)
     lqr = LQR(A, B, Q, R)  # exported from FlightSims
     u_lqr = Command(lqr)  # (x, p, t) -> -K*x; minimise J = ∫ (x' Q x + u' R u) from 0 to ∞
 
@@ -33,14 +33,9 @@ function main()
         @log x, u
         @nested_log Dynamics!(env)(dx, x, p, t; u=u)  # exported `state` and `input` from `Dynamics!(env)`
     end
-    prob, df = sim(
-                   x0,  # initial condition
-                   dynamics!,  # dynamics with input of LQR
-                   p0;
-                   tf=tf,  # final time
-                   callback=cb,
-                   savestep=Δt,
-                  )
+    simulator = Simulator(x0, dynamics!, p0;
+                          tf=tf)
+    df = solve(simulator; callback=cb, savestep=Δt)
     ts = df.time
     xs = df.sol |> Map(datum -> datum.x) |> collect
     us = df.sol |> Map(datum -> datum.u) |> collect
@@ -55,9 +50,10 @@ function main()
     plot!(p_x, ts, hcat(ps...)';
           ls=:dash, label="param", color=[:red :orange], lw=1.5
          )
-    savefig("figures/x_lqr.png")
-    plot(ts, hcat(inputs...)'; title="control input", label="u")  # Plots
-    savefig("figures/u_lqr.png")
+    p_u = plot(ts, hcat(inputs...)'; title="control input", label="u")  # Plots
+    fig = plot(p_x, p_u; layout=(2, 1))
+    savefig(fig, "figures/lqr.png")
+    display(fig)
     df
 end
 

@@ -2,10 +2,17 @@
 [FlightSims.jl](https://github.com/JinraeKim/FlightSims.jl) is a general-purpose numerical simulator supporting nested environments and convenient macro-based data logging.
 
 ## Road map
-- [ ] ROS2 compatibility (not urgent)
+- [x] Add ROS2 example (not urgent)
 
 ## NEWS
 - See [NEWS.md](./NEWS.md).
+### !! Breaking changes !!
+- Both non-interactive and interactive simulation interfaces are now provided through the unified struct `Simulator`.
+    - For more details, see [FSimBase.jl](https://github.com/JinraeKim/FSimBase.jl).
+    - `sim` is deprecated; renamed as `solve`.
+- A related package for ROS2 has been released: [FSimROS.jl](https://github.com/JinraeKim/FSimROS.jl).
+    - with very few number of tests though.
+    - default setting: not exported from FlightSims.jl.
 
 
 ## APIs
@@ -30,13 +37,60 @@ Take a look at [FSimZoo.jl](https://github.com/JinraeKim/FSimZoo.jl).
     <!--     - (Approximator) `LinearApproximator`, `PolynomialBasis` -->
 
 
-## Examples
-### Basic: minimal examples
+# Examples
+## Basic
+### Minimal examples
 - For minimal examples of FlightSims.jl,
 see [FSimBase.jl](https://github.com/JinraeKim/FSimBase.jl).
 
+
+### Discrete problem
+- See `test/environments/basics/discrete_problem.jl`.
+```julia
+using DifferentialEquations
+
+
+function main()
+    t0, tf = 0, 10
+    x0 = [1.0, 2, 3]
+    """
+    dx: next x
+    """
+    @Loggable function dynamics!(dx, x, p, t; u)
+        @log x
+        dx .= 0.99*x + u
+        @onlylog u_next = dx
+    end
+    simulator = Simulator(x0, apply_inputs(dynamics!; u=zeros(3));
+                          Problem=:Discrete,
+                          tf=tf,  # default step length = 1 for Discrete problem
+                         )
+    df = solve(simulator)
+end
+```
+
+```julia
+julia> main()
+11×2 DataFrame
+ Row │ time     sol
+     │ Float64  NamedTup…
+─────┼────────────────────────────────────────────
+   1 │     0.0  (u_next = [0.99, 1.98, 2.97], x …
+   2 │     1.0  (u_next = [0.9801, 1.9602, 2.940…
+   3 │     2.0  (u_next = [0.970299, 1.9406, 2.9…
+   4 │     3.0  (u_next = [0.960596, 1.92119, 2.…
+   5 │     4.0  (u_next = [0.95099, 1.90198, 2.8…
+   6 │     5.0  (u_next = [0.94148, 1.88296, 2.8…
+   7 │     6.0  (u_next = [0.932065, 1.86413, 2.…
+   8 │     7.0  (u_next = [0.922745, 1.84549, 2.…
+   9 │     8.0  (u_next = [0.913517, 1.82703, 2.…
+  10 │     9.0  (u_next = [0.904382, 1.80876, 2.…
+  11 │    10.0  (u_next = [0.895338, 1.79068, 2.…
+```
+
+## Dynamical system control
 ### Optimal control and reinforcement learning
-- For an example of **infinite-horizon continuous-time linear quadratic regulator (LQR)**,
+- For an example of **infinite-horizon continuous-time linear quadratic regulator (LQR)** with callbacks,
 see the following example code (`test/environments/basics/lqr.jl`).
 
 ```julia
@@ -49,7 +103,7 @@ using Test
 using Transducers
 
 
-function test()
+function main()
     # linear system
     A = [0 1;
          0 0]  # 2 x 2
@@ -75,14 +129,9 @@ function test()
         @log x, u
         @nested_log Dynamics!(env)(dx, x, p, t; u=u)  # exported `state` and `input` from `Dynamics!(env)`
     end
-    prob, df = sim(
-                   x0,  # initial condition
-                   dynamics!,  # dynamics with input of LQR
-                   p0;
-                   tf=tf,  # final time
-                   callback=cb,
-                   savestep=Δt,
-                  )
+    simulator = Simulator(x0, dynamics!, p0;
+                          tf=tf)
+    df = solve(simulator; callback=cb, savestep=Δt)
     ts = df.time
     xs = df.sol |> Map(datum -> datum.x) |> collect
     us = df.sol |> Map(datum -> datum.u) |> collect
@@ -97,15 +146,20 @@ function test()
     plot!(p_x, ts, hcat(ps...)';
           ls=:dash, label="param", color=[:red :orange], lw=1.5
          )
-    savefig("figures/x_lqr.png")
-    plot(ts, hcat(inputs...)'; title="control input", label="u")  # Plots
-    savefig("figures/u_lqr.png")
+    p_u = plot(ts, hcat(inputs...)'; title="control input", label="u")  # Plots
+    fig = plot(p_x, p_u; layout=(2, 1))
+    savefig(fig, "figures/lqr.png")
+    display(fig)
     df
+end
+
+@testset "lqr example" begin
+    main()
 end
 ```
 
 ```julia
-julia> test()
+julia> main()
 1001×2 DataFrame
   Row │ time     sol
       │ Float64  NamedTup…
@@ -123,18 +177,99 @@ julia> test()
                                    992 rows omitted
 ```
 
+<<<<<<< HEAD
 ![ex_screenshot](./test/figures/x_lqr.png)
 ![ex_screenshot](./test/figures/u_lqr.png)
+=======
+![ex_screenshot](./figures/lqr.png)
+>>>>>>> 7dd452c (wip)
 
-- (Deprecated; will be detached) ~~For an example of **continuous-time value-iteration adaptive dynamic programming (CT-VI-ADP)**, take a look at `test/continuous_time_vi_adp.jl`.~~
-    - [T. Bian and Z.-P. Jiang, “Value Iteration, Adaptive Dynamic Programming, and Optimal Control of Nonlinear Systems,” in 2016 IEEE 55th Conference on Decision and Control (CDC), Las Vegas, NV, USA, Dec. 2016, pp. 3375–3380. doi: 10.1109/CDC.2016.7798777.](https://ieeexplore.ieee.org/document/7798777)
-- (Deprecated; will be detached) ~~For an example of **continuous-time integral reinforcement learning for linear system (CT-IRL)**, take a look at `test/continuous_time_linear_irl.jl`.~~
-    - [F. L. Lewis, D. Vrabie, and K. G. Vamvoudakis, “Reinforcement Learning and Feedback Control: Using Natural Decision Methods to Design Optimal Adaptive Controllers,” IEEE Control Syst., vol. 32, no. 6, pp. 76–105, Dec. 2012, doi: 10.1109/MCS.2012.2214134.](https://d1wqtxts1xzle7.cloudfront.net/55631024/06315769.pdf?1516876343=&response-content-disposition=inline%3B+filename%3DUsing_natUral_decision_methods_to_design.pdf&Expires=1623395195&Signature=LP3BHxKg2mtIkqNFrR2C3NOOfxIxK6efgoHlXKFMH~IPjBL-Mi9CydRIhrqXQKOugpEaNAQR76H00mcz11ZoUbtTUUowVVWhYGk3iMK8aR~lUxO9b0A47iiJohLr6YpWhGm5AAgEDcKXa8DKFTAheBjGqTgFjL1Qm23MXlSXjWwR7DRhk5QtfiKjOQephv6c50CLinZxbz-VygOFTxuelbLcphrxuszszCVLZtS0K0sH~3f9RZkIJcNKqe8t18ghkHxfSZTapae0AZSslGaGLjBlbqF9RSCc04eQZorZmHxvrYd4CZ0Zac7Hn3M3--Qe81tL-32ULl~XLYk1Q5Ev4A__&Key-Pair-Id=APKAJLOHF5GGSLRBV4ZA)
+### Linear system with zero-order-hold (ZOH) input
+- Note that this example utilises interactive simulation interface. See `test/environments/integrated_environments/linear_system_zoh_input.jl`.
+
+```julia
+using FlightSims
+import FlightSims: State, Dynamics!
+using DataFrames
+using ComponentArrays
+using UnPack
+using Transducers
+using Plots
+using SciMLBase
+using Test
+
+
+struct LinearSystem_ZOH_Input <: AbstractEnv
+    linear_env::LinearSystem
+end
+
+function State(env::LinearSystem_ZOH_Input)
+    State(env.linear_env)
+end
+
+function Dynamics!(env::LinearSystem_ZOH_Input)
+    @Loggable function dynamics!(dx, x, input, t)
+        @nested_log Dynamics!(env.linear_env)(dx, x, nothing, t; u=input)
+    end
+end
+
+function main()
+    A = [0 1;
+         0 0]
+    B = [0 1]'
+    linear_env = LinearSystem(A, B)
+    env = LinearSystem_ZOH_Input(linear_env)
+    x0_state = [1, 2]
+    input = zeros(1)
+    x0 = State(env)(x0_state)
+    t0 = 0.0
+    tf = 20.0
+    simulator = Simulator(x0, Dynamics!(env), input; tf=tf)
+    # interactive sim
+    Δt = 0.1  # save period
+    df = DataFrame()
+    @time for (i, t) in enumerate(t0:Δt:tf)
+        # To perform interactive simulation,
+        # you should be aware of the integrator interface
+        # provided by DifferentialEquations.jl;
+        # see https://diffeq.sciml.ai/stable/basics/integrator/#integrator
+        # e.g., DO NOT directly change the integrator state
+        state = simulator.integrator.u
+        input = simulator.integrator.p
+        if (i-1) % 10 == 0  # update input period
+            input .= -sum(state)
+        end
+        step_until!(simulator, t, df)
+    end
+    # plot
+    ts = df.time
+    states = df.sol |> Map(datum -> datum.state) |> collect
+    inputs = df.sol |> Map(datum -> datum.input) |> collect
+    p_x = plot(ts, hcat(states...)';
+               title="state variable", label=["x1" "x2"],
+              )
+    p_u = plot(ts, hcat(inputs...)';
+               title="input variable", label="u",
+               linetype=:steppost,  # to plot zero-order-hold input appropriately
+              )
+    fig = plot(p_x, p_u; layout=(2, 1))
+    savefig("figures/interactive_sim.png")
+    display(fig)
+end
+
+
+@testset "linear_system_zoh_input" begin
+    main()
+end
+```
+![ex_screenshot](./figures/interactive_sim.png)
 
 ### Multicopter position control
 - For an example of **backstepping position tracking controller for quadcopters**,
 see `test/environments/integrated_environments/backstepping_position_controller_static_allocator_multicopter_env.jl`.
+![ex_screenshot](./figures/multicopter_position_control.png)
 
+## Visualisation
 ### Missile guidance with interactive visualisation
 - See `test/pluto_guidance.jl` (thanks to [@nhcho91](https://github.com/nhcho91)).
 
@@ -144,6 +279,9 @@ see `test/environments/integrated_environments/backstepping_position_controller_
 - For more details, see [FSimPlots.jl](https://github.com/JinraeKim/FSimPlots.jl).
 
 ![Alt Text](./test/figures/anim.gif)
+
+## Examples with ROS2
+See [FSimROS.jl](https://github.com/JinraeKim/FSimROS.jl).
 
 
 ## Related packages
@@ -168,7 +306,7 @@ FlightGNC.jl is a Julia package containing GNC algorithms for autonomous systems
 - Logging tool is based on [SimulationLogger.jl](https://github.com/JinraeKim/SimulationLogger.jl).
 
 ## Trouble shootings
-### `sim` produces an empty Dataframe
+### `solve` produces an empty Dataframe
 - Please check whether you put `@Loggable` in front of the dynamics function in a proper way, e.g.,
 ```julia
 function Dynamics!(env::MyEnv)

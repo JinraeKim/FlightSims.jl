@@ -2,10 +2,9 @@ module FlightSims
 
 using Reexport
 @reexport using FSimBase
-using OrdinaryDiffEq: Tsit5  # default solver
+using OrdinaryDiffEq: Tsit5  # ODEProblem default solver
+using OrdinaryDiffEq: FunctionMap  # DiscreteProblem default solver
 @reexport using FSimZoo
-
-using UnPack
 
 
 include("APIs/APIs.jl")

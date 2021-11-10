@@ -1,7 +1,7 @@
 name = "FlightSims"
 uuid = "a4c2f6ca-3fbe-4430-8ede-32935de4c069"
 authors = ["JinraeKim <kjl950403@gmail.com> and contributors"]
-version = "0.10.0"
+version = "1.0.0"
 
 [deps]
 FSimBase = "731e945d-f3ed-49a1-bee2-3998705ef155"
@@ -11,7 +11,7 @@ Reexport = "189a3867-3050-52da-a836-e630ba90ab69"
 UnPack = "3a884ed6-31ef-47d7-9d2a-63182c4928ed"
 
 [compat]
-FSimBase = "0.1"
+FSimBase = "0.2"
 FSimZoo = "0.3"
 OrdinaryDiffEq = "5.64"
 Reexport = "1.2"
@@ -19,10 +19,10 @@ UnPack = "1.0"
 julia = "1"
 
 [extras]
-Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 DifferentialEquations = "0c46a032-eb83-5123-abaf-570d42b7fbaa"
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 Plots = "91a5bcdd-55d7-5caf-9e0b-520d859cae80"
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 Transducers = "28d57a85-8fef-5791-bfe6-a80928e7c999"
 
 [targets]
