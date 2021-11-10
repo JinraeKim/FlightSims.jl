@@ -36,8 +36,8 @@ end
 
 function main(args=nothing)
     rclpy.init(args=args)
-    minimal_subscriber = MinimialSubscriber()
-    rclpy.spin(minimal_subscriber)
-    minimal_subscriber.destroy_node()
+    state_node = StateNode()
+    rclpy.spin(state_node)
+    state_node.destroy_node()
     rclpy.shutdown()
 end
