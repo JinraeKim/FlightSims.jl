@@ -2,7 +2,7 @@
 [FlightSims.jl](https://github.com/JinraeKim/FlightSims.jl) is a general-purpose numerical simulator supporting nested environments and convenient macro-based data logging.
 
 ## Road map
-- [ ] Add ROS2 example (not urgent)
+- [x] Add ROS2 example (not urgent)
 
 ## NEWS
 - See [NEWS.md](./NEWS.md).
@@ -10,6 +10,8 @@
 - Both non-interactive and interactive simulation interfaces are now provided through the unified struct `Simulator`.
     - For more details, see [FSimBase.jl](https://github.com/JinraeKim/FSimBase.jl).
     - `sim` is deprecated; renamed as `solve`.
+- A related package for ROS2 has been released: [FSimROS.jl](https://github.com/JinraeKim/FSimROS.jl).
+    - with very few number of tests though.
 
 
 ## APIs
@@ -278,8 +280,7 @@ see `test/environments/integrated_environments/backstepping_position_controller_
 ![Alt Text](./test/figures/anim.gif)
 
 ## Examples with ROS2
-###
-WIP; see `test/ros2`.
+See [FSimROS.jl](https://github.com/JinraeKim/FSimROS.jl).
 
 
 ## Related packages
