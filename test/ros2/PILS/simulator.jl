@@ -27,6 +27,7 @@ geoMsg = pyimport("geometry_msgs.msg")
         self.state = ones(3)
         self.control = zeros(3)  # TODO: change
         function listener_callback(self, msg_control)
+            self.control = [msg_control.x, msg_control.y, msg_control.z]
             # self.control = np.array(msg_control.data)
             # self.get_logger().info("I heard: $(msg.data)")
         end
