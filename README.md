@@ -12,6 +12,7 @@
     - `sim` is deprecated; renamed as `solve`.
 - A related package for ROS2 has been released: [FSimROS.jl](https://github.com/JinraeKim/FSimROS.jl).
     - with very few number of tests though.
+    - default setting: not exported from FlightSims.jl.
 
 
 ## APIs
