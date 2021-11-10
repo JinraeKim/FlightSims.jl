@@ -19,7 +19,7 @@ geoMsg = pyimport("geometry_msgs.msg")
             self.publisher_.publish(msg_state)
             self.get_logger().info("state: $(self.state)")
             if self.control != nothing
-                self.state += -0.1*self.state
+                self.state += self.control
             end
         end
         self.timer = self.create_timer(timer_period, () -> timer_callback(self))
