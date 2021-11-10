@@ -10,7 +10,7 @@ geoMsg = pyimport("geometry_msgs.msg")
         rosNode.Node.__init__(self, "state_node")
         # publisher
         self.publisher_ = self.create_publisher(geoMsg.Point, "state", 10)
-        timer_period = 0.5
+        timer_period = 0.1
         function timer_callback(self)
             msg_state = geoMsg.Point()
             msg_state.x = self.state[1]
