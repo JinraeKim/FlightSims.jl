@@ -20,6 +20,7 @@ geoMsg = pyimport("geometry_msgs.msg")
                 msg_control.z = self.control[3]
                 self.publisher_.publish(msg_control)
                 self.get_logger().info("control: $(self.control)")
+            end
         end
         self.timer = self.create_timer(timer_period, () -> timer_callback(self))
         # subscriber
