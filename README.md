@@ -264,6 +264,7 @@ end
 ### Multicopter position control
 - For an example of **backstepping position tracking controller for quadcopters**,
 see `test/environments/integrated_environments/backstepping_position_controller_static_allocator_multicopter_env.jl`.
+
 ![ex_screenshot](./test/figures/multicopter_position_control.png)
 
 ## Visualisation
