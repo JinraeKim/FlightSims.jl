@@ -179,12 +179,7 @@ julia> main()
                                    992 rows omitted
 ```
 
-<<<<<<< HEAD
-![ex_screenshot](./test/figures/x_lqr.png)
-![ex_screenshot](./test/figures/u_lqr.png)
-=======
-![ex_screenshot](./figures/lqr.png)
->>>>>>> 7dd452c (wip)
+![ex_screenshot](./test/figures/lqr.png)
 
 ### Linear system with zero-order-hold (ZOH) input
 - Note that this example utilises interactive simulation interface. See `test/environments/integrated_environments/linear_system_zoh_input.jl`.
@@ -264,12 +259,12 @@ end
     main()
 end
 ```
-![ex_screenshot](./figures/interactive_sim.png)
+![ex_screenshot](./test/figures/interactive_sim.png)
 
 ### Multicopter position control
 - For an example of **backstepping position tracking controller for quadcopters**,
 see `test/environments/integrated_environments/backstepping_position_controller_static_allocator_multicopter_env.jl`.
-![ex_screenshot](./figures/multicopter_position_control.png)
+![ex_screenshot](./test/figures/multicopter_position_control.png)
 
 ## Visualisation
 ### Missile guidance with interactive visualisation
@@ -285,6 +280,8 @@ see `test/environments/integrated_environments/backstepping_position_controller_
 ## Examples with ROS2
 See [FSimROS.jl](https://github.com/JinraeKim/FSimROS.jl).
 
+![Alt Text](./test/figures/ros.gif)
+
 
 ## Related packages
 ### FSim family
@@ -294,6 +291,8 @@ the lightweight base package for numerical simulation supporting nested dynamica
 contains predefined environments and controllers for FlightSims.jl.
 - [FSimPlots.jl](https://github.com/JinraeKim/FSimPlots.jl) is
 the plotting package for predefined environments exported from FlightSims.jl
+- [FSimROS.jl](https://github.com/JinraeKim/FSimROS.jl) is
+a package of FlightSims.jl family for ROS2.
 
 ### Packages using FlightSims.jl
 - [FaultTolerantControl.jl](https://github.com/JinraeKim/FaultTolerantControl.jl):
