@@ -35,6 +35,8 @@ Take a look at [FSimZoo.jl](https://github.com/JinraeKim/FSimZoo.jl).
         - See [FSimPlots.jl](https://github.com/JinraeKim/FSimPlots.jl). Note that FSimPlots.jl is not exported in the default setting to reduce precompilation time.
     <!-- - **Function approximator** -->
     <!--     - (Approximator) `LinearApproximator`, `PolynomialBasis` -->
+    - **ROS2 compatibility**
+        - See [FSimROS.jl](https://github.com/JinraeKim/FSimROS.jl). Note that FSimROS.jl is not exported in the default setting.
 
 
 # Examples
