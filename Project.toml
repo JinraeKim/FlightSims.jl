@@ -1,7 +1,7 @@
 name = "FlightSims"
 uuid = "a4c2f6ca-3fbe-4430-8ede-32935de4c069"
 authors = ["JinraeKim <kjl950403@gmail.com> and contributors"]
-version = "1.0.0"
+version = "1.0.1"
 
 [deps]
 FSimBase = "731e945d-f3ed-49a1-bee2-3998705ef155"
@@ -13,7 +13,7 @@ UnPack = "3a884ed6-31ef-47d7-9d2a-63182c4928ed"
 [compat]
 FSimBase = "0.2"
 FSimZoo = "0.3"
-OrdinaryDiffEq = "5.71"
+OrdinaryDiffEq = "6.0"
 Reexport = "1.2"
 UnPack = "1.0"
 julia = "1"
