@@ -13,10 +13,10 @@ UnPack = "3a884ed6-31ef-47d7-9d2a-63182c4928ed"
 [compat]
 FSimBase = "0.2"
 FSimZoo = "0.3"
-OrdinaryDiffEq = "6.0"
+OrdinaryDiffEq = "6.40"
 Reexport = "1.2"
 UnPack = "1.0"
-julia = "1"
+julia = "1.6"
 
 [extras]
 DifferentialEquations = "0c46a032-eb83-5123-abaf-570d42b7fbaa"
