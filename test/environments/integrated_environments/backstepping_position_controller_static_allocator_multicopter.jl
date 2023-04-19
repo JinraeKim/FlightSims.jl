@@ -37,7 +37,7 @@ function main()
     # plot
     fig = plot(; legend=:topleft)
     plot_figures!(fig, df, pos_cmd_func)
-    savefig("figures/multicopter_position_control.png")
+    # savefig("figures/multicopter_position_control.png")
     display(fig)
 end
 
