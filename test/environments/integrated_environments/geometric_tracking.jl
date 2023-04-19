@@ -17,12 +17,6 @@ function main(; Δt=0.05, tf=1.0)
     multicopter = LeeQuadcopter()
     (; m, g, J) = multicopter
     X0_multicopter = State(multicopter)()
-    # k_p = 5e-0
-    # k_v = 5e-0
-    # k_R = deg2rad(5e-0)
-    # k_ω = deg2rad(5e-0)
-    # τ_v, τ_a = 1e-2, 1e-2
-    # controller = GeometricTrackingController(k_p=k_p, k_v=k_v, k_R=k_R, k_ω=k_ω, τ_v=τ_v, τ_a=τ_a)
     controller = GeometricTrackingController()
     X0_controller = State(controller)()
     X0 = ComponentArray(multicopter=X0_multicopter, controller=X0_controller)
@@ -39,8 +33,6 @@ function main(; Δt=0.05, tf=1.0)
 
     @Loggable function dynamics!(dX, X, params, t)
         (; p, v, R, ω) = X.multicopter
-        # a = (v - X.controller.v) / controller.τ_v
-        # a_dot = (a - X.controller.a) / controller.τ_a
         a = controller.ω_n_v*X.controller.z2_v
         a_dot = controller.ω_n_a*X.controller.z2_a
         ν = Command(
