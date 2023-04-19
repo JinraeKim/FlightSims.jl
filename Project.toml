@@ -1,7 +1,7 @@
 name = "FlightSims"
 uuid = "a4c2f6ca-3fbe-4430-8ede-32935de4c069"
 authors = ["JinraeKim <kjl950403@gmail.com> and contributors"]
-version = "1.0.2"
+version = "1.0.3"
 
 [deps]
 FSimBase = "731e945d-f3ed-49a1-bee2-3998705ef155"
