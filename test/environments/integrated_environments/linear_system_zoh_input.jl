@@ -2,7 +2,6 @@ using FlightSims
 import FlightSims: State, Dynamics!
 using DataFrames
 using ComponentArrays
-using UnPack
 using Transducers
 using Plots
 using SciMLBase

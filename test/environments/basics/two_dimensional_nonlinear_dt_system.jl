@@ -4,7 +4,6 @@ using Plots
 gr()
 using Transducers
 using FSimZoo
-using UnPack
 using Convex, Mosek, MosekTools
 
 
@@ -57,8 +56,8 @@ function main()
     function min_Q_numerical(x)
         u = Convex.Variable(1)
         dx = copy(x)
-        @unpack x1, x2 = x
-        @unpack c, d = env
+        (; x1, x2) = x
+        (; c, d) = env
         x1_next = c*(x1+x2)
         x2_next = c*x2 + u
         # FSimZoo.OptimalValue(env)(State(env)(x1_next, x2_next))
