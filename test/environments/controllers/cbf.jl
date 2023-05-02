@@ -173,9 +173,9 @@ function position_cbf_full_dynamics(; Δt=0.05, tf=1.0)
           label=["u_1" "u_2" "u_3" "u_4"], lc=:blue, ls=[:solid :dash :dot :dashdot],
           legend=:outertopright,
          )
-    plot!(fig, ts, hcat([[1e-2, 1, 1, 1] .* ν for ν in νs]...)';
+    plot!(fig, ts, hcat([[1e-1, 1, 1, 1] .* ν for ν in νs]...)';
           subplot=3,
-          label=["0.01 * f" "M_x" "M_y" "M_z"], lc=:blue, ls=[:solid :dash :dot :dashdot],
+          label=["0.1 * f" "M_x" "M_y" "M_z"], lc=:blue, ls=[:solid :dash :dot :dashdot],
           legend=:outertopright,
          )
     plot!(fig, p_xs, p_ys;
