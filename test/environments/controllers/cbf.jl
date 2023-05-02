@@ -15,7 +15,7 @@ end
 
 
 function position_cbf(; Δt=0.05, tf=1.0)
-    multicopter = LeeQuadcopter()
+    multicopter = GoodarziAgileQuadcopter()
     (; m, g) = multicopter
     X0_multicopter = State(multicopter)()
     controller = OuterLoopGeometricTrackingController()
@@ -84,9 +84,7 @@ end
 
 
 function position_cbf_full_dynamics(; Δt=0.05, tf=1.0)
-    dummy = LeeQuadcopter()
-    (; m, J) = dummy
-    multicopter = LeeQuadcopter(; m=1.0*m, J=0.1*J)  # This is because the default settings of LeeQuadcopter is too "heavy" for agile maneuvers.
+    multicopter = GoodarziAgileQuadcopter()
     (; m, g, J) = multicopter
     ol_controller = OuterLoopGeometricTrackingController()
     il_controller = InnerLoopGeometricTrackingController()
@@ -112,8 +110,8 @@ function position_cbf_full_dynamics(; Δt=0.05, tf=1.0)
     y_c = 1.0
     r = 1.0
     h = p -> (p[1]-x_c)^2 + (p[2]-y_c)^2 - r^2  # >= 0
-    α1 = x -> 5.0*x
-    α2 = x -> 5.0*x
+    α1 = x -> 1.0*x
+    α2 = x -> 1.0*x
     cbf = InputAffinePositionCBF((p, v) -> [0, 0, g], (p, v) -> -(1/m)*I(3), h, α1, α2)
 
     @Loggable function dynamics!(dX, X, params, t)
