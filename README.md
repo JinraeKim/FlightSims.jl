@@ -1,19 +1,6 @@
 # FlightSims
 [FlightSims.jl](https://github.com/JinraeKim/FlightSims.jl) is a general-purpose numerical simulator supporting nested environments and convenient macro-based data logging.
 
-## Road map
-- [x] Add ROS2 example (not urgent)
-
-## NEWS
-- See [NEWS.md](./NEWS.md).
-### !! Breaking changes !!
-- Both non-interactive and interactive simulation interfaces are now provided through the unified struct `Simulator`.
-    - For more details, see [FSimBase.jl](https://github.com/JinraeKim/FSimBase.jl).
-    - `sim` is deprecated; renamed as `solve`.
-- A related package for ROS2 has been released: [FSimROS.jl](https://github.com/JinraeKim/FSimROS.jl).
-    - with very few number of tests though.
-    - default setting: not exported from FlightSims.jl.
-
 
 ## APIs
 Main APIs can be found in [FSimBase.jl](https://github.com/JinraeKim/FSimBase.jl).
@@ -264,8 +251,13 @@ end
 ### Multicopter position control
 - For an example of **backstepping position tracking controller for quadcopters**,
 see `test/environments/integrated_environments/backstepping_position_controller_static_allocator_multicopter_env.jl`.
+See `./test/environments/controllers/geometric_tracking.jl` and `./test/environments/controllers/geometric_tracking_inner_outer.jl` for [the geometric tracking controller](https://ieeexplore.ieee.org/abstract/document/5717652/).
 
 ![ex_screenshot](./test/figures/multicopter_position_control.png)
+
+### Control barrier function (CBF) methods
+For examples of CBF methods, see `./test/environments/controllers/cbf.jl`.
+
 
 ## Visualisation
 ### Missile guidance with interactive visualisation
