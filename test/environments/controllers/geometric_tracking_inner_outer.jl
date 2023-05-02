@@ -202,5 +202,5 @@ end
 @testset "geometric tracking inner outer" begin
     outerloop()
     innerloop()
-    # integrated_inner_outer_loops()  # TODO
+    integrated_inner_outer_loops()
 end
