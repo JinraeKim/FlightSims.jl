@@ -110,7 +110,7 @@ function position_cbf(; Δt=0.005, Δt_save=0.05, tf=1.0)
 end
 
 
-function position_cbf_full_dynamics(; Δt=0.05, tf=1.0)
+function position_cbf_full_dynamics(; Δt=0.005, Δt_save=0.05, tf=1.0)
     multicopter = GoodarziAgileQuadcopter()
     (; m, g, J) = multicopter
     ol_controller = OuterLoopGeometricTrackingController()
@@ -152,19 +152,7 @@ function position_cbf_full_dynamics(; Δt=0.05, tf=1.0)
     @Loggable function dynamics!(dX, X, params, t)
         (; p, v, R, ω) = X.multicopter
         (; z2_f, z2_f_dot) = X.il_controller
-        # outer-loop
-        _b_3_d = Command(
-                         ol_controller, p, v;
-                         p_d=p_d(t),
-                         v_d=v_d(t),
-                         a_d=a_d(t),
-                         m=m, g=g,
-                        )
-        _b_3_d_cvx = Convex.Variable(length(_b_3_d))
-        constraints = [FSimZoo.generate_constraint(cbf, p, v, _b_3_d_cvx) for cbf in cbfs]
-        prob = minimize(sumsquares(_b_3_d_cvx-_b_3_d), constraints)
-        solve!(prob, ECOS.Optimizer; silent_solver=true)
-        _b_3_d = reshape(_b_3_d_cvx.value, size(_b_3_d)...)
+        _b_3_d = params
         # inner-loop
         _b_3_d_dot = il_controller.ω_n_f * z2_f
         _b_3_d_ddot = il_controller.ω_n_f_dot * z2_f_dot
@@ -186,8 +174,31 @@ function position_cbf_full_dynamics(; Δt=0.05, tf=1.0)
         @nested_log :il_controller Dynamics!(il_controller)(dX.il_controller, X.il_controller, params, t; f=_b_3_d)
     end
 
-    simulator = Simulator(X0, dynamics!, []; tf=tf)
-    df = solve(simulator; savestep=Δt)
+    function affect!(integrator)
+        X = copy(integrator.u)
+        t = copy(integrator.t)
+        (; p, v) = X.multicopter
+        # outer-loop
+        _b_3_d = Command(
+                         ol_controller, p, v;
+                         p_d=p_d(t),
+                         v_d=v_d(t),
+                         a_d=a_d(t),
+                         m=m, g=g,
+                        )
+        _b_3_d_cvx = Convex.Variable(length(_b_3_d))
+        constraints = [FSimZoo.generate_constraint(cbf, p, v, _b_3_d_cvx) for cbf in cbfs]
+        prob = minimize(sumsquares(_b_3_d_cvx-_b_3_d), constraints)
+        solve!(prob, ECOS.Optimizer; silent_solver=true)
+        _b_3_d = reshape(_b_3_d_cvx.value, size(_b_3_d)...)
+
+        integrator.p = _b_3_d
+    end
+
+    params0 = [0, 0, m*g]
+    simulator = Simulator(X0, dynamics!, params0, tf=tf)
+    cb = PeriodicCallback(affect!, Δt; initial_affect=true)
+    df = solve(simulator; callback=cb, savestep=Δt_save)
     ts = df.time
     ps = hcat([datum.multicopter.state.p for datum in df.sol]...)'
     p_xs = hcat([datum.multicopter.state.p[1] for datum in df.sol]...)'
