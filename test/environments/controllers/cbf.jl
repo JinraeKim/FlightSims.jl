@@ -6,15 +6,31 @@ using Plots
 using ComponentArrays
 using LinearAlgebra
 using Convex
+using ECOS
+using DiffEqCallbacks
 
 
-function circleShape(h, k, r)
-    θ = LinRange(0, 2*pi, 500)
-    h .+ r*sin.(θ), k .+ r*cos.(θ)
+struct Circle
+    xc
+    yc
+    r
 end
 
 
-function position_cbf(; Δt=0.05, tf=1.0)
+function shape(obs::Circle)
+    (; xc, yc, r) = obs
+    θ = LinRange(0, 2*pi, 500)
+    xc .+ r*sin.(θ), yc .+ r*cos.(θ)
+end
+
+
+function generate_h(obs::Circle)
+    (; xc, yc, r) = obs
+    p -> (p[1]-xc)^2 + (p[2]-yc)^2 - r^2  # >= 0
+end
+
+
+function position_cbf(; Δt=0.005, Δt_save=0.05, tf=1.0)
     multicopter = GoodarziAgileQuadcopter()
     (; m, g) = multicopter
     X0_multicopter = State(multicopter)()
@@ -38,6 +54,20 @@ function position_cbf(; Δt=0.05, tf=1.0)
     @Loggable function dynamics!(dX, X, params, t)
         (; p, v) = X
         e3 = [0, 0, 1]
+        _b_3_d = params
+
+        @onlylog state = X
+        @onlylog input = _b_3_d
+        dX.p = v
+        dX.v = g*e3 - (1/m)*_b_3_d
+    end
+
+    params0 = zeros(3)
+    simulator = Simulator(X0, dynamics!, params0; tf=tf)
+    function affect!(integrator)
+        X = copy(integrator.u)
+        t = copy(integrator.t)
+        (; p, v) = X
         _b_3_d = Command(
                          controller, p, v;
                          p_d=p_d(t),
@@ -47,14 +77,11 @@ function position_cbf(; Δt=0.05, tf=1.0)
                         )
         u = Convex.Variable(length(_b_3_d))
         _b_3_d = Command(cbf, u, p, v, _b_3_d, [])
-        @onlylog state = X
-        @onlylog input = _b_3_d
-        dX.p = v
-        dX.v = g*e3 - (1/m)*_b_3_d
-    end
 
-    simulator = Simulator(X0, dynamics!, []; tf=tf)
-    df = solve(simulator; savestep=Δt)
+        integrator.p = _b_3_d
+    end
+    cb = PeriodicCallback(affect!, Δt; initial_affect=true)
+    df = solve(simulator; callback=cb, savestep=Δt_save)
     ts = df.time
     ps = hcat([datum.state.p for datum in df.sol]...)'
     p_xs = hcat([datum.state.p[1] for datum in df.sol]...)'
@@ -89,15 +116,21 @@ function position_cbf_full_dynamics(; Δt=0.05, tf=1.0)
     ol_controller = OuterLoopGeometricTrackingController()
     il_controller = InnerLoopGeometricTrackingController()
 
-    X0_multicopter = State(multicopter)()
+    p0 = [-1.5, -1.0, -1.0]
+    X0_multicopter = State(multicopter)(p0)
     X0_il_controller = State(il_controller)()
     X0 = ComponentArray(
                         multicopter=X0_multicopter,
                         il_controller=X0_il_controller,
                        )
 
-    p_d = t -> [0.4*sin(0.5*pi*t), 0.6*cos(0.5*pi*t), 0.4*t]
-    b_1_d = t -> [cos(0.1*pi*t), sin(0.1*pi*t), 0]
+    # p_d = t -> [0.4*sin(0.5*pi*t), 0.6*cos(0.5*pi*t), 0.4*t]
+    # b_1_d = t -> [cos(0.1*pi*t), sin(0.1*pi*t), 0]
+    p_d = function (t)
+        p = [0.2*t - 1.5, 0.02*t^2 + 0.05*t - 1.0, p0[3]]
+        return p
+    end
+    b_1_d = t -> [1, 0, 0]
 
     v_d = t -> ForwardDiff.derivative(p_d, t)
     a_d = t -> ForwardDiff.derivative(v_d, t)
@@ -106,13 +139,15 @@ function position_cbf_full_dynamics(; Δt=0.05, tf=1.0)
     # allocation
     allocator = PseudoInverseAllocator(multicopter.B)
     # CBF
-    x_c = 1.0
-    y_c = 1.0
-    r = 1.0
-    h = p -> (p[1]-x_c)^2 + (p[2]-y_c)^2 - r^2  # >= 0
-    α1 = x -> 1.0*x
-    α2 = x -> 1.0*x
-    cbf = InputAffinePositionCBF((p, v) -> [0, 0, g], (p, v) -> -(1/m)*I(3), h, α1, α2)
+    obstacles = [
+                 Circle(+0.4, +0.6, 0.30),
+                 Circle(-0.3, +0.7, 0.30),
+                 Circle(-0.6, -0.5, 0.25),
+                ]
+    hs = [generate_h(obs) for obs in obstacles]
+    α1 = x -> 2.5*x
+    α2 = x -> 2.5*x
+    cbfs = [InputAffinePositionCBF((p, v) -> [0, 0, g], (p, v) -> -(1/m)*I(3), h, α1, α2) for h in hs]
 
     @Loggable function dynamics!(dX, X, params, t)
         (; p, v, R, ω) = X.multicopter
@@ -125,8 +160,11 @@ function position_cbf_full_dynamics(; Δt=0.05, tf=1.0)
                          a_d=a_d(t),
                          m=m, g=g,
                         )
-        u = Convex.Variable(length(_b_3_d))
-        _b_3_d = Command(cbf, u, p, v, _b_3_d, [])
+        _b_3_d_cvx = Convex.Variable(length(_b_3_d))
+        constraints = [FSimZoo.generate_constraint(cbf, p, v, _b_3_d_cvx) for cbf in cbfs]
+        prob = minimize(sumsquares(_b_3_d_cvx-_b_3_d), constraints)
+        solve!(prob, ECOS.Optimizer; silent_solver=true)
+        _b_3_d = reshape(_b_3_d_cvx.value, size(_b_3_d)...)
         # inner-loop
         _b_3_d_dot = il_controller.ω_n_f * z2_f
         _b_3_d_ddot = il_controller.ω_n_f_dot * z2_f_dot
@@ -156,14 +194,16 @@ function position_cbf_full_dynamics(; Δt=0.05, tf=1.0)
     p_ys = hcat([datum.multicopter.state.p[2] for datum in df.sol]...)'
     u_saturateds = hcat([datum.multicopter.input.u_saturated for datum in df.sol]...)'
     νs = [datum.ν for datum in df.sol]
-    p_refs = hcat([p_d(t) for t in ts]...)'
+    p_refs = [p_d(t) for t in ts]
+    p_ref_xs = [p[1] for p in p_refs]
+    p_ref_ys = [p[2] for p in p_refs]
     fig = plot(layout=(4, 1))
     plot!(fig, ts, ps;
           subplot=1,
           label=["p_x" "p_y" "p_z"], lc=:blue, ls=[:solid :dash :dot],
           legend=:outertopright,
          )
-    plot!(fig, ts, p_refs;
+    plot!(fig, ts, hcat(p_refs...)';
           subplot=1,
           label=["r_x" "r_y" "r_z"], lc=:red, ls=[:solid :dash :dot],
           legend=:outertopright,
@@ -182,10 +222,17 @@ function position_cbf_full_dynamics(; Δt=0.05, tf=1.0)
           subplot=4,
           lc=:blue,
          )
-    plot!(fig, circleShape(x_c, y_c, r);
+    plot!(fig, p_ref_xs, p_ref_ys;
           subplot=4,
-          seriestype=[:shape,], lw=0.5, c=:blue, linecolor=:black, legend=false, fillalpha=0.2, aspect_ratio=1,
+          lc=:red,
+          ls=:dash,
          )
+    for obs in obstacles
+        plot!(fig, shape(obs);
+              subplot=4,
+              seriestype=[:shape,], lw=0.5, c=:blue, linecolor=:black, legend=false, fillalpha=0.2, aspect_ratio=1,
+             )
+    end
     display(fig)
 end
 
