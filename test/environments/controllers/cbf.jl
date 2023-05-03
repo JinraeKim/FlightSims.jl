@@ -205,9 +205,15 @@ function position_cbf_full_dynamics(; Δt=0.005, Δt_save=0.05, tf=1.0)
                          m=m, g=g,
                         )
         _b_3_d_cvx = Convex.Variable(length(_b_3_d))
-        constraints = [FSimZoo.generate_constraint(cbf, p, v, _b_3_d_cvx) for cbf in cbfs]
+        constraints = [FSimZoo.generate_constraint(cbf, p, v, _b_3_d_cvx) for cbf in cbfs]  # TODO: conventional high-order CBF methods
+        # T = 1e-1
+        # _constraints = [FSimZoo._generate_constraint(cbf, p, v) for cbf in cbfs]
+        # u_coeff = vcat([tmp[1] for tmp in _constraints]...)
+        # bias = vcat([tmp[2] for tmp in _constraints]...)
+        # lse_constraint = T*Convex.logsumexp(-(u_coeff*_b_3_d_cvx + bias)/T) <= 0.0
+        # constraints = [lse_constraint]
         prob = minimize(sumsquares(_b_3_d_cvx-_b_3_d), constraints)
-        solve!(prob, ECOS.Optimizer; silent_solver=true)
+        @time solve!(prob, ECOS.Optimizer; silent_solver=true)
         _b_3_d = reshape(_b_3_d_cvx.value, size(_b_3_d)...)
 
         integrator.p = _b_3_d
@@ -226,55 +232,55 @@ function position_cbf_full_dynamics(; Δt=0.005, Δt_save=0.05, tf=1.0)
     p_refs = [p_d(t) for t in ts]
     p_ref_xs = [p[1] for p in p_refs]
     p_ref_ys = [p[2] for p in p_refs]
-    # fig = plot(layout=(4, 1))
-    # plot!(fig, ts, ps;
-    #       subplot=1,
-    #       label=["p_x" "p_y" "p_z"], lc=:blue, ls=[:solid :dash :dot],
-    #       legend=:outertopright,
-    #      )
-    # plot!(fig, ts, hcat(p_refs...)';
-    #       subplot=1,
-    #       label=["r_x" "r_y" "r_z"], lc=:red, ls=[:solid :dash :dot],
-    #       legend=:outertopright,
-    #      )
-    # plot!(fig, ts, u_saturateds;
-    #       subplot=2,
-    #       label=["u_1" "u_2" "u_3" "u_4"], lc=:blue, ls=[:solid :dash :dot :dashdot],
-    #       legend=:outertopright,
-    #      )
-    # plot!(fig, ts, hcat([[1e-1, 1, 1, 1] .* ν for ν in νs]...)';
-    #       subplot=3,
-    #       label=["0.1 * f" "M_x" "M_y" "M_z"], lc=:blue, ls=[:solid :dash :dot :dashdot],
-    #       legend=:outertopright,
-    #      )
-    # plot!(fig, p_xs, p_ys;
-    #       subplot=4,
-    #       lc=:blue,
-    #      )
-    # plot!(fig, p_ref_xs, p_ref_ys;
-    #       subplot=4,
-    #       lc=:red,
-    #       ls=:dash,
-    #      )
-    # for obs in obstacles
-    #     plot!(fig, shape(obs);
-    #           subplot=4,
-    #           seriestype=[:shape,], lw=0.5, c=:blue, linecolor=:black, legend=false, fillalpha=0.2, aspect_ratio=1,
-    #          )
-    # end
-    fig = plot()
+    fig = plot(layout=(4, 1))
+    plot!(fig, ts, ps;
+          subplot=1,
+          label=["p_x" "p_y" "p_z"], lc=:blue, ls=[:solid :dash :dot],
+          legend=:outertopright,
+         )
+    plot!(fig, ts, hcat(p_refs...)';
+          subplot=1,
+          label=["r_x" "r_y" "r_z"], lc=:red, ls=[:solid :dash :dot],
+          legend=:outertopright,
+         )
+    plot!(fig, ts, u_saturateds;
+          subplot=2,
+          label=["u_1" "u_2" "u_3" "u_4"], lc=:blue, ls=[:solid :dash :dot :dashdot],
+          legend=:outertopright,
+         )
+    plot!(fig, ts, hcat([[1e-1, 1, 1, 1] .* ν for ν in νs]...)';
+          subplot=3,
+          label=["0.1 * f" "M_x" "M_y" "M_z"], lc=:blue, ls=[:solid :dash :dot :dashdot],
+          legend=:outertopright,
+         )
     plot!(fig, p_xs, p_ys;
+          subplot=4,
           lc=:blue,
          )
     plot!(fig, p_ref_xs, p_ref_ys;
+          subplot=4,
           lc=:red,
           ls=:dash,
          )
     for obs in obstacles
         plot!(fig, shape(obs);
+              subplot=4,
               seriestype=[:shape,], lw=0.5, c=:blue, linecolor=:black, legend=false, fillalpha=0.2, aspect_ratio=1,
              )
     end
+    # fig = plot()
+    # plot!(fig, p_xs, p_ys;
+    #       lc=:blue,
+    #      )
+    # plot!(fig, p_ref_xs, p_ref_ys;
+    #       lc=:red,
+    #       ls=:dash,
+    #      )
+    # for obs in obstacles
+    #     plot!(fig, shape(obs);
+    #           seriestype=[:shape,], lw=0.5, c=:blue, linecolor=:black, legend=false, fillalpha=0.2, aspect_ratio=1,
+    #          )
+    # end
     display(fig)
 end
 
