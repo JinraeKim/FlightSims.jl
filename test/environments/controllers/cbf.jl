@@ -10,6 +10,13 @@ using ECOS
 using DiffEqCallbacks
 
 
+struct Ellipse
+    xc
+    yc
+    a
+    b
+end
+
 struct Circle
     xc
     yc
@@ -17,12 +24,23 @@ struct Circle
 end
 
 
+function shape(obs::Ellipse)
+    (; xc, yc, a, b) = obs
+    θ = LinRange(0, 2*pi, 250)
+    xc .+ a*sin.(θ), yc .+ b*cos.(θ)
+end
+
 function shape(obs::Circle)
     (; xc, yc, r) = obs
     θ = LinRange(0, 2*pi, 500)
     xc .+ r*sin.(θ), yc .+ r*cos.(θ)
 end
 
+
+function generate_h(obs::Ellipse)
+    (; xc, yc, a, b) = obs
+    p -> ((p[1]-xc)/a)^2 + ((p[2]-yc)/b)^2 - 1.0^2  # >= 0
+end
 
 function generate_h(obs::Circle)
     (; xc, yc, r) = obs
@@ -141,7 +159,7 @@ function position_cbf_full_dynamics(; Δt=0.005, Δt_save=0.05, tf=1.0)
     # CBF
     obstacles = [
                  Circle(+0.4, +0.6, 0.30),
-                 Circle(-0.3, +0.7, 0.30),
+                 Ellipse(-0.4, +0.7, 0.40, 0.30),
                  Circle(-0.6, -0.5, 0.25),
                 ]
     hs = [generate_h(obs) for obs in obstacles]
