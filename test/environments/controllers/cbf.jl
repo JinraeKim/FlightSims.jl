@@ -61,10 +61,8 @@ function position_cbf(; Δt=0.005, Δt_save=0.05, tf=1.0)
     v_d = t -> ForwardDiff.derivative(p_d, t)
     a_d = t -> ForwardDiff.derivative(v_d, t)
 
-    x_c = 1.0
-    y_c = 1.0
-    r = 1.0
-    h = p -> (p[1]-x_c)^2 + (p[2]-y_c)^2 - r^2  # >= 0
+    obstacle = Circle(1.0, 1.0, 1.0)
+    h = generate_h(obstacle)
     α1 = x -> 5*x
     α2 = x -> 5*x
     cbf = InputAffinePositionCBF((p, v) -> [0, 0, g], (p, v) -> -(1/m)*I(3), h, α1, α2)
@@ -101,10 +99,10 @@ function position_cbf(; Δt=0.005, Δt_save=0.05, tf=1.0)
     cb = PeriodicCallback(affect!, Δt; initial_affect=true)
     df = solve(simulator; callback=cb, savestep=Δt_save)
     ts = df.time
-    ps = hcat([datum.state.p for datum in df.sol]...)'
-    p_xs = hcat([datum.state.p[1] for datum in df.sol]...)'
-    p_ys = hcat([datum.state.p[2] for datum in df.sol]...)'
-    Fs = hcat([datum.input for datum in df.sol]...)'
+    ps = hcat([datum.state.p for datum in df_sol]...)'
+    p_xs = hcat([datum.state.p[1] for datum in df_sol]...)'
+    p_ys = hcat([datum.state.p[2] for datum in df_sol]...)'
+    Fs = hcat([datum.input for datum in df_sol]...)'
     p_refs = hcat([p_d(t) for t in ts]...)'
     fig = plot(layout=(3, 1))
     plot!(fig, ts, ps;
@@ -120,7 +118,7 @@ function position_cbf(; Δt=0.005, Δt_save=0.05, tf=1.0)
           subplot=3,
           lc=:blue,
          )
-    plot!(fig, circleShape(x_c, y_c, r);
+    plot!(fig, shape(obstacle);
           subplot=3,
           seriestype=[:shape,], lw=0.5, c=:blue, linecolor=:black, legend=false, fillalpha=0.2, aspect_ratio=1,
          )
@@ -128,7 +126,7 @@ function position_cbf(; Δt=0.005, Δt_save=0.05, tf=1.0)
 end
 
 
-function position_cbf_full_dynamics(; Δt=0.005, Δt_save=0.05, tf=1.0)
+function position_cbf_full_dynamics(; Δt=0.005, amp_for_plot=10, tf=1.0)
     multicopter = GoodarziAgileQuadcopter()
     (; m, g, J) = multicopter
     ol_controller = OuterLoopGeometricTrackingController()
@@ -159,8 +157,25 @@ function position_cbf_full_dynamics(; Δt=0.005, Δt_save=0.05, tf=1.0)
     # CBF
     obstacles = [
                  Circle(+0.9, +0.6, 0.30),
-                 Ellipse(+0.0, +0.7, 0.50, 0.30),
+                 # Circle(+0.8, +0.6, 0.10),
+                 # Circle(+1.0, +0.6, 0.10),
+                 # Circle(+0.9, +0.7, 0.10),
+                 # Circle(+0.9, +0.5, 0.10),
+                 Ellipse(+0.0, +0.7, 0.40, 0.30),
+                 # Ellipse(-0.1, +0.7, 0.10, 0.10),
+                 # Ellipse(+0.1, +0.7, 0.10, 0.10),
+                 # Ellipse(+0.0, +0.6, 0.10, 0.10),
+                 # Ellipse(+0.0, +0.8, 0.10, 0.10),
+                 # Ellipse(+0.2, +0.7, 0.10, 0.10),
+                 # Ellipse(+0.3, +0.7, 0.10, 0.10),
+                 # Ellipse(+0.4, +0.7, 0.10, 0.10),
+                 # Ellipse(+0.3, +0.6, 0.10, 0.10),
+                 # Ellipse(+0.3, +0.8, 0.10, 0.10),
                  Circle(-0.1, -0.5, 0.25),
+                 # Circle(-0.0, -0.5, 0.10),
+                 # Circle(-0.2, -0.5, 0.10),
+                 # Circle(-0.1, -0.6, 0.10),
+                 # Circle(-0.1, -0.4, 0.10),
                 ]
     hs = [generate_h(obs) for obs in obstacles]
     α1 = x -> 2.0*x
@@ -188,6 +203,7 @@ function position_cbf_full_dynamics(; Δt=0.005, Δt_save=0.05, tf=1.0)
         u = Command(allocator)(ν)
         @nested_log :multicopter FSimZoo._Dynamics!(multicopter)(dX.multicopter, X.multicopter, params, t; u=u)
         @log ν
+        @log _b_3_d
         # @nested_log :multicopter FSimZoo.__Dynamics!(multicopter)(dX.multicopter, X.multicopter, params, t; f=ν[1], M=ν[2:4])
         @nested_log :il_controller Dynamics!(il_controller)(dX.il_controller, X.il_controller, params, t; f=_b_3_d)
     end
@@ -212,6 +228,7 @@ function position_cbf_full_dynamics(; Δt=0.005, Δt_save=0.05, tf=1.0)
         # bias = vcat([tmp[2] for tmp in _constraints]...)
         # lse_constraint = T*Convex.logsumexp(-(u_coeff*_b_3_d_cvx + bias)/T) <= 0.0
         # constraints = [lse_constraint]
+
         prob = minimize(sumsquares(_b_3_d_cvx-_b_3_d), constraints)
         @time solve!(prob, ECOS.Optimizer; silent_solver=true)
         _b_3_d = reshape(_b_3_d_cvx.value, size(_b_3_d)...)
@@ -222,13 +239,15 @@ function position_cbf_full_dynamics(; Δt=0.005, Δt_save=0.05, tf=1.0)
     params0 = [0, 0, m*g]
     simulator = Simulator(X0, dynamics!, params0, tf=tf)
     cb = PeriodicCallback(affect!, Δt; initial_affect=true)
-    df = @time solve(simulator; callback=cb, savestep=Δt_save)
-    ts = df.time
-    ps = hcat([datum.multicopter.state.p for datum in df.sol]...)'
-    p_xs = hcat([datum.multicopter.state.p[1] for datum in df.sol]...)'
-    p_ys = hcat([datum.multicopter.state.p[2] for datum in df.sol]...)'
-    u_saturateds = hcat([datum.multicopter.input.u_saturated for datum in df.sol]...)'
-    νs = [datum.ν for datum in df.sol]
+    df = @time solve(simulator; callback=cb, savestep=Δt)
+    df_time = df.time[1:amp_for_plot:end]
+    df_sol = df.sol[1:amp_for_plot:end]
+    ts = df_time
+    ps = hcat([datum.multicopter.state.p for datum in df_sol]...)'
+    p_xs = hcat([datum.multicopter.state.p[1] for datum in df_sol]...)'
+    p_ys = hcat([datum.multicopter.state.p[2] for datum in df_sol]...)'
+    u_saturateds = hcat([datum.multicopter.input.u_saturated for datum in df_sol]...)'
+    νs = [datum.ν for datum in df_sol]
     p_refs = [p_d(t) for t in ts]
     p_ref_xs = [p[1] for p in p_refs]
     p_ref_ys = [p[2] for p in p_refs]
