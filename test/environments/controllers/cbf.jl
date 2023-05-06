@@ -8,6 +8,7 @@ using LinearAlgebra
 using Convex
 using ECOS
 using DiffEqCallbacks
+using Flux
 
 
 struct Ellipse
@@ -44,11 +45,11 @@ end
 
 function generate_h(obs::Circle)
     (; xc, yc, r) = obs
-    p -> (p[1]-xc)^2 + (p[2]-yc)^2 - r^2  # >= 0
+    p -> ((p[1]-xc)/r)^2 + ((p[2]-yc)/r)^2 - 1.0^2  # >= 0
 end
 
 
-function position_cbf(; Δt=0.005, Δt_save=0.05, tf=1.0)
+function position_cbf(; Δt=0.01, Δt_save=0.05, tf=1.0)
     multicopter = GoodarziAgileQuadcopter()
     (; m, g) = multicopter
     X0_multicopter = State(multicopter)()
@@ -99,10 +100,10 @@ function position_cbf(; Δt=0.005, Δt_save=0.05, tf=1.0)
     cb = PeriodicCallback(affect!, Δt; initial_affect=true)
     df = solve(simulator; callback=cb, savestep=Δt_save)
     ts = df.time
-    ps = hcat([datum.state.p for datum in df_sol]...)'
-    p_xs = hcat([datum.state.p[1] for datum in df_sol]...)'
-    p_ys = hcat([datum.state.p[2] for datum in df_sol]...)'
-    Fs = hcat([datum.input for datum in df_sol]...)'
+    ps = hcat([datum.state.p for datum in df.sol]...)'
+    p_xs = hcat([datum.state.p[1] for datum in df.sol]...)'
+    p_ys = hcat([datum.state.p[2] for datum in df.sol]...)'
+    Fs = hcat([datum.input for datum in df.sol]...)'
     p_refs = hcat([p_d(t) for t in ts]...)'
     fig = plot(layout=(3, 1))
     plot!(fig, ts, ps;
@@ -126,11 +127,11 @@ function position_cbf(; Δt=0.005, Δt_save=0.05, tf=1.0)
 end
 
 
-function position_cbf_full_dynamics(; Δt=0.005, amp_for_plot=10, tf=1.0)
+function position_cbf_full_dynamics(; Δt=0.01, amp_for_plot=10, tf=1.0, func_type=:pma, T=1e-1,)
     multicopter = GoodarziAgileQuadcopter()
     (; m, g, J) = multicopter
-    ol_controller = OuterLoopGeometricTrackingController()
-    il_controller = InnerLoopGeometricTrackingController()
+    ol_controller = OuterLoopGeometricTrackingController(k_p=6.0, k_v=3.0)  # from paper
+    il_controller = InnerLoopGeometricTrackingController(k_R=0.7, k_ω=0.12)  # from paper
 
     p0 = [-1.0, -1.0, -1.0]
     X0_multicopter = State(multicopter)(p0)
@@ -145,7 +146,7 @@ function position_cbf_full_dynamics(; Δt=0.005, amp_for_plot=10, tf=1.0)
     p_d = function (t)
         p = [0.2*t - 1.0, 0.02*t^2 + 0.05*t - 1.0, p0[3]]
         return p
-    end
+    end  # for tf = 10
     b_1_d = t -> [1, 0, 0]
 
     v_d = t -> ForwardDiff.derivative(p_d, t)
@@ -156,30 +157,30 @@ function position_cbf_full_dynamics(; Δt=0.005, amp_for_plot=10, tf=1.0)
     allocator = PseudoInverseAllocator(multicopter.B)
     # CBF
     obstacles = [
-                 Circle(+0.9, +0.6, 0.30),
-                 # Circle(+0.8, +0.6, 0.10),
-                 # Circle(+1.0, +0.6, 0.10),
-                 # Circle(+0.9, +0.7, 0.10),
-                 # Circle(+0.9, +0.5, 0.10),
-                 Ellipse(+0.0, +0.7, 0.40, 0.30),
-                 # Ellipse(-0.1, +0.7, 0.10, 0.10),
-                 # Ellipse(+0.1, +0.7, 0.10, 0.10),
-                 # Ellipse(+0.0, +0.6, 0.10, 0.10),
-                 # Ellipse(+0.0, +0.8, 0.10, 0.10),
-                 # Ellipse(+0.2, +0.7, 0.10, 0.10),
-                 # Ellipse(+0.3, +0.7, 0.10, 0.10),
-                 # Ellipse(+0.4, +0.7, 0.10, 0.10),
-                 # Ellipse(+0.3, +0.6, 0.10, 0.10),
-                 # Ellipse(+0.3, +0.8, 0.10, 0.10),
-                 Circle(-0.1, -0.5, 0.25),
-                 # Circle(-0.0, -0.5, 0.10),
-                 # Circle(-0.2, -0.5, 0.10),
+                 Circle(+0.8, +0.2, 0.30),
+                 # Circle(+0.8, +0.6, 0.15),
+                 # Circle(+1.0, +0.6, 0.15),
+                 # Circle(+0.9, +0.7, 0.15),
+                 # Circle(+0.9, +0.5, 0.15),
+                 Ellipse(+0.0, +0.4, 0.45, 0.30),
+                 # Ellipse(-0.1, +0.7, 0.15, 0.15),
+                 # Ellipse(+0.1, +0.7, 0.15, 0.15),
+                 # Ellipse(+0.0, +0.6, 0.15, 0.15),
+                 # Ellipse(+0.0, +0.8, 0.15, 0.15),
+                 # Ellipse(+0.2, +0.7, 0.15, 0.15),
+                 # Ellipse(+0.3, +0.7, 0.15, 0.15),
+                 # Ellipse(+0.4, +0.7, 0.15, 0.15),
+                 # Ellipse(+0.3, +0.6, 0.15, 0.15),
+                 # Ellipse(+0.3, +0.8, 0.15, 0.15),
+                 # Circle(-0.1, -0.5, 0.25),
+                 Circle(-0.0, -0.5, 0.10),
+                 Circle(-0.2, -0.5, 0.10),
                  # Circle(-0.1, -0.6, 0.10),
-                 # Circle(-0.1, -0.4, 0.10),
+                 Circle(-0.1, -0.4, 0.10),
                 ]
     hs = [generate_h(obs) for obs in obstacles]
     α1 = x -> 2.0*x
-    α2 = x -> 10.0*x
+    α2 = x -> 5.0*x
     cbfs = [InputAffinePositionCBF((p, v) -> [0, 0, g], (p, v) -> -(1/m)*I(3), h, α1, α2) for h in hs]
 
     @Loggable function dynamics!(dX, X, params, t)
@@ -221,13 +222,15 @@ function position_cbf_full_dynamics(; Δt=0.005, amp_for_plot=10, tf=1.0)
                          m=m, g=g,
                         )
         _b_3_d_cvx = Convex.Variable(length(_b_3_d))
-        constraints = [FSimZoo.generate_constraint(cbf, p, v, _b_3_d_cvx) for cbf in cbfs]  # TODO: conventional high-order CBF methods
-        # T = 1e-1
-        # _constraints = [FSimZoo._generate_constraint(cbf, p, v) for cbf in cbfs]
-        # u_coeff = vcat([tmp[1] for tmp in _constraints]...)
-        # bias = vcat([tmp[2] for tmp in _constraints]...)
-        # lse_constraint = T*Convex.logsumexp(-(u_coeff*_b_3_d_cvx + bias)/T) <= 0.0
-        # constraints = [lse_constraint]
+        if func_type == :pma
+            constraints = [FSimZoo.generate_constraint(cbf, p, v, _b_3_d_cvx) for cbf in cbfs]  # TODO: conventional high-order CBF methods
+        elseif func_type == :plse
+            _constraints = [FSimZoo._generate_constraint(cbf, p, v) for cbf in cbfs]
+            u_coeff = vcat([tmp[1] for tmp in _constraints]...)
+            bias = vcat([tmp[2] for tmp in _constraints]...)
+            lse_constraint = T*Convex.logsumexp(-(u_coeff*_b_3_d_cvx + bias)/T) <= 0.0
+            constraints = [lse_constraint]
+        end
 
         prob = minimize(sumsquares(_b_3_d_cvx-_b_3_d), constraints)
         @time solve!(prob, ECOS.Optimizer; silent_solver=true)
