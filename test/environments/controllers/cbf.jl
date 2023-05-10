@@ -8,7 +8,6 @@ using LinearAlgebra
 using Convex
 using ECOS
 using DiffEqCallbacks
-using Flux
 
 
 struct Ellipse
@@ -127,13 +126,24 @@ function position_cbf(; Δt=0.01, Δt_save=0.05, tf=1.0)
 end
 
 
-function position_cbf_full_dynamics(; Δt=0.01, amp_for_plot=10, tf=1.0, func_type=:pma, T=1e-1,)
-    multicopter = GoodarziAgileQuadcopter()
+"""
+# Refs
+[1] M. Faessler, A. Franchi, and D. Scaramuzza, “Differential Flatness of Quadrotor Dynamics Subject to Rotor Drag for Accurate Tracking of High-Speed Trajectories,” IEEE Robot. Autom. Lett., vol. 3, no. 2, pp. 620–626, Apr. 2018, doi: 10.1109/LRA.2017.2776353.
+"""
+function position_cbf_full_dynamics(;
+        Δt=0.01, amp_for_plot=10,
+        tf=1.0,
+        # tf=15.0,
+        func_type=:pma, T=1e-1,
+        D=diagm([0.25, 0.50, 0]),
+        # D=diagm(zeros(3)),
+    )
+    multicopter = GoodarziAgileQuadcopter(D=D)
     (; m, g, J) = multicopter
-    ol_controller = OuterLoopGeometricTrackingController(k_p=6.0, k_v=3.0)  # from paper
-    il_controller = InnerLoopGeometricTrackingController(k_R=0.7, k_ω=0.12)  # from paper
+    ol_controller = OuterLoopGeometricTrackingController(k_p=3.0, k_v=3.0)
+    il_controller = InnerLoopGeometricTrackingController(k_R=0.7, k_ω=0.12)
 
-    p0 = [-1.0, -1.0, -1.0]
+    p0 = [-0.0, -0.0, -1.0]
     X0_multicopter = State(multicopter)(p0)
     X0_il_controller = State(il_controller)()
     X0 = ComponentArray(
@@ -144,10 +154,12 @@ function position_cbf_full_dynamics(; Δt=0.01, amp_for_plot=10, tf=1.0, func_ty
     # p_d = t -> [0.4*sin(0.5*pi*t), 0.6*cos(0.5*pi*t), 0.4*t]
     # b_1_d = t -> [cos(0.1*pi*t), sin(0.1*pi*t), 0]
     p_d = function (t)
-        p = [0.2*t - 1.0, 0.02*t^2 + 0.05*t - 1.0, p0[3]]
+        # p = [0.2*t, 0.02*t^2 + 0.05*t, p0[3]]
+        p = [3-3*cos(0.5*t), 3*sin(0.5*t), p0[3]]
         return p
     end  # for tf = 10
     b_1_d = t -> [1, 0, 0]
+    # b_1_d = t -> [cos(t), sin(t), 0]
 
     v_d = t -> ForwardDiff.derivative(p_d, t)
     a_d = t -> ForwardDiff.derivative(v_d, t)
@@ -157,30 +169,14 @@ function position_cbf_full_dynamics(; Δt=0.01, amp_for_plot=10, tf=1.0, func_ty
     allocator = PseudoInverseAllocator(multicopter.B)
     # CBF
     obstacles = [
-                 Circle(+0.8, +0.2, 0.30),
-                 # Circle(+0.8, +0.6, 0.15),
-                 # Circle(+1.0, +0.6, 0.15),
-                 # Circle(+0.9, +0.7, 0.15),
-                 # Circle(+0.9, +0.5, 0.15),
-                 Ellipse(+0.0, +0.4, 0.45, 0.30),
-                 # Ellipse(-0.1, +0.7, 0.15, 0.15),
-                 # Ellipse(+0.1, +0.7, 0.15, 0.15),
-                 # Ellipse(+0.0, +0.6, 0.15, 0.15),
-                 # Ellipse(+0.0, +0.8, 0.15, 0.15),
-                 # Ellipse(+0.2, +0.7, 0.15, 0.15),
-                 # Ellipse(+0.3, +0.7, 0.15, 0.15),
-                 # Ellipse(+0.4, +0.7, 0.15, 0.15),
-                 # Ellipse(+0.3, +0.6, 0.15, 0.15),
-                 # Ellipse(+0.3, +0.8, 0.15, 0.15),
+                 Ellipse(+3.0, +2.8, 0.50, 0.40),
+                 Ellipse(+2.5, -2.4, 0.50, 0.80),
+                 # Ellipse(+5.0, -3.8, 0.40, 1.00),
                  # Circle(-0.1, -0.5, 0.25),
-                 Circle(-0.0, -0.5, 0.10),
-                 Circle(-0.2, -0.5, 0.10),
-                 # Circle(-0.1, -0.6, 0.10),
-                 Circle(-0.1, -0.4, 0.10),
                 ]
     hs = [generate_h(obs) for obs in obstacles]
-    α1 = x -> 2.0*x
-    α2 = x -> 5.0*x
+    α1 = x -> 5.0*x
+    α2 = x -> 7.5*x
     cbfs = [InputAffinePositionCBF((p, v) -> [0, 0, g], (p, v) -> -(1/m)*I(3), h, α1, α2) for h in hs]
 
     @Loggable function dynamics!(dX, X, params, t)
@@ -232,8 +228,12 @@ function position_cbf_full_dynamics(; Δt=0.01, amp_for_plot=10, tf=1.0, func_ty
             constraints = [lse_constraint]
         end
 
-        prob = minimize(sumsquares(_b_3_d_cvx-_b_3_d), constraints)
-        @time solve!(prob, ECOS.Optimizer; silent_solver=true)
+        if length(constraints) == 0
+            prob = minimize(sumsquares(_b_3_d_cvx-_b_3_d))
+        else
+            prob = minimize(sumsquares(_b_3_d_cvx-_b_3_d), constraints)
+        end
+        solve!(prob, ECOS.Optimizer; silent_solver=true)
         _b_3_d = reshape(_b_3_d_cvx.value, size(_b_3_d)...)
 
         integrator.p = _b_3_d
@@ -246,7 +246,7 @@ function position_cbf_full_dynamics(; Δt=0.01, amp_for_plot=10, tf=1.0, func_ty
     df_time = df.time[1:amp_for_plot:end]
     df_sol = df.sol[1:amp_for_plot:end]
     ts = df_time
-    ps = hcat([datum.multicopter.state.p for datum in df_sol]...)'
+    ps = [datum.multicopter.state.p for datum in df_sol]
     p_xs = hcat([datum.multicopter.state.p[1] for datum in df_sol]...)'
     p_ys = hcat([datum.multicopter.state.p[2] for datum in df_sol]...)'
     u_saturateds = hcat([datum.multicopter.input.u_saturated for datum in df_sol]...)'
@@ -254,8 +254,8 @@ function position_cbf_full_dynamics(; Δt=0.01, amp_for_plot=10, tf=1.0, func_ty
     p_refs = [p_d(t) for t in ts]
     p_ref_xs = [p[1] for p in p_refs]
     p_ref_ys = [p[2] for p in p_refs]
-    fig = plot(layout=(4, 1))
-    plot!(fig, ts, ps;
+    fig = plot(layout=(2, 2))
+    plot!(fig, ts, hcat(ps...)';
           subplot=1,
           label=["p_x" "p_y" "p_z"], lc=:blue, ls=[:solid :dash :dot],
           legend=:outertopright,
@@ -270,24 +270,33 @@ function position_cbf_full_dynamics(; Δt=0.01, amp_for_plot=10, tf=1.0, func_ty
           label=["u_1" "u_2" "u_3" "u_4"], lc=:blue, ls=[:solid :dash :dot :dashdot],
           legend=:outertopright,
          )
-    plot!(fig, ts, hcat([[1e-1, 1, 1, 1] .* ν for ν in νs]...)';
-          subplot=3,
-          label=["0.1 * f" "M_x" "M_y" "M_z"], lc=:blue, ls=[:solid :dash :dot :dashdot],
-          legend=:outertopright,
-         )
+    # plot!(fig, ts, hcat([[1e-1, 1, 1, 1] .* ν for ν in νs]...)';
+    #       subplot=3,
+    #       label=["0.1 * f" "M_x" "M_y" "M_z"], lc=:blue, ls=[:solid :dash :dot :dashdot],
+    #       legend=:outertopright,
+    #      )
+    for (i, h) in enumerate(hs)
+        plot!(fig, ts, [h(p) for p in ps];
+              label="h_$(i)",
+              subplot=3,
+             )
+    end
     plot!(fig, p_xs, p_ys;
           subplot=4,
           lc=:blue,
+          label="",
          )
     plot!(fig, p_ref_xs, p_ref_ys;
           subplot=4,
           lc=:red,
           ls=:dash,
+          label="",
          )
     for obs in obstacles
         plot!(fig, shape(obs);
               subplot=4,
               seriestype=[:shape,], lw=0.5, c=:blue, linecolor=:black, legend=false, fillalpha=0.2, aspect_ratio=1,
+              label="",
              )
     end
     # fig = plot()
