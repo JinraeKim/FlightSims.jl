@@ -6,7 +6,6 @@ version = "1.1.1"
 [deps]
 FSimBase = "731e945d-f3ed-49a1-bee2-3998705ef155"
 FSimZoo = "e2d5807d-1594-43f7-91a6-54c6eef5a9d2"
-MLUtils = "f1d291b0-491e-4a28-83b9-f70985020b54"
 OrdinaryDiffEq = "1dea7af3-3e70-54e6-95c3-0bf5283fa5ed"
 ParametrisedConvexApproximators = "668502ff-1e8f-42bf-95c7-24f1e819f537"
 Reexport = "189a3867-3050-52da-a836-e630ba90ab69"
