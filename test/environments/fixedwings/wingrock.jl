@@ -11,9 +11,9 @@ function main(; Δt=0.01, tf=1.0)
     x10, x20 = 0.3, 0.0
     X0 = State(env)(x10, x20)
 
-    function dynamics!(dX, X, p, t)
+    @Loggable function dynamics!(dX, X, p, t)
         (; x1, x2) = X
-        Dynamics!(env)(dX, X, p, t; u=-(x1+x2))
+        @nested_log Dynamics!(env)(dX, X, p, t; u=-(x1+x2))
     end
     simulator = Simulator(X0, dynamics!, []; tf=tf)
     df = solve(simulator; savestep=Δt)
@@ -27,11 +27,11 @@ function main(; Δt=0.01, tf=1.0)
           label="x1",
          )
     plot!(fig, ts, x2s;
-          subplot=1,
+          subplot=2,
           label="x2",
          )
     plot!(fig, ts, us;
-          subplot=1,
+          subplot=3,
           label="u",
          )
     display(fig)
