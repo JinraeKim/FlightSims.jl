@@ -8,12 +8,21 @@ using LinearAlgebra
 
 function main(; Δt=0.01, tf=1.0)
     env = WingRock()
-    x10, x20 = 0.3, 0.0
+    x10 = 3.0
+    x20 = 3.0
     X0 = State(env)(x10, x20)
 
     @Loggable function dynamics!(dX, X, p, t)
         (; x1, x2) = X
-        @nested_log Dynamics!(env)(dX, X, p, t; u=-(x1+x2))
+        ϕ = [x1, x2, abs(x1)*x2, abs(x2)*x2, x1^3]
+        Δ = env.W_true' * ϕ
+        u = -(x1+x2)-Δ
+        if u < -5
+            u = -5
+        elseif u > 5
+            u = 5
+        end
+        @nested_log Dynamics!(env)(dX, X, p, t; u=u)
     end
     simulator = Simulator(X0, dynamics!, []; tf=tf)
     df = solve(simulator; savestep=Δt)
