@@ -32,11 +32,12 @@ function main(; Δt=0.05, tf=1.0)
     allocator = PseudoInverseAllocator(multicopter.B)
 
     @Loggable function dynamics!(dX, X, params, t)
-        (; p, v, R, ω) = X.multicopter
+        (; p, v, q, ω) = X.multicopter
+        R = quat2dcm(q)
         a = controller.ω_n_v*X.controller.z2_v
         a_dot = controller.ω_n_a*X.controller.z2_a
         ν = Command(
-                    controller, p, v, R', ω;
+                    controller, p, v, R, ω;
                     a=a, a_dot=a_dot,
                     p_d=p_d(t),
                     v_d=v_d(t),
