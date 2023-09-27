@@ -1,7 +1,6 @@
 using FlightSims
 using Test
 using Plots
-using Transducers
 
 function main()
     env = TwoDimensionalNonlinearOscillator()
@@ -15,10 +14,8 @@ function main()
                          )
     df = solve(simulator)
     ts = df.time
-    states = df.sol |> Map(datum -> datum.state) |> collect
-    inputs = df.sol |> Map(datum -> datum.input) |> collect
-    xs = states
-    us = inputs
+    xs = [datum.state for datum in df.sol]
+    us = [datum.input for datum in df.sol]
     fig_x = plot(ts, hcat(xs...)';
                  label=["x1" "x2"],
                  color=[:blue :red],
