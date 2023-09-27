@@ -115,7 +115,8 @@ function position_cbf_full_dynamics(; Δt=0.05, tf=1.0)
     cbf = InputAffinePositionCBF((p, v) -> [0, 0, g], (p, v) -> -(1/m)*I(3), h, α1, α2)
 
     @Loggable function dynamics!(dX, X, params, t)
-        (; p, v, R, ω) = X.multicopter
+        (; p, v, q, ω) = X.multicopter
+        R = quat2dcm(q)
         (; z2_f, z2_f_dot) = X.il_controller
         # outer-loop
         _b_3_d = Command(
@@ -131,7 +132,7 @@ function position_cbf_full_dynamics(; Δt=0.05, tf=1.0)
         _b_3_d_dot = il_controller.ω_n_f * z2_f
         _b_3_d_ddot = il_controller.ω_n_f_dot * z2_f_dot
         ν = Command(
-                    il_controller, R', ω;
+                    il_controller, R, ω;
                     b_1_d=b_1_d(t),
                     b_1_d_dot=b_1_d_dot(t),
                     b_1_d_ddot=b_1_d_ddot(t),
