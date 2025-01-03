@@ -1,3 +1,6 @@
+# Changes in v1.3.0
+- A VTOL aircraft, `LiftCruiseVTOL2D`, and its visualizatoin is added (FSimZoo, FSimPlots).
+
 # Changes in v1.0.0
 - Add `Simulator` interface for both interactive and non-interactive simulation.
 - Add [FSimROS.jl](https://github.com/JinraeKim/FSimROS.jl).
