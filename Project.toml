@@ -12,7 +12,7 @@ Reexport = "189a3867-3050-52da-a836-e630ba90ab69"
 [compat]
 FSimBase = "0.2"
 FSimZoo = "0.12"
-OrdinaryDiffEq = "6.53"
+OrdinaryDiffEq = "6.90"
 Reexport = "1.2"
 julia = "1"
 
