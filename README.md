@@ -183,11 +183,7 @@ julia> main()
 using FlightSims
 import FlightSims: State, Dynamics!
 using DataFrames
-using ComponentArrays
-using UnPack
-using Transducers
 using Plots
-using SciMLBase
 using Test
 
 
@@ -231,12 +227,13 @@ function main()
         if (i-1) % 10 == 0  # update input period
             input .= -sum(state)
         end
-        step_until!(simulator, t, df)
+        step_until!(simulator, t)
+        push!(simulator, df)
     end
     # plot
     ts = df.time
-    states = df.sol |> Map(datum -> datum.state) |> collect
-    inputs = df.sol |> Map(datum -> datum.input) |> collect
+    states = [datum.state for datum in df.sol]
+    inputs = [datum.input for datum in df.sol]
     p_x = plot(ts, hcat(states...)';
                title="state variable", label=["x1" "x2"],
               )
