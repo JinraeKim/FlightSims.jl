@@ -242,7 +242,6 @@ function main()
                linetype=:steppost,  # to plot zero-order-hold input appropriately
               )
     fig = plot(p_x, p_u; layout=(2, 1))
-    savefig("figures/interactive_sim.png")
     display(fig)
 end
 
